@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>IPTV Max - Free Live TV</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --surface: #1a2235;
+      --primary: #3b82f6;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --red: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding-bottom: 30px; -webkit-tap-highlight-color: transparent; }
+    .navbar { background: rgba(11,15,25,0.96); position: sticky; top: 0; z-index: 100; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .brand { font-size: 19px; font-weight: 800; }
+    .brand span { color: var(--primary); }
+    .live { background: var(--red); color: #fff; font-size: 9px; padding: 2px 5px; border-radius: 3px; margin-left: 5px; }
+    .search-box { width: 100%; max-width: 260px; padding: 8px 12px 8px 32px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.1); background: var(--surface); color: #fff; font-size: 13px; outline: none; }
+    .search-wrap { position: relative; }
+    .search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); opacity: 0.5; font-size: 12px; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 12px; }
+    .player-box { background: #000; border-radius: 12px; overflow: hidden; margin-bottom: 14px; }
+    .player-wrap { width: 100%; aspect-ratio: 16/9; background: #000; }
+    video { width: 100%; height: 100%; object-fit: contain; }
+    .now { background: var(--surface); padding: 11px 14px; }
+    .now h2 { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 7px; }
+    .now p { font-size: 12px; color: var(--muted); margin-top: 3px; }
+    .cats { display: flex; gap: 7px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; -webkit-overflow-scrolling: touch; }
+    .cats::-webkit-scrollbar { display: none; }
+    .cat-btn { background: var(--surface); border: 1px solid rgba(255,255,255,0.1); color: var(--muted); padding: 6px 13px; border-radius: 18px; font-size: 12px; white-space: nowrap; cursor: pointer; }
+    .cat-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .title { font-size: 16px; font-weight: 600; margin-bottom: 11px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); gap: 11px; }
+    .card { background: var(--surface); border-radius: 10px; overflow: hidden; cursor: pointer; border: 1px solid rgba(255,255,255,0.06); }
+    .card.active { border-color: var(--primary); }
+    .banner { height: 85px; display: flex; align-items: center; justify-content: center; position: relative; }
+    .banner span { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.92); text-align: center; padding: 0 5px; }
+    .overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.2s; }
+    .card:active .overlay { opacity: 1; }
+    .play { width: 34px; height: 34px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 15px; padding-left: 2px; }
+    .info { padding: 9px; }
+    .name { font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cat { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
+    @media (min-width: 600px) {
+      .grid { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; }
+      .banner { height: 100px; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="brand">IPTV<span>MAX</span><span class="live">LIVE</span></div>
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" class="search-box" placeholder="चैनल खोजें..." onkeyup="filterChannels()">
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="player-box">
+      <div class="player-wrap">
+        <video id="tvPlayer" controls playsinline webkit-playsinline></video>
+      </div>
+      <div class="now">
+        <h2 id="nowPlayingTitle"><span style="color:var(--red)">●</span> चैनल चुनें</h2>
+        <p id="nowPlayingCat">किसी कार्ड पर टैप करें</p>
+      </div>
+    </div>
+
+    <div class="cats">
+      <button class="cat-btn active" onclick="filterByCategory('All')">सभी</button>
+      <button class="cat-btn" onclick="filterByCategory('News')">न्यूज़</button>
+      <button class="cat-btn" onclick="filterByCategory('Bangla')">বাংলা</button>
+      <button class="cat-btn" onclick="filterByCategory('Music')">म्यूजिक</button>
+      <button class="cat-btn" onclick="filterByCategory('Movies')">मूवीज़</button>
+      <button class="cat-btn" onclick="filterByCategory('Entertainment')">मनोरंजन</button>
+      <button class="cat-btn" onclick="filterByCategory('Regional')">रीजनल</button>
+      <button class="cat-btn" onclick="filterByCategory('Bangladesh')">বাংলাদেশ</button>
+    </div>
+
+    <h3 class="title">फ्री FTA चैनल्स</h3>
+    <div class="grid" id="channelGrid"></div>
+  </div>
+
+  <script>
+    const channels = [
+      // ===== Hindi / English News =====
+      { id: 1,  name: "Aaj Tak",           category: "News", url: "https://feeds.intoday.in/aajtak/api/aajtakhd/master.m3u8", color: "linear-gradient(135deg,#dc2626,#7f1d1d)" },
+      { id: 2,  name: "ABP News",          category: "News", url: "https://d2l4ar6y3mrs4k.cloudfront.net/live-streaming/abpnews-livetv/master.m3u8", color: "linear-gradient(135deg,#eab308,#713f12)" },
+      { id: 3,  name: "NDTV India",        category: "News", url: "https://ndtvindiaelemarchana.akamaized.net/hls/live/2003679/ndtvindia/master.m3u8", color: "linear-gradient(135deg,#2563eb,#1e3a8a)" },
+      { id: 4,  name: "India Today",       category: "News", url: "https://d1rc86nwwc9fag.cloudfront.net/vglive-sk-293160/master.m3u8", color: "linear-gradient(135deg,#16a34a,#14532d)" },
+      { id: 5,  name: "Zee News",          category: "News", url: "https://vg-zeefta.akamaized.net/ptnr-yupptv/title-zeenews/v1/master/611d79b11b77e2f571934fd80ca1413453772ac7/8744f9fb-d696-4204-9795-5215ad930c39/main.m3u8", color: "linear-gradient(135deg,#ea580c,#7c2d12)" },
+      { id: 6,  name: "DW News",           category: "News", url: "https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/master.m3u8", color: "linear-gradient(135deg,#0f766e,#134e4a)" },
+      { id: 7,  name: "News 24",           category: "News", url: "https://vidcdn.vidgyor.com/news24-origin/liveabr/playlist.m3u8", color: "linear-gradient(135deg,#dc2626,#991b1b)" },
+      { id: 8,  name: "Republic TV",       category: "News", url: "https://d3qs3d2rkhfqrt.cloudfront.net/out/v1/2e31d831f08640ff92f65003bdc89991/index.m3u8", color: "linear-gradient(135deg,#1e40af,#1e3a8a)" },
+      { id: 9,  name: "Republic Bharat",   category: "News", url: "https://vg-republictvlive.akamaized.net/v1/master/611d79b11b77e2f571934fd80ca1413453772ac7/vglive-sk-275673/main.m3u8", color: "linear-gradient(135deg,#b91c1c,#7f1d1d)" },
+      { id: 10, name: "India TV",          category: "News", url: "https://pl-indiatvnews.akamaized.net/out/v1/db79179b608641ceaa5a4d0dd0dca8da/index.m3u8", color: "linear-gradient(135deg,#f59e0b,#b45309)" },
+      { id: 11, name: "NDTV Profit",       category: "News", url: "https://ndtvprofit.akamaized.net/hls/live/2107404/ndtvprofit/master_1.m3u8", color: "linear-gradient(135deg,#059669,#064e3b)" },
+      { id: 12, name: "News Nation",       category: "News", url: "https://d3qs3d2rkhfqrt.cloudfront.net/out/v1/6cd2f649739a45ca9de1daf81cc7d0f2/index.m3u8", color: "linear-gradient(135deg,#7c3aed,#4c1d95)" },
+      { id: 13, name: "WION",              category: "News", url: "http://vg-zeefta.akamaized.net/ptnr-yupptv/title-wion/v1/master/611d79b11b77e2f571934fd80ca1413453772ac7/20c3c0d9-0256-43fe-bca6-70fdd490b957/main.m3u8", color: "linear-gradient(135deg,#0ea5e9,#0369a1)" },
+      { id: 14, name: "4TV News",          category: "News", url: "https://cdn-4.pishow.tv/live/1007/master.m3u8", color: "linear-gradient(135deg,#ef4444,#b91c1c)" },
+      { id: 15, name: "24 News",           category: "News", url: "https://segment.yuppcdn.net/110322/channel24/playlist.m3u8", color: "linear-gradient(135deg,#f97316,#c2410c)" },
+      { id: 16, name: "99TV",              category: "News", url: "https://cdn-1.pishow.tv/live/1211/master.m3u8", color: "linear-gradient(135deg,#8b5cf6,#6d28d9)" },
+      { id: 17, name: "Sudarshan News",    category: "News", url: "https://ott.livelegitpro.in/sudarshannews/sudarshannews/tracks-v1/index.fmp4.m3u8", color: "linear-gradient(135deg,#dc2626,#7f1d1d)" },
+      { id: 18, name: "Times Now Navbharat", category: "News", url: "https://amg01448-samsungin-tinnavbharat-samsungin-ad-m8.amagi.tv/playlist/amg01448-samsungin-tinnavbharat-samsungin/playlist.m3u8", color: "linear-gradient(135deg,#1d4ed8,#1e3a8a)" },
+
+      // ===== বাংলা News & Entertainment =====
+      { id: 20, name: "ABP Ananda",        category: "Bangla", url: "https://d2l4ar6y3mrs4k.cloudfront.net/live-streaming/ananda-livetv/master.m3u8", color: "linear-gradient(135deg,#dc2626,#991b1b)" },
+      { id: 21, name: "Zee 24 Ghanta",     category: "Bangla", url: "https://d2dsoyvkr33m05.cloudfront.net/index_1.m3u8", color: "linear-gradient(135deg,#16a34a,#14532d)" },
+      { id: 22, name: "TV9 Bangla",        category: "Bangla", url: "https://dyjmyiv3bp2ez.cloudfront.net/pub-iotv9banaen8yq/liveabr/playlist.m3u8", color: "linear-gradient(135deg,#2563eb,#1e3a8a)" },
+      { id: 23, name: "Enterr 10 Bangla",  category: "Bangla", url: "https://live-bangla.akamaized.net/liveabr/playlist.m3u8", color: "linear-gradient(135deg,#ec4899,#9d174d)" },
+      { id: 24, name: "Aakaash Aath",      category: "Bangla", url: "https://mumt03.tangotv.in/AAKASHAATH/index.m3u8", color: "linear-gradient(135deg,#f59e0b,#b45309)" },
+      { id: 25, name: "Rupasi Bangla",     category: "Bangla", url: "http://103.175.73.12:8080/live/664/master.m3u8", color: "linear-gradient(135deg,#a855f7,#7e22ce)" },
+
+      // ===== Music TV =====
+      { id: 30, name: "9XM",               category: "Music", url: "https://9xjio.wiseplayout.com/9XM/master.m3u8", color: "linear-gradient(135deg,#7c3aed,#4c1d95)" },
+      { id: 31, name: "9X Jhakaas",        category: "Music", url: "https://9xjio.wiseplayout.com/9X_Jhakaas/master.m3u8", color: "linear-gradient(135deg,#db2777,#831843)" },
+      { id: 32, name: "9X Tashan",         category: "Music", url: "https://9xjio.wiseplayout.com/9X_Tashan/master.m3u8", color: "linear-gradient(135deg,#c026d3,#701a75)" },
+      { id: 33, name: "7S Music",          category: "Music", url: "https://mumt03.tangotv.in/7SMUSIC/index.m3u8", color: "linear-gradient(135deg,#ec4899,#9d174d)" },
+      { id: 34, name: "B4U Music",         category: "Music", url: "https://cdn-2.pishow.tv/live/415/master.m3u8", color: "linear-gradient(135deg,#f43f5e,#9f1239)" },
+      { id: 35, name: "Bollywood Hits",    category: "Music", url: "https://stream.zeno.fm/6n6ewddtad0uv", color: "linear-gradient(135deg,#f59e0b,#b45309)" },
+      { id: 36, name: "90s Bollywood",     category: "Music", url: "https://stream.zeno.fm/rm4i9pdex3cuv", color: "linear-gradient(135deg,#10b981,#047857)" },
+      { id: 37, name: "Mirchi Top 20",     category: "Music", url: "https://drive.uber.radio/uber/bollywoodnow/icecast.audio", color: "linear-gradient(135deg,#ef4444,#b91c1c)" },
+      { id: 38, name: "Hindi Gold Radio",  category: "Music", url: "https://azuracast.vibesounds.in:8010/radio.mp3", color: "linear-gradient(135deg,#8b5cf6,#5b21b6)" },
+      { id: 39, name: "Radio Mirchi",      category: "Music", url: "https://eu8.fastcast4u.com/proxy/clyedupq/stream", color: "linear-gradient(135deg,#3b82f6,#1d4ed8)" },
+      { id: 41, name: "Zoom",              category: "Music", url: "https://d14c63magvk61v.cloudfront.net/strm/channels/zoom/master.m3u8", color: "linear-gradient(135deg,#e11d48,#9f1239)" },
+      { id: 42, name: "YRF Music",         category: "Music", url: "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01412-xiaomiasia-yrfmusic-xiaomi/playlist.m3u8", color: "linear-gradient(135deg,#f97316,#c2410c)" },
+
+      // ===== Movies =====
+      { id: 50, name: "B4U Movies",        category: "Movies", url: "https://cdnb4u.wiseplayout.com/B4U_Movies/master.m3u8", color: "linear-gradient(135deg,#dc2626,#7f1d1d)" },
+      { id: 51, name: "B4U Kadak",         category: "Movies", url: "https://cdnb4u.wiseplayout.com/B4U_Kadak/master.m3u8", color: "linear-gradient(135deg,#ea580c,#9a3412)" },
+      { id: 52, name: "B4U Bhojpuri",      category: "Movies", url: "https://cdnb4u.wiseplayout.com/B4U_Bhojpuri/master.m3u8", color: "linear-gradient(135deg,#16a34a,#14532d)" },
+      { id: 53, name: "Bhojpuri Cinema",   category: "Movies", url: "https://live-bhojpuri.akamaized.net/liveabr/playlist.m3u8", color: "linear-gradient(135deg,#7c3aed,#5b21b6)" },
+      { id: 54, name: "Pitaara",           category: "Movies", url: "https://vg-pitaaratvlive.akamaized.net/v1/master/611d79b11b77e2f571934fd80ca1413453772ac7/vglive-sk-583798/playlist.m3u8", color: "linear-gradient(135deg,#0ea5e9,#0369a1)" },
+      { id: 55, name: "Oscar Movies Bhojpuri", category: "Movies", url: "https://mumt05.tangotv.in/87NeALx2OSCARMOVIESBHOJPURI/index.m3u8", color: "linear-gradient(135deg,#f59e0b,#b45309)" },
+
+      // ===== Entertainment =====
+      { id: 40, name: "Shemaroo TV",       category: "Entertainment", url: "https://shemarootv-samsungin.amagi.tv/playlist.m3u8", color: "linear-gradient(135deg,#8b5cf6,#4c1d95)" },
+      { id: 60, name: "Pasand TV",         category: "Entertainment", url: "https://d1msejlow1t3l4.cloudfront.net/fta/pasand/playlist.m3u8", color: "linear-gradient(135deg,#ec4899,#be185d)" },
+      { id: 61, name: "DD National",       category: "Entertainment", url: "https://mumt01.tangotv.in/O5aw8Zn3DDNATIONALHD/index.m3u8", color: "linear-gradient(135deg,#2563eb,#1e40af)" },
+      { id: 62, name: "Sansad TV 1",       category: "Entertainment", url: "https://d2lk5u59tns74c.cloudfront.net/out/v1/fff8f20221d5456e8922e689d71dedc3/index.m3u8", color: "linear-gradient(135deg,#0f766e,#134e4a)" },
+      { id: 63, name: "Sansad TV 2",       category: "Entertainment", url: "https://hls.media.nic.in/hls/live/rstv/rstv.m3u8", color: "linear-gradient(135deg,#059669,#047857)" },
+      { id: 64, name: "Aastha",            category: "Entertainment", url: "https://aasthaott.akamaized.net/110923/smil:aasthatv.smil/index.m3u8", color: "linear-gradient(135deg,#f97316,#c2410c)" },
+
+      // ===== Regional =====
+      { id: 70, name: "TV9 Kannada",       category: "Regional", url: "https://dyjmyiv3bp2ez.cloudfront.net/pub-iotv9kanmo6oiq/liveabr/playlist.m3u8", color: "linear-gradient(135deg,#dc2626,#991b1b)" },
+      { id: 71, name: "TV9 Telugu",        category: "Regional", url: "https://dyjmyiv3bp2ez.cloudfront.net/pub-iotv9telcmjhcs/liveabr/playlist.m3u8", color: "linear-gradient(135deg,#2563eb,#1e3a8a)" },
+      { id: 72, name: "TV9 Marathi",       category: "Regional", url: "https://dyjmyiv3bp2ez.cloudfront.net/pub-iotv9marlygv8h/liveabr/playlist.m3u8", color: "linear-gradient(135deg,#16a34a,#14532d)" },
+      { id: 73, name: "6 TV Telugu",       category: "Regional", url: "https://cdn-1.pishow.tv/live/232/master.m3u8", color: "linear-gradient(135deg,#7c3aed,#5b21b6)" },
+      { id: 74, name: "10 TV",             category: "Regional", url: "https://cdn-1.pishow.tv/live/391/master.m3u8", color: "linear-gradient(135deg,#ea580c,#c2410c)" },
+      { id: 75, name: "Asianet News",      category: "Regional", url: "https://amg13737-amg13737c1-amgplt0016.playout.now3.amagi.tv/playlist/amg13737-amg13737c1-amgplt0016/playlist.m3u8", color: "linear-gradient(135deg,#0ea5e9,#0284c7)" },
+      { id: 76, name: "Mathrubhumi News",  category: "Regional", url: "https://yuppmedtaorire.akamaized.net/v1/master/a0d007312bfd99c47f76b77ae26b1ccdaae76cb1/mathrubhuminews_nim_https/110322/mathrubhuminews/playlist.m3u8", color: "linear-gradient(135deg,#f59e0b,#d97706)" },
+      { id: 77, name: "Janam TV",          category: "Regional", url: "https://mumt03.tangotv.in/Dsly5z3HJANAMTV/index.m3u8", color: "linear-gradient(135deg,#ef4444,#b91c1c)" },
+      { id: 78, name: "NTV Telugu",        category: "Regional", url: "https://mumbai-edge.smartplaytv.in/NTVTelugu/index.m3u8", color: "linear-gradient(135deg,#8b5cf6,#6d28d9)" },
+      // ===== Bangladesh =====
+      { id: 80, name: "Somoy TV",           category: "Bangladesh", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1702/output/index.m3u8", color: "linear-gradient(135deg,#dc2626,#7f1d1d)" },
+      { id: 81, name: "Jamuna TV",          category: "Bangladesh", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1701/output/index.m3u8", color: "linear-gradient(135deg,#2563eb,#1e3a8a)" },
+      { id: 82, name: "Channel 24",         category: "Bangladesh", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1703/output/index.m3u8", color: "linear-gradient(135deg,#16a34a,#14532d)" },
+      { id: 83, name: "Independent TV",     category: "Bangladesh", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1704/output/index.m3u8", color: "linear-gradient(135deg,#7c3aed,#5b21b6)" },
+      { id: 84, name: "Ekattor TV",         category: "Bangladesh", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1705/output/index.m3u8", color: "linear-gradient(135deg,#ea580c,#c2410c)" },
+      { id: 85, name: "ATN News",           category: "Bangladesh", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1706/output/index.m3u8", color: "linear-gradient(135deg,#0ea5e9,#0369a1)" },
+      { id: 86, name: "NTV",                category: "Bangladesh", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1716/output/index.m3u8", color: "linear-gradient(135deg,#f59e0b,#b45309)" },
+      { id: 87, name: "ATN Bangla",         category: "Bangladesh", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1722/output/index.m3u8", color: "linear-gradient(135deg,#ec4899,#9d174d)" },
+      { id: 88, name: "Channel I",          category: "Bangladesh", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1723/output/index.m3u8", color: "linear-gradient(135deg,#8b5cf6,#6d28d9)" },
+      { id: 89, name: "Boishakhi TV",       category: "Bangladesh", url: "https://boishakhi.sonarbanglatv.com/boishakhi/boishakhitv/index.m3u8", color: "linear-gradient(135deg,#ef4444,#b91c1c)" },
+      { id: 90, name: "Bangla Vision",      category: "Bangladesh", url: "https://tvsen5.aynaott.com/banglavision/index.m3u8", color: "linear-gradient(135deg,#10b981,#047857)" },
+      { id: 91, name: "Deepto TV",          category: "Bangladesh", url: "https://byphdgllyk.gpcdn.net/hls/deeptotv/0_1/index.m3u8", color: "linear-gradient(135deg,#f97316,#c2410c)" },
+      { id: 92, name: "BTV National",       category: "Bangladesh", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1709/output/index.m3u8", color: "linear-gradient(135deg,#1d4ed8,#1e3a8a)" },
+      { id: 93, name: "News 24 BD",         category: "Bangladesh", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1708/output/index.m3u8", color: "linear-gradient(135deg,#dc2626,#991b1b)" },
+      { id: 94, name: "Maasranga TV",       category: "Bangladesh", url: "http://mtv.sunplex.live/MAASRANGA-TV/index.m3u8", color: "linear-gradient(135deg,#a855f7,#7e22ce)" },
+    ];
+
+    const video = document.getElementById("tvPlayer");
+    const nowTitle = document.getElementById("nowPlayingTitle");
+    const nowCat = document.getElementById("nowPlayingCat");
+    const grid = document.getElementById("channelGrid");
+    let currentCategory = "All";
+    let hls = null;
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    function playChannel(id) {
+      const ch = channels.find(c => c.i
