@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>IPTV Max - Live TV</title>
+  <title>IPTV Max - Live TV (200+ Channels)</title>
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <style>
     :root {
@@ -39,13 +39,14 @@
     .card { background: var(--surface); border-radius: 10px; overflow: hidden; cursor: pointer; border: 1px solid rgba(255,255,255,0.06); }
     .card.active { border-color: var(--primary); }
     .banner { height: 85px; display: flex; align-items: center; justify-content: center; position: relative; }
-    .banner span { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.92); text-align: center; padding: 0 5px; }
+    .banner span { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.92); text-align: center; padding: 0 5px; line-height: 1.2; }
     .overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.2s; }
     .card:active .overlay { opacity: 1; }
     .play { width: 34px; height: 34px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 15px; padding-left: 2px; }
     .info { padding: 9px; }
     .name { font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .cat { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
+    .loading { text-align: center; padding: 40px; color: var(--muted); }
     @media (min-width: 600px) {
       .grid { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; }
       .banner { height: 100px; }
@@ -67,74 +68,172 @@
         <video id="tvPlayer" controls playsinline webkit-playsinline></video>
       </div>
       <div class="now">
-        <h2 id="nowPlayingTitle"><span style="color:var(--red)">●</span> চ্যানেল নির্বাচন করুন</h2>
-        <p id="nowPlayingCat">যেকোনো চ্যানেলে ক্লিক করুন</p>
+        <h2 id="nowPlayingTitle"><span style="color:var(--red)">●</span> চ্যানেল লোড হচ্ছে...</h2>
+        <p id="nowPlayingCat">অনুগ্রহ করে অপেক্ষা করুন</p>
       </div>
     </div>
 
-    <div class="cats">
+    <div class="cats" id="categoryBar">
       <button class="cat-btn active" onclick="filterByCategory('All')">সকল</button>
       <button class="cat-btn" onclick="filterByCategory('Bangla')">বাংলা</button>
+      <button class="cat-btn" onclick="filterByCategory('Bangladesh')">বাংলাদেশ</button>
       <button class="cat-btn" onclick="filterByCategory('News')">News</button>
       <button class="cat-btn" onclick="filterByCategory('Music')">Music</button>
       <button class="cat-btn" onclick="filterByCategory('Movies')">Movies</button>
       <button class="cat-btn" onclick="filterByCategory('Entertainment')">Entertainment</button>
-      <button class="cat-btn" onclick="filterByCategory('Bangladesh')">বাংলাদেশ</button>
+      <button class="cat-btn" onclick="filterByCategory('Sports')">Sports</button>
     </div>
 
-    <h3 class="title">লাইভ টিভি চ্যানেল</h3>
-    <div class="grid" id="channelGrid"></div>
+    <h3 class="title">লাইভ টিভি চ্যানেল (<span id="channelCount">0</span>)</h3>
+    <div class="grid" id="channelGrid">
+      <div class="loading">চ্যানেল লোড হচ্ছে... অনুগ্রহ করে অপেক্ষা করুন</div>
+    </div>
   </div>
 
   <script>
-    const channels = [
-      // ===== বাংলা ও আঞ্চলিক =====
-      { id: 1,  name: "ABP Ananda",        category: "Bangla", url: "https://d2l4ar6y3mrs4k.cloudfront.net/live-streaming/ananda-livetv/master.m3u8", color: "linear-gradient(135deg,#dc2626,#991b1b)" },
-      { id: 2,  name: "TV9 Bangla",        category: "Bangla", url: "https://dyjmyiv3bp2ez.cloudfront.net/pub-iotv9banaen8yq/liveabr/playlist.m3u8", color: "linear-gradient(135deg,#2563eb,#1e3a8a)" },
-      { id: 3,  name: "Enterr 10 Bangla",  category: "Bangla", url: "https://live-bangla.akamaized.net/liveabr/playlist.m3u8", color: "linear-gradient(135deg,#ec4899,#9d174d)" },
-      { id: 4,  name: "Zee 24 Ghanta",     category: "Bangla", url: "https://d2dsoyvkr33m05.cloudfront.net/index_1.m3u8", color: "linear-gradient(135deg,#16a34a,#14532d)" },
-
-      // ===== Bangladesh TV =====
-      { id: 10, name: "Somoy TV",          category: "Bangladesh", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1702/output/index.m3u8", color: "linear-gradient(135deg,#dc2626,#7f1d1d)" },
-      { id: 11, name: "Jamuna TV",         category: "Bangladesh", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1701/output/index.m3u8", color: "linear-gradient(135deg,#2563eb,#1e3a8a)" },
-      { id: 12, name: "Channel 24",        category: "Bangladesh", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1703/output/index.m3u8", color: "linear-gradient(135deg,#16a34a,#14532d)" },
-      { id: 13, name: "Independent TV",    category: "Bangladesh", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1704/output/index.m3u8", color: "linear-gradient(135deg,#7c3aed,#5b21b6)" },
-      { id: 14, name: "Ekattor TV",        category: "Bangladesh", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1705/output/index.m3u8", color: "linear-gradient(135deg,#ea580c,#c2410c)" },
-      { id: 15, name: "ATN News",          category: "Bangladesh", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1706/output/index.m3u8", color: "linear-gradient(135deg,#0ea5e9,#0369a1)" },
-      { id: 16, name: "Channel I",         category: "Bangladesh", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1723/output/index.m3u8", color: "linear-gradient(135deg,#8b5cf6,#6d28d9)" },
-      { id: 17, name: "BTV National",      category: "Bangladesh", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1709/output/index.m3u8", color: "linear-gradient(135deg,#1d4ed8,#1e3a8a)" },
-
-      // ===== National News =====
-      { id: 20, name: "Aaj Tak",           category: "News", url: "https://feeds.intoday.in/aajtak/api/aajtakhd/master.m3u8", color: "linear-gradient(135deg,#dc2626,#7f1d1d)" },
-      { id: 21, name: "ABP News",          category: "News", url: "https://d2l4ar6y3mrs4k.cloudfront.net/live-streaming/abpnews-livetv/master.m3u8", color: "linear-gradient(135deg,#eab308,#713f12)" },
-      { id: 22, name: "NDTV India",        category: "News", url: "https://ndtvindiaelemarchana.akamaized.net/hls/live/2003679/ndtvindia/master.m3u8", color: "linear-gradient(135deg,#2563eb,#1e3a8a)" },
-      { id: 23, name: "Zee News",          category: "News", url: "https://vg-zeefta.akamaized.net/ptnr-yupptv/title-zeenews/v1/master/611d79b11b77e2f571934fd80ca1413453772ac7/8744f9fb-d696-4204-9795-5215ad930c39/main.m3u8", color: "linear-gradient(135deg,#ea580c,#7c2d12)" },
-      { id: 24, name: "Republic TV",       category: "News", url: "https://d3qs3d2rkhfqrt.cloudfront.net/out/v1/2e31d831f08640ff92f65003bdc89991/index.m3u8", color: "linear-gradient(135deg,#1e40af,#1e3a8a)" },
-      { id: 25, name: "DW News",           category: "News", url: "https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/master.m3u8", color: "linear-gradient(135deg,#0f766e,#134e4a)" },
-
-      // ===== Music TV =====
-      { id: 30, name: "9XM",               category: "Music", url: "https://9xjio.wiseplayout.com/9XM/master.m3u8", color: "linear-gradient(135deg,#7c3aed,#4c1d95)" },
-      { id: 31, name: "9X Jhakaas",        category: "Music", url: "https://9xjio.wiseplayout.com/9X_Jhakaas/master.m3u8", color: "linear-gradient(135deg,#db2777,#831843)" },
-      { id: 32, name: "9X Tashan",         category: "Music", url: "https://9xjio.wiseplayout.com/9X_Tashan/master.m3u8", color: "linear-gradient(135deg,#c026d3,#701a75)" },
-      { id: 33, name: "YRF Music",         category: "Music", url: "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01412-xiaomiasia-yrfmusic-xiaomi/playlist.m3u8", color: "linear-gradient(135deg,#f97316,#c2410c)" },
-      { id: 34, name: "Zoom",              category: "Music", url: "https://d14c63magvk61v.cloudfront.net/strm/channels/zoom/master.m3u8", color: "linear-gradient(135deg,#e11d48,#9f1239)" },
-
-      // ===== Movies & Entertainment =====
-      { id: 40, name: "B4U Movies",        category: "Movies", url: "https://cdnb4u.wiseplayout.com/B4U_Movies/master.m3u8", color: "linear-gradient(135deg,#dc2626,#7f1d1d)" },
-      { id: 41, name: "B4U Kadak",         category: "Movies", url: "https://cdnb4u.wiseplayout.com/B4U_Kadak/master.m3u8", color: "linear-gradient(135deg,#ea580c,#9a3412)" },
-      { id: 42, name: "Bhojpuri Cinema",   category: "Movies", url: "https://live-bhojpuri.akamaized.net/liveabr/playlist.m3u8", color: "linear-gradient(135deg,#7c3aed,#5b21b6)" },
-      { id: 43, name: "Shemaroo TV",       category: "Entertainment", url: "https://shemarootv-samsungin.amagi.tv/playlist.m3u8", color: "linear-gradient(135deg,#8b5cf6,#4c1d95)" }
+    // ========== Large Public Playlists ==========
+    const PLAYLISTS = [
+      "https://iptv-org.github.io/iptv/countries/bd.m3u",          // Bangladesh
+      "https://iptv-org.github.io/iptv/countries/in.m3u",          // India
+      "https://iptv-org.github.io/iptv/categories/music.m3u",      // Music
+      "https://iptv-org.github.io/iptv/categories/news.m3u"        // News
     ];
 
+    // Color generator for cards
+    const colors = [
+      "linear-gradient(135deg,#dc2626,#991b1b)",
+      "linear-gradient(135deg,#2563eb,#1e3a8a)",
+      "linear-gradient(135deg,#16a34a,#14532d)",
+      "linear-gradient(135deg,#7c3aed,#5b21b6)",
+      "linear-gradient(135deg,#ea580c,#c2410c)",
+      "linear-gradient(135deg,#0ea5e9,#0369a1)",
+      "linear-gradient(135deg,#db2777,#831843)",
+      "linear-gradient(135deg,#eab308,#713f12)",
+      "linear-gradient(135deg,#8b5cf6,#6d28d9)"
+    ];
+
+    let allChannels = [];
+    let currentCategory = "All";
+    let hls = null;
     const video = document.getElementById("tvPlayer");
     const nowTitle = document.getElementById("nowPlayingTitle");
     const nowCat = document.getElementById("nowPlayingCat");
     const grid = document.getElementById("channelGrid");
-    let currentCategory = "All";
-    let hls = null;
+
+    // Parse M3U content
+    function parseM3U(text, source = "") {
+      const lines = text.split('\n');
+      const channels = [];
+      let current = null;
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (line.startsWith('#EXTINF:')) {
+          const nameMatch = line.match(/,(.+)$/);
+          const groupMatch = line.match(/group-title="([^"]+)"/i);
+          const name = nameMatch ? nameMatch[1].trim() : "Unknown";
+          let category = groupMatch ? groupMatch[1] : "General";
+
+          // Normalize category
+          category = normalizeCategory(category, name, source);
+
+          current = { name, category, url: null };
+        } else if (line && !line.startsWith('#') && current) {
+          current.url = line;
+          if (current.url.includes('.m3u8') || current.url.includes('http')) {
+            channels.push({
+              id: allChannels.length + channels.length + 1,
+              name: current.name,
+              category: current.category,
+              url: current.url,
+              color: colors[Math.floor(Math.random() * colors.length)]
+            });
+          }
+          current = null;
+        }
+      }
+      return channels;
+    }
+
+    function normalizeCategory(group, name, source) {
+      const g = (group || "").toLowerCase();
+      const n = (name || "").toLowerCase();
+
+      if (source.includes("bd.m3u") || g.includes("bangladesh") || n.includes("somoy") || n.includes("jamuna") || n.includes("ntv") || n.includes("rtv") || n.includes("gazi") || n.includes("maasranga") || n.includes("boishakhi") || n.includes("channel i") || n.includes("btv")) {
+        return "Bangladesh";
+      }
+      if (g.includes("bangla") || n.includes("bangla") || n.includes("jalsha") || n.includes("zee bangla") || n.includes("colors bangla") || n.includes("star jalsha") || n.includes("sony aath")) {
+        return "Bangla";
+      }
+      if (g.includes("news") || n.includes("news") || n.includes("aaj tak") || n.includes("ndtv") || n.includes("republic") || n.includes("zee news") || n.includes("abp")) {
+        return "News";
+      }
+      if (g.includes("music") || n.includes("music") || n.includes("9xm") || n.includes("9x") || n.includes("b4u music") || n.includes("zoom") || n.includes("mtv")) {
+        return "Music";
+      }
+      if (g.includes("movie") || n.includes("movie") || n.includes("cinema") || n.includes("b4u") || n.includes("gold")) {
+        return "Movies";
+      }
+      if (g.includes("sport") || n.includes("sport") || n.includes("cricket") || n.includes("ten") || n.includes("star sports")) {
+        return "Sports";
+      }
+      if (g.includes("entertainment") || g.includes("general")) {
+        return "Entertainment";
+      }
+      return "Entertainment";
+    }
+
+    // Load all playlists
+    async function loadAllChannels() {
+      grid.innerHTML = `<div class="loading">চ্যানেল লোড হচ্ছে... (২০০+ চ্যানেল)</div>`;
+      nowTitle.innerHTML = `<span style="color:var(--red)">●</span> চ্যানেল লোড হচ্ছে...`;
+      nowCat.innerText = "অনুগ্রহ করে অপেক্ষা করুন";
+
+      let loaded = [];
+
+      for (const url of PLAYLISTS) {
+        try {
+          const res = await fetch(url);
+          if (!res.ok) continue;
+          const text = await res.text();
+          const parsed = parseM3U(text, url);
+          loaded = loaded.concat(parsed);
+        } catch (e) {
+          console.warn("Failed to load:", url);
+        }
+      }
+
+      // Remove duplicates by name + url
+      const unique = [];
+      const seen = new Set();
+      for (const ch of loaded) {
+        const key = ch.name.toLowerCase() + "|" + ch.url;
+        if (!seen.has(key)) {
+          seen.add(key);
+          unique.push(ch);
+        }
+      }
+
+      allChannels = unique;
+      document.getElementById("channelCount").innerText = allChannels.length;
+
+      if (allChannels.length === 0) {
+        grid.innerHTML = `<div class="loading">কোনো চ্যানেল পাওয়া যায়নি। ইন্টারনেট চেক করুন।</div>`;
+        return;
+      }
+
+      renderGrid(allChannels);
+      nowTitle.innerHTML = `<span style="color:var(--red)">●</span> চ্যানেল নির্বাচন করুন`;
+      nowCat.innerText = `${allChannels.length}টি চ্যানেল লোড হয়েছে`;
+      
+      // Auto play first channel
+      setTimeout(() => {
+        if (allChannels.length > 0) playChannel(allChannels[0].id);
+      }, 800);
+    }
 
     function playChannel(id) {
-      const ch = channels.find(c => c.id === id);
+      const ch = allChannels.find(c => c.id === id);
       if (!ch) return;
 
       nowTitle.innerHTML = `<span style="color:var(--red)">●</span> ${ch.name}`;
@@ -153,9 +252,8 @@
         hls = new Hls({
           enableWorker: true,
           lowLatencyMode: true,
-          backBufferLength: 60
+          backBufferLength: 90
         });
-
         hls.loadSource(ch.url);
         hls.attachMedia(video);
 
@@ -169,20 +267,7 @@
 
         hls.on(Hls.Events.ERROR, (e, data) => {
           if (data.fatal) {
-            switch (data.type) {
-              case Hls.ErrorTypes.NETWORK_ERROR:
-                nowCat.innerText = "সংযোগ সমস্যা... পুনরায় চেষ্টা চলছে";
-                hls.startLoad();
-                break;
-              case Hls.ErrorTypes.MEDIA_ERROR:
-                nowCat.innerText = "বাফারিং ঠিক করা হচ্ছে...";
-                hls.recoverMediaError();
-                break;
-              default:
-                nowCat.innerText = "স্ট্রিম অফলাইন • অন্য চ্যানেল বেছে নিন";
-                hls.destroy();
-                break;
-            }
+            nowCat.innerText = "স্ট্রিম অফলাইন • অন্য চ্যানেল চেষ্টা করুন";
           }
         });
       } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
@@ -197,12 +282,17 @@
 
     function renderGrid(list) {
       grid.innerHTML = "";
+      if (list.length === 0) {
+        grid.innerHTML = `<div class="loading">কোনো চ্যানেল পাওয়া যায়নি</div>`;
+        return;
+      }
+
       list.forEach(ch => {
         const div = document.createElement("div");
         div.className = "card";
         div.id = "card-" + ch.id;
         div.onclick = () => playChannel(ch.id);
-        const short = ch.name.length > 12 ? ch.name.substring(0, 10) + ".." : ch.name;
+        const short = ch.name.length > 14 ? ch.name.substring(0, 12) + ".." : ch.name;
         div.innerHTML = `
           <div class="banner" style="background:${ch.color}">
             <span>${short.toUpperCase()}</span>
@@ -218,8 +308,10 @@
 
     function filterChannels() {
       const q = document.getElementById("searchInput").value.toLowerCase();
-      let filtered = channels.filter(c => c.name.toLowerCase().includes(q));
-      if (currentCategory !== "All") filtered = filtered.filter(c => c.category === currentCategory);
+      let filtered = allChannels.filter(c => c.name.toLowerCase().includes(q));
+      if (currentCategory !== "All") {
+        filtered = filtered.filter(c => c.category === currentCategory);
+      }
       renderGrid(filtered);
     }
 
@@ -227,15 +319,14 @@
       currentCategory = cat;
       document.querySelectorAll(".cat-btn").forEach(b => b.classList.remove("active"));
       event.target.classList.add("active");
-      let filtered = cat === "All" ? channels : channels.filter(c => c.category === cat);
+      let filtered = cat === "All" ? allChannels : allChannels.filter(c => c.category === cat);
       const q = document.getElementById("searchInput").value.toLowerCase();
       if (q) filtered = filtered.filter(c => c.name.toLowerCase().includes(q));
       renderGrid(filtered);
     }
 
-    // অ্যাপ স্টার্ট
-    renderGrid(channels);
-    setTimeout(() => playChannel(1), 500);
+    // Start loading
+    loadAllChannels();
   </script>
 </body>
 </html>
