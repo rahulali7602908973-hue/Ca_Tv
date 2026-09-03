@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>IPTV Max - Live TV (200+ Channels)</title>
+  <title>IPTV Max - Live TV</title>
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <style>
     :root {
@@ -36,8 +36,9 @@
     .cat-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
     .title { font-size: 16px; font-weight: 600; margin-bottom: 11px; }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); gap: 11px; }
-    .card { background: var(--surface); border-radius: 10px; overflow: hidden; cursor: pointer; border: 1px solid rgba(255,255,255,0.06); }
+    .card { background: var(--surface); border-radius: 10px; overflow: hidden; cursor: pointer; border: 1px solid rgba(255,255,255,0.06); position: relative; }
     .card.active { border-color: var(--primary); }
+    .card.off { opacity: 0.65; }
     .banner { height: 85px; display: flex; align-items: center; justify-content: center; position: relative; }
     .banner span { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.92); text-align: center; padding: 0 5px; line-height: 1.2; }
     .overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.2s; }
@@ -46,6 +47,18 @@
     .info { padding: 9px; }
     .name { font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .cat { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
+    .off-badge {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: var(--red);
+      color: white;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 5px;
+      border-radius: 4px;
+      z-index: 5;
+    }
     .loading { text-align: center; padding: 40px; color: var(--muted); }
     @media (min-width: 600px) {
       .grid { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; }
@@ -86,20 +99,26 @@
 
     <h3 class="title">লাইভ টিভি চ্যানেল (<span id="channelCount">0</span>)</h3>
     <div class="grid" id="channelGrid">
-      <div class="loading">চ্যানেল লোড হচ্ছে... অনুগ্রহ করে অপেক্ষা করুন</div>
+      <div class="loading">চ্যানেল লোড + স্ট্যাটাস চেক হচ্ছে...</div>
     </div>
   </div>
 
   <script>
-    // ========== Large Public Playlists ==========
     const PLAYLISTS = [
-      "https://iptv-org.github.io/iptv/countries/bd.m3u",          // Bangladesh
-      "https://iptv-org.github.io/iptv/countries/in.m3u",          // India
-      "https://iptv-org.github.io/iptv/categories/music.m3u",      // Music
-      "https://iptv-org.github.io/iptv/categories/news.m3u"        // News
+      "https://iptv-org.github.io/iptv/countries/bd.m3u",
+      "https://iptv-org.github.io/iptv/countries/in.m3u",
+      "https://iptv-org.github.io/iptv/categories/music.m3u",
+      "https://iptv-org.github.io/iptv/categories/news.m3u"
     ];
 
-    // Color generator for cards
+    // Priority channels (Star Jalsha + Zee Bangla)
+    const PRIORITY = [
+      { name: "Star Jalsha", category: "Bangla", url: "https://da86m1sqpm3o0.cloudfront.net/28072023/smil:starjalsha.smil/chunklist_b1928000.m3u8" },
+      { name: "Zee Bangla", category: "Bangla", url: "https://raw.githubusercontent.com/amazeyourself/adaptive-streams/refs/heads/main/streams/in/YuppTV/ZeeBanglaHD.m3u8" },
+      { name: "Star Jalsha HD", category: "Bangla", url: "http://103.161.153.165:8000/play/a00w/index.m3u8" },
+      { name: "Zee Bangla HD", category: "Bangla", url: "http://103.161.153.165:8000/play/zeebnhd/index.m3u8" }
+    ];
+
     const colors = [
       "linear-gradient(135deg,#dc2626,#991b1b)",
       "linear-gradient(135deg,#2563eb,#1e3a8a)",
@@ -108,8 +127,7 @@
       "linear-gradient(135deg,#ea580c,#c2410c)",
       "linear-gradient(135deg,#0ea5e9,#0369a1)",
       "linear-gradient(135deg,#db2777,#831843)",
-      "linear-gradient(135deg,#eab308,#713f12)",
-      "linear-gradient(135deg,#8b5cf6,#6d28d9)"
+      "linear-gradient(135deg,#eab308,#713f12)"
     ];
 
     let allChannels = [];
@@ -120,7 +138,18 @@
     const nowCat = document.getElementById("nowPlayingCat");
     const grid = document.getElementById("channelGrid");
 
-    // Parse M3U content
+    function normalizeCategory(group, name, source) {
+      const g = (group || "").toLowerCase();
+      const n = (name || "").toLowerCase();
+      if (source.includes("bd.m3u") || n.includes("somoy") || n.includes("jamuna") || n.includes("ntv") || n.includes("rtv") || n.includes("gazi") || n.includes("maasranga") || n.includes("boishakhi") || n.includes("btv") || n.includes("channel i")) return "Bangladesh";
+      if (g.includes("bangla") || n.includes("bangla") || n.includes("jalsha") || n.includes("zee bangla") || n.includes("colors bangla") || n.includes("star jalsha") || n.includes("sony aath")) return "Bangla";
+      if (g.includes("news") || n.includes("news") || n.includes("aaj tak") || n.includes("ndtv") || n.includes("republic") || n.includes("zee news") || n.includes("abp")) return "News";
+      if (g.includes("music") || n.includes("music") || n.includes("9xm") || n.includes("9x") || n.includes("b4u music") || n.includes("zoom") || n.includes("mtv")) return "Music";
+      if (g.includes("movie") || n.includes("movie") || n.includes("cinema") || n.includes("b4u") || n.includes("gold")) return "Movies";
+      if (g.includes("sport") || n.includes("sport") || n.includes("cricket") || n.includes("ten") || n.includes("star sports")) return "Sports";
+      return "Entertainment";
+    }
+
     function parseM3U(text, source = "") {
       const lines = text.split('\n');
       const channels = [];
@@ -133,20 +162,18 @@
           const groupMatch = line.match(/group-title="([^"]+)"/i);
           const name = nameMatch ? nameMatch[1].trim() : "Unknown";
           let category = groupMatch ? groupMatch[1] : "General";
-
-          // Normalize category
           category = normalizeCategory(category, name, source);
-
           current = { name, category, url: null };
         } else if (line && !line.startsWith('#') && current) {
           current.url = line;
-          if (current.url.includes('.m3u8') || current.url.includes('http')) {
+          if (current.url.includes('http')) {
             channels.push({
-              id: allChannels.length + channels.length + 1,
+              id: Date.now() + Math.random(),
               name: current.name,
               category: current.category,
               url: current.url,
-              color: colors[Math.floor(Math.random() * colors.length)]
+              color: colors[Math.floor(Math.random() * colors.length)],
+              status: "unknown"
             });
           }
           current = null;
@@ -155,41 +182,40 @@
       return channels;
     }
 
-    function normalizeCategory(group, name, source) {
-      const g = (group || "").toLowerCase();
-      const n = (name || "").toLowerCase();
-
-      if (source.includes("bd.m3u") || g.includes("bangladesh") || n.includes("somoy") || n.includes("jamuna") || n.includes("ntv") || n.includes("rtv") || n.includes("gazi") || n.includes("maasranga") || n.includes("boishakhi") || n.includes("channel i") || n.includes("btv")) {
-        return "Bangladesh";
+    // Simple status check (with timeout)
+    async function checkStream(url) {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 4000);
+        const res = await fetch(url, { method: "GET", signal: controller.signal, mode: "cors" });
+        clearTimeout(timeout);
+        if (!res.ok) return false;
+        const text = await res.text();
+        return text.includes("#EXTM3U") || text.includes("#EXTINF") || text.includes(".ts");
+      } catch (e) {
+        return false;
       }
-      if (g.includes("bangla") || n.includes("bangla") || n.includes("jalsha") || n.includes("zee bangla") || n.includes("colors bangla") || n.includes("star jalsha") || n.includes("sony aath")) {
-        return "Bangla";
-      }
-      if (g.includes("news") || n.includes("news") || n.includes("aaj tak") || n.includes("ndtv") || n.includes("republic") || n.includes("zee news") || n.includes("abp")) {
-        return "News";
-      }
-      if (g.includes("music") || n.includes("music") || n.includes("9xm") || n.includes("9x") || n.includes("b4u music") || n.includes("zoom") || n.includes("mtv")) {
-        return "Music";
-      }
-      if (g.includes("movie") || n.includes("movie") || n.includes("cinema") || n.includes("b4u") || n.includes("gold")) {
-        return "Movies";
-      }
-      if (g.includes("sport") || n.includes("sport") || n.includes("cricket") || n.includes("ten") || n.includes("star sports")) {
-        return "Sports";
-      }
-      if (g.includes("entertainment") || g.includes("general")) {
-        return "Entertainment";
-      }
-      return "Entertainment";
     }
 
-    // Load all playlists
     async function loadAllChannels() {
-      grid.innerHTML = `<div class="loading">চ্যানেল লোড হচ্ছে... (২০০+ চ্যানেল)</div>`;
+      grid.innerHTML = `<div class="loading">চ্যানেল লোড + স্ট্যাটাস চেক হচ্ছে...</div>`;
       nowTitle.innerHTML = `<span style="color:var(--red)">●</span> চ্যানেল লোড হচ্ছে...`;
-      nowCat.innerText = "অনুগ্রহ করে অপেক্ষা করুন";
+      nowCat.innerText = "স্ট্যাটাস চেক করা হচ্ছে...";
 
       let loaded = [];
+
+      // Add Priority channels first
+      PRIORITY.forEach((p, i) => {
+        loaded.push({
+          id: 1000 + i,
+          name: p.name,
+          category: p.category,
+          url: p.url,
+          color: colors[i % colors.length],
+          status: "unknown",
+          priority: true
+        });
+      });
 
       for (const url of PLAYLISTS) {
         try {
@@ -198,38 +224,53 @@
           const text = await res.text();
           const parsed = parseM3U(text, url);
           loaded = loaded.concat(parsed);
-        } catch (e) {
-          console.warn("Failed to load:", url);
-        }
+        } catch (e) {}
       }
 
-      // Remove duplicates by name + url
+      // Remove duplicates
       const unique = [];
       const seen = new Set();
       for (const ch of loaded) {
-        const key = ch.name.toLowerCase() + "|" + ch.url;
+        const key = ch.name.toLowerCase().replace(/\s+/g, "") + "|" + ch.url;
         if (!seen.has(key)) {
           seen.add(key);
           unique.push(ch);
         }
       }
 
+      // Check status (limit to first 80 for speed)
+      const toCheck = unique.slice(0, 80);
+      const checkPromises = toCheck.map(async (ch) => {
+        ch.status = await checkStream(ch.url) ? "online" : "offline";
+      });
+      await Promise.allSettled(checkPromises);
+
+      // Mark remaining as unknown (treat as offline for sorting)
+      unique.forEach(ch => {
+        if (ch.status === "unknown") ch.status = "offline";
+      });
+
+      // Sort: online first, then priority, then others
+      unique.sort((a, b) => {
+        if (a.status === "online" && b.status !== "online") return -1;
+        if (a.status !== "online" && b.status === "online") return 1;
+        if (a.priority && !b.priority) return -1;
+        if (!a.priority && b.priority) return 1;
+        return 0;
+      });
+
       allChannels = unique;
       document.getElementById("channelCount").innerText = allChannels.length;
 
-      if (allChannels.length === 0) {
-        grid.innerHTML = `<div class="loading">কোনো চ্যানেল পাওয়া যায়নি। ইন্টারনেট চেক করুন।</div>`;
-        return;
-      }
-
       renderGrid(allChannels);
       nowTitle.innerHTML = `<span style="color:var(--red)">●</span> চ্যানেল নির্বাচন করুন`;
-      nowCat.innerText = `${allChannels.length}টি চ্যানেল লোড হয়েছে`;
-      
-      // Auto play first channel
-      setTimeout(() => {
-        if (allChannels.length > 0) playChannel(allChannels[0].id);
-      }, 800);
+      nowCat.innerText = `${allChannels.length}টি চ্যানেল • অনলাইনগুলো উপরে`;
+
+      // Auto play first online channel
+      const firstOnline = allChannels.find(c => c.status === "online");
+      if (firstOnline) {
+        setTimeout(() => playChannel(firstOnline.id), 600);
+      }
     }
 
     function playChannel(id) {
@@ -237,7 +278,7 @@
       if (!ch) return;
 
       nowTitle.innerHTML = `<span style="color:var(--red)">●</span> ${ch.name}`;
-      nowCat.innerText = "প্লে করা হচ্ছে...";
+      nowCat.innerText = ch.status === "offline" ? "স্ট্রিম অফলাইন হতে পারে" : "প্লে করা হচ্ছে...";
 
       document.querySelectorAll(".card").forEach(c => c.classList.remove("active"));
       const card = document.getElementById("card-" + id);
@@ -249,11 +290,7 @@
       }
 
       if (Hls.isSupported()) {
-        hls = new Hls({
-          enableWorker: true,
-          lowLatencyMode: true,
-          backBufferLength: 90
-        });
+        hls = new Hls({ enableWorker: true, lowLatencyMode: true, backBufferLength: 90 });
         hls.loadSource(ch.url);
         hls.attachMedia(video);
 
@@ -289,11 +326,13 @@
 
       list.forEach(ch => {
         const div = document.createElement("div");
-        div.className = "card";
+        div.className = "card" + (ch.status === "offline" ? " off" : "");
         div.id = "card-" + ch.id;
         div.onclick = () => playChannel(ch.id);
         const short = ch.name.length > 14 ? ch.name.substring(0, 12) + ".." : ch.name;
+
         div.innerHTML = `
+          ${ch.status === "offline" ? '<div class="off-badge">OFF</div>' : ''}
           <div class="banner" style="background:${ch.color}">
             <span>${short.toUpperCase()}</span>
             <div class="overlay"><div class="play">▶</div></div>
@@ -309,9 +348,7 @@
     function filterChannels() {
       const q = document.getElementById("searchInput").value.toLowerCase();
       let filtered = allChannels.filter(c => c.name.toLowerCase().includes(q));
-      if (currentCategory !== "All") {
-        filtered = filtered.filter(c => c.category === currentCategory);
-      }
+      if (currentCategory !== "All") filtered = filtered.filter(c => c.category === currentCategory);
       renderGrid(filtered);
     }
 
@@ -325,7 +362,6 @@
       renderGrid(filtered);
     }
 
-    // Start loading
     loadAllChannels();
   </script>
 </body>
