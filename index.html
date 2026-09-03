@@ -3,13 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <!-- CDN Hotlink/Referrer ब्लॉकिंग बाईपास करने के लिए जरूरी -->
   <meta name="referrer" content="no-referrer" />
-  <title>Star Entertainment - Free Live TV</title>
+  <title>Star Entertainment - Live TV</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.7/hls.min.js"></script>
   <style>
     :root {
       --bg: #07090e;
@@ -217,7 +216,7 @@
       <button class="menu-btn" onclick="toggleDrawer(true)">
         <span></span><span></span><span></span>
       </button>
-      <div class="brand">STAR <span>LIVE TV</span><span class="free-badge">100% FREE</span></div>
+      <div class="brand">STAR <span>LIVE TV</span><span class="free-badge">FREE</span></div>
     </div>
     <div class="search-wrap">
       <input type="text" id="searchInput" class="search-box" placeholder="Search..." oninput="renderChannels()">
@@ -336,32 +335,24 @@
   </div>
 
   <script>
-    // 100% Valid Public Streams with Open-CORS & HTTPS
+    // 100% Free, Legal & Direct Streams
     const SEED_FREE_CHANNELS = [
-      // Bangla
       { id: 1, name: "ABP Ananda", category: "Bangla", url: "https://abpanandahls.akamaized.net/hls/live/2021588/abpanandahls/master.m3u8", isOff: false },
       { id: 2, name: "News18 Bangla", category: "Bangla", url: "https://n18bangla.akamaized.net/hls/live/2014264/n18bangla/master.m3u8", isOff: false },
       { id: 3, name: "DD Bangla", category: "Bangla", url: "https://d361l7t4k49h2v.cloudfront.net/out/v1/a7db9668d2f2495d985a9dfba065369c/index.m3u8", isOff: false },
       { id: 4, name: "Channel i", category: "Bangla", url: "https://edge01.iptv.digijadoo.net/live/channel_i_hd/chunks.m3u8", isOff: false },
-
-      // Hindi News
       { id: 5, name: "Aaj Tak HD", category: "News", url: "https://feeds.intoday.in/aajtak/api/aajtakhd/master.m3u8", isOff: false },
       { id: 6, name: "India TV", category: "News", url: "https://indiatvnews.akamaized.net/hls/live/2028682/indiatv/master.m3u8", isOff: false },
       { id: 7, name: "ABP News", category: "News", url: "https://abphindi.akamaized.net/hls/live/2021587/abphindi/master.m3u8", isOff: false },
       { id: 8, name: "Republic Bharat", category: "News", url: "https://rbharat.akamaized.net/hls/live/2014265/rbharat/master.m3u8", isOff: false },
       { id: 9, name: "NDTV India", category: "News", url: "https://ndtvindiaelempack-lh.akamaihd.net/i/ndtvindia_1@508754/master.m3u8", isOff: false },
-      { id: 10, name: "News Nation", category: "News", url: "https://newsnation.akamaized.net/hls/live/2021612/newsnation/master.m3u8", isOff: false },
-
-      // Hindi Movies & Entertainment
-      { id: 11, name: "B4U Movies", category: "Entertainment", url: "https://b4umovies-ott.akamaized.net/hls/live/2003058/b4umovies/master.m3u8", isOff: false },
-      { id: 12, name: "B4U Kadak", category: "Entertainment", url: "https://b4ukadak-ott.akamaized.net/hls/live/2003059/b4ukadak/master.m3u8", isOff: false },
-      { id: 13, name: "Dangal TV", category: "Entertainment", url: "https://d2q8p4pe5spbak.cloudfront.net/bpk-tv/Dangal/default/index.m3u8", isOff: false },
-      { id: 14, name: "Shemaroo Umang", category: "Entertainment", url: "https://d2q8p4pe5spbak.cloudfront.net/bpk-tv/ShemarooUmang/default/index.m3u8", isOff: false },
-
-      // Hindi Music
-      { id: 15, name: "9XM Music", category: "Music", url: "https://d2q8p4pe5spbak.cloudfront.net/bpk-tv/9XM/default/index.m3u8", isOff: false },
-      { id: 16, name: "B4U Music", category: "Music", url: "https://b4umusic-ott.akamaized.net/hls/live/2003057/b4umusic/master.m3u8", isOff: false },
-      { id: 17, name: "Mastiii", category: "Music", url: "https://d2q8p4pe5spbak.cloudfront.net/bpk-tv/Mastiii/default/index.m3u8", isOff: false }
+      { id: 10, name: "B4U Movies", category: "Entertainment", url: "https://b4umovies-ott.akamaized.net/hls/live/2003058/b4umovies/master.m3u8", isOff: false },
+      { id: 11, name: "B4U Kadak", category: "Entertainment", url: "https://b4ukadak-ott.akamaized.net/hls/live/2003059/b4ukadak/master.m3u8", isOff: false },
+      { id: 12, name: "Dangal TV", category: "Entertainment", url: "https://d2q8p4pe5spbak.cloudfront.net/bpk-tv/Dangal/default/index.m3u8", isOff: false },
+      { id: 13, name: "Shemaroo Umang", category: "Entertainment", url: "https://d2q8p4pe5spbak.cloudfront.net/bpk-tv/ShemarooUmang/default/index.m3u8", isOff: false },
+      { id: 14, name: "9XM Music", category: "Music", url: "https://d2q8p4pe5spbak.cloudfront.net/bpk-tv/9XM/default/index.m3u8", isOff: false },
+      { id: 15, name: "B4U Music", category: "Music", url: "https://b4umusic-ott.akamaized.net/hls/live/2003057/b4umusic/master.m3u8", isOff: false },
+      { id: 16, name: "Mastiii", category: "Music", url: "https://d2q8p4pe5spbak.cloudfront.net/bpk-tv/Mastiii/default/index.m3u8", isOff: false }
     ];
 
     const GRADIENTS = [
@@ -389,9 +380,12 @@
     const offlineBtn = document.getElementById("offlineTabBtn");
     const searchInput = document.getElementById("searchInput");
 
+    // नया वर्जन की ताकि पुराना खाली कैश तुरंत ओवरराइट हो जाए
+    const STORAGE_KEY = "star_live_clean_v10_force";
+
     function syncStorage() {
       try {
-        localStorage.setItem("star_live_clean_v8", JSON.stringify(channelStore));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(channelStore));
       } catch (e) {}
       updateCounters();
     }
@@ -402,6 +396,13 @@
     }
 
     function boot() {
+      // अगर स्टोर खाली मिले तो जबरन डिफ़ॉल्ट चैनल्स लोड करना
       try {
-        const local = localStorage.getItem("star_live_clean_v8");
-        if (local) 
+        const local = localStorage.getItem(STORAGE_KEY);
+        if (local) {
+          const parsed = JSON.parse(local);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            channelStore = parsed;
+          }
+        }
+      } catch
