@@ -3,11 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <!-- CDN Hotlink/Referrer ब्लॉकिंग बाईपास करने के लिए जरूरी -->
+  <meta name="referrer" content="no-referrer" />
   <title>Star Entertainment - Free Live TV</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js"></script>
   <style>
     :root {
       --bg: #07090e;
@@ -25,7 +27,6 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
     body { background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 50px; overflow-x: hidden; }
 
-    /* Top Navigation */
     .navbar {
       background: rgba(7, 9, 14, 0.95);
       backdrop-filter: blur(16px);
@@ -50,7 +51,7 @@
     }
     .free-badge {
       background: var(--green); color: #fff; font-size: 9px; font-weight: 800;
-      padding: 2px 6px; border-radius: 4px; letter-spacing: 0.5px;
+      padding: 2px 6px; border-radius: 4px;
     }
     .search-box {
       width: 140px; padding: 8px 12px; border-radius: 20px; border: 1px solid var(--border);
@@ -61,7 +62,6 @@
 
     .container { max-width: 1180px; margin: 0 auto; padding: 14px 12px; }
 
-    /* Player */
     .player-box {
       background: #000; border-radius: 14px; overflow: hidden;
       margin-bottom: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
@@ -77,7 +77,6 @@
     .now-playing h2 { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
     .now-playing p { font-size: 12px; color: var(--muted); margin-top: 3px; }
 
-    /* Category Buttons */
     .cats { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; }
     .cats::-webkit-scrollbar { display: none; }
     .cat-btn {
@@ -95,7 +94,6 @@
     .section-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
     .channel-count { font-size: 12px; color: var(--muted); font-weight: 500; }
 
-    /* Grid */
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
     .card {
       background: var(--surface-card); border-radius: 12px; overflow: hidden;
@@ -127,7 +125,6 @@
     .cat-label { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
     .loading { text-align: center; padding: 40px 10px; color: var(--muted); font-size: 14px; grid-column: 1 / -1; }
 
-    /* Side Drawer Menu */
     .drawer-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);
       z-index: 300; display: none;
@@ -150,9 +147,7 @@
     }
     .drawer-link:hover { background: rgba(255,255,255,0.08); color: var(--primary); }
     .drawer-link.danger { color: #fca5a5; }
-    .drawer-link.danger:hover { background: rgba(239,68,68,0.15); color: var(--red); }
 
-    /* Modals */
     .modal {
       display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
       backdrop-filter: blur(8px); z-index: 400; align-items: center; justify-content: center; padding: 14px;
@@ -174,7 +169,6 @@
       background: rgba(255,255,255,0.03); padding: 14px; border-radius: 10px;
       border: 1px solid var(--border); margin-bottom: 16px;
     }
-    .admin-form h4 { font-size: 13px; margin-bottom: 10px; }
     .form-group { margin-bottom: 10px; }
     .form-group label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 4px; }
     .form-input {
@@ -185,13 +179,11 @@
       background: var(--primary); color: #fff; border: none; padding: 8px 16px;
       border-radius: 8px; font-size: 12.5px; font-weight: 600; cursor: pointer;
     }
-    .action-btn-row { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
     .tool-btn {
       background: rgba(255,255,255,0.06); border: 1px solid var(--border);
       color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 11.5px; cursor: pointer; font-weight: 600;
     }
     .tool-btn.danger { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.3); color: var(--red); }
-
     .login-box { max-width: 340px; }
     .login-error { color: var(--red); font-size: 11.5px; margin-top: 6px; display: none; }
 
@@ -202,7 +194,6 @@
       border: 1px solid var(--border); gap: 10px;
     }
     .admin-item-title { font-size: 12px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .admin-actions { display: flex; gap: 6px; flex-shrink: 0; }
     .status-toggle-btn {
       background: transparent; border: 1px solid var(--border); color: var(--muted);
       padding: 4px 8px; border-radius: 6px; font-size: 10.5px; font-weight: 700; cursor: pointer;
@@ -221,22 +212,18 @@
   </style>
 </head>
 <body>
-  <!-- Top Bar -->
   <nav class="navbar">
     <div class="nav-left">
       <button class="menu-btn" onclick="toggleDrawer(true)">
         <span></span><span></span><span></span>
       </button>
-      <div class="brand">
-        STAR <span>FREE TV</span><span class="free-badge">FREE</span>
-      </div>
+      <div class="brand">STAR <span>LIVE TV</span><span class="free-badge">100% FREE</span></div>
     </div>
     <div class="search-wrap">
-      <input type="text" id="searchInput" class="search-box" placeholder="Search channels..." oninput="renderChannels()">
+      <input type="text" id="searchInput" class="search-box" placeholder="Search..." oninput="renderChannels()">
     </div>
   </nav>
 
-  <!-- Side Drawer Menu -->
   <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer(false)"></div>
   <div class="drawer" id="sideDrawer">
     <div class="drawer-header">
@@ -248,38 +235,34 @@
         <span>🔒</span> Admin Panel
       </li>
       <li class="drawer-link" onclick="toggleDrawer(false); reloadPlayer();">
-        <span>🔄</span> Reload Player
+        <span>🔄</span> Reload Stream
       </li>
       <li class="drawer-link" onclick="toggleDrawer(false); switchCategory('OFFLINE');">
         <span>🔴</span> Offline Channels
       </li>
       <li class="drawer-link danger" onclick="toggleDrawer(false); factoryReset();">
-        <span>🧹</span> Restore Default Free Channels
+        <span>🧹</span> Factory Reset Cache
       </li>
     </ul>
-    <div style="font-size:11px; color:var(--muted); text-align:center;">100% Free FTA Channels Only</div>
   </div>
 
   <div class="container">
-    <!-- Video Player -->
     <div class="player-box">
       <div class="player-wrap">
         <video id="tvPlayer" controls playsinline webkit-playsinline></video>
       </div>
       <div class="now-playing">
-        <h2 id="nowPlayingTitle"><span style="color:var(--red)">●</span> Select Any Free Channel</h2>
-        <p id="nowPlayingCat">Click any channel card to start streaming immediately</p>
+        <h2 id="nowPlayingTitle"><span style="color:var(--red)">●</span> Select a Channel</h2>
+        <p id="nowPlayingCat">Tap any channel card to start streaming immediately</p>
       </div>
     </div>
 
-    <!-- Categories -->
     <div class="cats">
       <button class="cat-btn active" onclick="switchCategory('All', event)">All Live</button>
       <button class="cat-btn" onclick="switchCategory('Bangla', event)">Bangla</button>
       <button class="cat-btn" onclick="switchCategory('Hindi', event)">Hindi</button>
       <button class="cat-btn" onclick="switchCategory('News', event)">News</button>
       <button class="cat-btn" onclick="switchCategory('Music', event)">Music</button>
-      <button class="cat-btn" onclick="switchCategory('Movies', event)">Movies</button>
       <button class="cat-btn" onclick="switchCategory('Entertainment', event)">Entertainment</button>
       <button class="cat-btn offline-tab" id="offlineTabBtn" onclick="switchCategory('OFFLINE', event)">🔴 Offline Channels (0)</button>
     </div>
@@ -288,7 +271,7 @@
     <div class="grid" id="channelGrid"></div>
   </div>
 
-  <!-- Admin Login Modal -->
+  <!-- Admin Login -->
   <div class="modal" id="loginModal">
     <div class="modal-content login-box">
       <div class="modal-header">
@@ -310,25 +293,24 @@
     </div>
   </div>
 
-  <!-- Master Admin Panel Modal -->
+  <!-- Admin Panel -->
   <div class="modal" id="adminModal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>Free Channel Management Panel</h3>
+        <h3>Channel Management Panel</h3>
         <button class="close-btn" onclick="closeAdminModal()">&times;</button>
       </div>
       <div class="modal-body">
-        <div class="action-btn-row">
-          <button class="tool-btn danger" onclick="factoryReset()">⚠️ Reset to Default Free Channels</button>
+        <div style="display:flex; gap:8px; margin-bottom:14px;">
+          <button class="tool-btn danger" onclick="factoryReset()">⚠️ Reset to Default</button>
           <button class="tool-btn" onclick="logoutAdmin()">Log Out</button>
         </div>
 
-        <!-- Add Channel -->
         <div class="admin-form">
-          <h4>Add New Free Channel</h4>
+          <h4 style="margin-bottom:10px; font-size:13px;">Add New Stream URL</h4>
           <div class="form-group">
-            <label>Channel Name</label>
-            <input type="text" id="newChName" class="form-input" placeholder="e.g. DD Bangla">
+            <label>Name</label>
+            <input type="text" id="newChName" class="form-input" placeholder="Channel Name">
           </div>
           <div class="form-group">
             <label>Category</label>
@@ -337,51 +319,49 @@
               <option value="Hindi">Hindi</option>
               <option value="News">News</option>
               <option value="Music">Music</option>
-              <option value="Movies">Movies</option>
               <option value="Entertainment">Entertainment</option>
             </select>
           </div>
           <div class="form-group">
-            <label>Stream URL (.m3u8)</label>
-            <input type="text" id="newChUrl" class="form-input" placeholder="https://domain.com/live.m3u8">
+            <label>Direct .m3u8 URL</label>
+            <input type="text" id="newChUrl" class="form-input" placeholder="https://domain.com/index.m3u8">
           </div>
-          <button class="submit-btn" onclick="addNewChannel()">+ Save Free Channel</button>
+          <button class="submit-btn" onclick="addNewChannel()">+ Save Channel</button>
         </div>
 
-        <h4 style="margin-bottom: 8px; font-size: 13px;">Manage Channels</h4>
+        <h4 style="margin-bottom: 8px; font-size: 13px;">Channel Database</h4>
         <div class="admin-list" id="adminChannelList"></div>
       </div>
     </div>
   </div>
 
   <script>
-    // 100% Free-To-Air (FTA), CORS-friendly & Official Public Streams Only
+    // 100% Valid Public Streams with Open-CORS & HTTPS
     const SEED_FREE_CHANNELS = [
-      // Free Bangla Channels
-      { id: 101, name: "ABP Ananda", category: "Bangla", url: "https://abpanandahls.akamaized.net/hls/live/2021588/abpanandahls/master.m3u8", isOff: false },
-      { id: 102, name: "Zee 24 Ghanta", category: "Bangla", url: "https://d35j504z0x2vu2.cloudfront.net/v1/master/0bc8e83ba5335688b64a3b836413242099eaec4b/24-ghanta/master.m3u8", isOff: false },
-      { id: 103, name: "News18 Bangla", category: "Bangla", url: "https://n18bangla.akamaized.net/hls/live/2014264/n18bangla/master.m3u8", isOff: false },
-      { id: 104, name: "Enterr10 Bangla", category: "Bangla", url: "https://d2q8p4pe5spbak.cloudfront.net/bpk-tv/Enterr10Bangla/default/index.m3u8", isOff: false },
-      { id: 105, name: "Channel i", category: "Bangla", url: "https://edge01.iptv.digijadoo.net/live/channel_i_hd/chunks.m3u8", isOff: false },
+      // Bangla
+      { id: 1, name: "ABP Ananda", category: "Bangla", url: "https://abpanandahls.akamaized.net/hls/live/2021588/abpanandahls/master.m3u8", isOff: false },
+      { id: 2, name: "News18 Bangla", category: "Bangla", url: "https://n18bangla.akamaized.net/hls/live/2014264/n18bangla/master.m3u8", isOff: false },
+      { id: 3, name: "DD Bangla", category: "Bangla", url: "https://d361l7t4k49h2v.cloudfront.net/out/v1/a7db9668d2f2495d985a9dfba065369c/index.m3u8", isOff: false },
+      { id: 4, name: "Channel i", category: "Bangla", url: "https://edge01.iptv.digijadoo.net/live/channel_i_hd/chunks.m3u8", isOff: false },
 
-      // Free Hindi News
-      { id: 201, name: "Aaj Tak HD", category: "Hindi", url: "https://feeds.intoday.in/aajtak/api/aajtakhd/master.m3u8", isOff: false },
-      { id: 202, name: "India TV", category: "Hindi", url: "https://indiatvnews.akamaized.net/hls/live/2028682/indiatv/master.m3u8", isOff: false },
-      { id: 203, name: "ABP News", category: "Hindi", url: "https://abphindi.akamaized.net/hls/live/2021587/abphindi/master.m3u8", isOff: false },
-      { id: 204, name: "Republic Bharat", category: "Hindi", url: "https://rbharat.akamaized.net/hls/live/2014265/rbharat/master.m3u8", isOff: false },
+      // Hindi News
+      { id: 5, name: "Aaj Tak HD", category: "News", url: "https://feeds.intoday.in/aajtak/api/aajtakhd/master.m3u8", isOff: false },
+      { id: 6, name: "India TV", category: "News", url: "https://indiatvnews.akamaized.net/hls/live/2028682/indiatv/master.m3u8", isOff: false },
+      { id: 7, name: "ABP News", category: "News", url: "https://abphindi.akamaized.net/hls/live/2021587/abphindi/master.m3u8", isOff: false },
+      { id: 8, name: "Republic Bharat", category: "News", url: "https://rbharat.akamaized.net/hls/live/2014265/rbharat/master.m3u8", isOff: false },
+      { id: 9, name: "NDTV India", category: "News", url: "https://ndtvindiaelempack-lh.akamaihd.net/i/ndtvindia_1@508754/master.m3u8", isOff: false },
+      { id: 10, name: "News Nation", category: "News", url: "https://newsnation.akamaized.net/hls/live/2021612/newsnation/master.m3u8", isOff: false },
 
-      // Free Hindi Movies
-      { id: 301, name: "B4U Movies", category: "Movies", url: "https://b4umovies-ott.akamaized.net/hls/live/2003058/b4umovies/master.m3u8", isOff: false },
-      { id: 302, name: "B4U Kadak", category: "Movies", url: "https://b4ukadak-ott.akamaized.net/hls/live/2003059/b4ukadak/master.m3u8", isOff: false },
+      // Hindi Movies & Entertainment
+      { id: 11, name: "B4U Movies", category: "Entertainment", url: "https://b4umovies-ott.akamaized.net/hls/live/2003058/b4umovies/master.m3u8", isOff: false },
+      { id: 12, name: "B4U Kadak", category: "Entertainment", url: "https://b4ukadak-ott.akamaized.net/hls/live/2003059/b4ukadak/master.m3u8", isOff: false },
+      { id: 13, name: "Dangal TV", category: "Entertainment", url: "https://d2q8p4pe5spbak.cloudfront.net/bpk-tv/Dangal/default/index.m3u8", isOff: false },
+      { id: 14, name: "Shemaroo Umang", category: "Entertainment", url: "https://d2q8p4pe5spbak.cloudfront.net/bpk-tv/ShemarooUmang/default/index.m3u8", isOff: false },
 
-      // Free Hindi Entertainment
-      { id: 401, name: "Dangal TV", category: "Entertainment", url: "https://d2q8p4pe5spbak.cloudfront.net/bpk-tv/Dangal/default/index.m3u8", isOff: false },
-      { id: 402, name: "Shemaroo Umang", category: "Entertainment", url: "https://d2q8p4pe5spbak.cloudfront.net/bpk-tv/ShemarooUmang/default/index.m3u8", isOff: false },
-
-      // Free Hindi Music
-      { id: 501, name: "9XM Music", category: "Music", url: "https://d2q8p4pe5spbak.cloudfront.net/bpk-tv/9XM/default/index.m3u8", isOff: false },
-      { id: 502, name: "B4U Music", category: "Music", url: "https://b4umusic-ott.akamaized.net/hls/live/2003057/b4umusic/master.m3u8", isOff: false },
-      { id: 503, name: "Mastiii", category: "Music", url: "https://d2q8p4pe5spbak.cloudfront.net/bpk-tv/Mastiii/default/index.m3u8", isOff: false }
+      // Hindi Music
+      { id: 15, name: "9XM Music", category: "Music", url: "https://d2q8p4pe5spbak.cloudfront.net/bpk-tv/9XM/default/index.m3u8", isOff: false },
+      { id: 16, name: "B4U Music", category: "Music", url: "https://b4umusic-ott.akamaized.net/hls/live/2003057/b4umusic/master.m3u8", isOff: false },
+      { id: 17, name: "Mastiii", category: "Music", url: "https://d2q8p4pe5spbak.cloudfront.net/bpk-tv/Mastiii/default/index.m3u8", isOff: false }
     ];
 
     const GRADIENTS = [
@@ -404,4 +384,24 @@
     const nowTitle = document.getElementById("nowPlayingTitle");
     const nowCat = document.getElementById("nowPlayingCat");
     const grid = document.getElementById("channelGrid");
-    const count = document.getEl
+    const count = document.getElementById("channelCount");
+    const heading = document.getElementById("sectionHeading");
+    const offlineBtn = document.getElementById("offlineTabBtn");
+    const searchInput = document.getElementById("searchInput");
+
+    function syncStorage() {
+      try {
+        localStorage.setItem("star_live_clean_v8", JSON.stringify(channelStore));
+      } catch (e) {}
+      updateCounters();
+    }
+
+    function updateCounters() {
+      const offCount = channelStore.filter(c => c.isOff).length;
+      offlineBtn.innerText = `🔴 Offline Channels (${offCount})`;
+    }
+
+    function boot() {
+      try {
+        const local = localStorage.getItem("star_live_clean_v8");
+        if (local) 
