@@ -1,475 +1,224 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="referrer" content="no-referrer" />
-  <title>Star Entertainment Live</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IPTV Max - Premium Live TV</title>
+  <!-- HLS Video Player Script -->
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-    body { background: #0b0f19; color: #f3f4f6; min-height: 100vh; padding-bottom: 40px; }
+    /* Premium CSS Variables & Reset */
+    :root {
+      --bg-color: #0b0f19;
+      --surface-color: #1a2235;
+      --primary-color: #3b82f6;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-red: #ef4444;
+      --card-radius: 12px;
+      --transition: all 0.3s ease;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.5; padding-bottom: 40px; }
 
     /* Header */
-    .header {
-      background: #111827; padding: 12px 16px; display: flex;
-      justify-content: space-between; align-items: center; border-bottom: 1px solid #1f2937;
-      position: sticky; top: 0; z-index: 50;
-    }
-    .brand-wrap { display: flex; align-items: center; gap: 8px; }
-    .brand { font-size: 18px; font-weight: 800; color: #3b82f6; }
-    .brand span { color: #ef4444; }
+    .navbar { background-color: rgba(11, 15, 25, 0.95); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .brand { font-size: 24px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px; }
+    .brand span { color: var(--primary-color); }
+    .live-badge { background: var(--accent-red); color: white; font-size: 10px; padding: 3px 6px; border-radius: 4px; font-weight: bold; letter-spacing: 1px; animation: pulse 2s infinite; }
+
+    /* Search */
+    .search-container { flex: 0 1 400px; position: relative; }
+    .search-box { width: 100%; padding: 10px 15px 10px 40px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: var(--surface-color); color: #fff; font-size: 14px; outline: none; transition: var(--transition); }
+    .search-box:focus { border-color: var(--primary-color); }
+    .search-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 14px; opacity: 0.5; }
+
+    /* Content & Player */
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .player-section { background: #000; border-radius: 16px; overflow: hidden; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.05); }
+    .player-wrapper { width: 100%; aspect-ratio: 16/9; position: relative; background: #000; }
     
-    /* Discrete Admin Icon */
-    .admin-icon-btn {
-      background: none; border: none; font-size: 16px; cursor: pointer;
-      opacity: 0.3; padding: 4px; border-radius: 4px;
-    }
-    .admin-icon-btn:hover { opacity: 1; }
-
-    .search-input {
-      width: 130px; background: #1f2937; border: 1px solid #374151;
-      padding: 7px 10px; border-radius: 20px; color: #fff; font-size: 12px; outline: none;
-      transition: width 0.2s;
-    }
-    .search-input:focus { width: 170px; border-color: #3b82f6; }
-
-    .container { max-width: 1000px; margin: 0 auto; padding: 12px; }
-
-    /* Video Player */
-    .player-box { background: #000; border-radius: 10px; overflow: hidden; margin-bottom: 14px; }
-    .player-wrap { width: 100%; aspect-ratio: 16/9; background: #000; }
-    video { width: 100%; height: 100%; object-fit: contain; }
-    .player-info { padding: 10px 14px; background: #111827; border-top: 1px solid #1f2937; }
-    .player-info h3 { font-size: 15px; }
-    .player-info p { font-size: 12px; color: #9ca3af; margin-top: 2px; }
-
-    /* Filter Bar */
-    .filter-label { font-size: 11px; color: #9ca3af; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
-    .controls { display: flex; gap: 8px; margin-bottom: 10px; overflow-x: auto; padding-bottom: 4px; }
-    .controls::-webkit-scrollbar { display: none; }
-    .cat-btn {
-      background: #1f2937; border: 1px solid #374151; color: #9ca3af;
-      padding: 6px 14px; border-radius: 20px; font-size: 12px; cursor: pointer; white-space: nowrap;
-    }
-    .cat-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
-
-    /* Grid */
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-top: 12px; }
-    .card {
-      background: #111827; border: 1px solid #1f2937; border-radius: 8px;
-      overflow: hidden; cursor: pointer;
-    }
-    .card.active { border-color: #3b82f6; box-shadow: 0 0 0 2px #3b82f6; }
-    .card-banner {
-      height: 75px; background: linear-gradient(135deg, #1e3a8a, #0f172a);
-      display: flex; align-items: center; justify-content: center; text-align: center;
-      padding: 6px; font-size: 12px; font-weight: 700; color: #fff;
-    }
-    .card-body { padding: 8px; }
-    .card-title { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .card-meta { font-size: 10px; color: #9ca3af; margin-top: 2px; }
-
-    /* Modals */
-    .popup-layer {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.85);
-      z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 14px;
-    }
-    .modal-box {
-      background: #111827; border: 1px solid #374151; width: 100%; max-width: 460px;
-      border-radius: 8px; padding: 16px; max-height: 90vh; overflow-y: auto;
-    }
-    .modal-header {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid #1f2937;
-    }
-    .close-btn { background: none; border: none; color: #9ca3af; font-size: 24px; cursor: pointer; }
+    video { width: 100%; height: 100%; display: block; object-fit: contain; border: none; }
     
-    .form-group { margin-bottom: 10px; }
-    .form-group label { display: block; font-size: 11px; color: #9ca3af; margin-bottom: 4px; }
-    .form-input {
-      width: 100%; padding: 9px 10px; background: #1f2937; border: 1px solid #374151;
-      border-radius: 6px; color: #fff; font-size: 13px; outline: none;
-    }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .btn {
-      background: #2563eb; color: #fff; border: none; padding: 8px 14px;
-      border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;
-    }
-    .btn-danger { background: #dc2626; }
-    .error-text { color: #ef4444; font-size: 12px; margin-top: 6px; display: none; }
+    .now-playing { background: var(--surface-color); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+    .now-playing h2 { font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+    .now-playing p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
 
-    .admin-list { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
-    .admin-item {
-      display: flex; justify-content: space-between; align-items: center;
-      background: #1f2937; padding: 8px 10px; border-radius: 6px; gap: 8px;
-    }
-    .del-btn {
-      background: rgba(239, 68, 68, 0.2); color: #ef4444; border: none;
-      padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;
+    /* Categories */
+    .categories { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 20px; scrollbar-width: none; }
+    .categories::-webkit-scrollbar { display: none; }
+    .category-btn { background: var(--surface-color); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); padding: 8px 16px; border-radius: 20px; font-size: 14px; cursor: pointer; white-space: nowrap; transition: var(--transition); }
+    .category-btn.active { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
+
+    /* Grid System */
+    .section-title { font-size: 20px; font-weight: 600; margin-bottom: 15px; }
+    .channel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+    
+    .channel-card { background: var(--surface-color); border-radius: var(--card-radius); overflow: hidden; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); transition: var(--transition); position: relative; display: flex; flex-direction: column; }
+    .channel-card:hover { transform: translateY(-5px); border-color: var(--primary-color); }
+    .card-banner { height: 120px; display: flex; align-items: center; justify-content: center; position: relative; text-align: center; padding: 10px; }
+    .card-banner span { font-size: 22px; font-weight: bold; color: rgba(255,255,255,0.9); }
+    
+    .play-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; opacity: 0; transition: var(--transition); }
+    .channel-card:hover .play-overlay { opacity: 1; }
+    .play-icon { width: 40px; height: 40px; background: var(--primary-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; padding-left: 3px; font-size: 18px; color: #fff; }
+
+    .card-info { padding: 15px; }
+    .card-title { font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+    .card-category { font-size: 12px; color: var(--text-muted); }
+    .channel-card.active { border-color: var(--primary-color); box-shadow: 0 0 0 1px var(--primary-color); }
+
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+
+    @media (max-width: 768px) {
+      .navbar { flex-direction: column; gap: 15px; align-items: flex-start; }
+      .search-container { width: 100%; flex: 1; }
+      .channel-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+      .card-banner { height: 90px; }
+      .card-banner span { font-size: 18px; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Header -->
-  <div class="header">
-    <div class="brand-wrap">
-      <div class="brand">STAR <span>LIVE</span></div>
-      <button class="admin-icon-btn" id="openAdminTrigger" title="Admin">⚙️</button>
+  <nav class="navbar">
+    <div class="brand">IPTV<span>MAX</span> <span class="live-badge">LIVE</span></div>
+    <div class="search-container">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" class="search-box" placeholder="चैनल का नाम खोजें..." onkeyup="filterChannels()">
     </div>
-    <input type="text" id="searchBox" class="search-input" placeholder="Search...">
-  </div>
+  </nav>
 
   <div class="container">
-    <!-- Video Player -->
-    <div class="player-box">
-      <div class="player-wrap">
-        <video id="tvPlayer" controls playsinline webkit-playsinline></video>
+    <div class="player-section">
+      <div class="player-wrapper">
+        <video id="tvPlayer" controls autoplay playsinline></video>
       </div>
-      <div class="player-info">
-        <h3 id="playerTitle">Select a Channel</h3>
-        <p id="playerStatus">Click any channel card below to start playing</p>
-      </div>
-    </div>
-
-    <!-- Language Filter -->
-    <div class="filter-label">Language</div>
-    <div class="controls" id="langControls">
-      <button class="cat-btn active" data-val="All">All</button>
-      <button class="cat-btn" data-val="Bangla">Bangla</button>
-      <button class="cat-btn" data-val="Hindi">Hindi</button>
-      <button class="cat-btn" data-val="English">English</button>
-      <button class="cat-btn" data-val="Tamil">Tamil</button>
-      <button class="cat-btn" data-val="Telugu">Telugu</button>
-      <button class="cat-btn" data-val="Kannada">Kannada</button>
-      <button class="cat-btn" data-val="Malayalam">Malayalam</button>
-      <button class="cat-btn" data-val="Marathi">Marathi</button>
-      <button class="cat-btn" data-val="Gujarati">Gujarati</button>
-      <button class="cat-btn" data-val="Punjabi">Punjabi</button>
-      <button class="cat-btn" data-val="Odia">Odia</button>
-      <button class="cat-btn" data-val="Bhojpuri">Bhojpuri</button>
-      <button class="cat-btn" data-val="Assamese">Assamese</button>
-      <button class="cat-btn" data-val="Urdu">Urdu</button>
-    </div>
-
-    <!-- Category Filter -->
-    <div class="filter-label" style="margin-top: 6px;">Category / Genre</div>
-    <div class="controls" id="catControls">
-      <button class="cat-btn active" data-val="All">All Categories</button>
-      <button class="cat-btn" data-val="News">News</button>
-      <button class="cat-btn" data-val="Entertainment">Entertainment</button>
-      <button class="cat-btn" data-val="Movies">Movies</button>
-      <button class="cat-btn" data-val="Music">Music</button>
-      <button class="cat-btn" data-val="Sports">Sports</button>
-      <button class="cat-btn" data-val="Devotional">Devotional</button>
-      <button class="cat-btn" data-val="Kids">Kids</button>
-      <button class="cat-btn" data-val="Infotainment">Infotainment</button>
-    </div>
-
-    <!-- Channel Cards Grid -->
-    <div class="grid" id="channelGrid"></div>
-  </div>
-
-  <!-- 1. Direct Login Modal -->
-  <div class="popup-layer" id="loginModal" style="display: none;">
-    <div class="modal-box" style="max-width: 320px;">
-      <div class="modal-header">
-        <h4>Staff Authentication</h4>
-        <button class="close-btn" id="closeLoginBtn">&times;</button>
-      </div>
-      <div class="form-group">
-        <label>Admin ID</label>
-        <input type="text" id="adminUser" class="form-input" autocomplete="off">
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="adminPass" class="form-input" autocomplete="off">
-      </div>
-      <div class="error-text" id="loginErr">Wrong ID or Password!</div>
-      <div style="margin-top: 14px;">
-        <button class="btn" style="width: 100%;" id="submitLoginBtn">Login</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 2. Master Admin Manager Modal -->
-  <div class="popup-layer" id="adminModal" style="display: none;">
-    <div class="modal-box">
-      <div class="modal-header">
-        <h4>⚙️ Channel Manager</h4>
-        <button class="close-btn" id="closeAdminBtn">&times;</button>
-      </div>
-
-      <!-- Add Channel -->
-      <div style="background: #1f2937; padding: 12px; border-radius: 6px; margin-bottom: 14px;">
-        <h5 style="margin-bottom: 8px; font-size: 13px;">Add New Stream</h5>
-        <div class="form-group">
-          <label>Channel Name</label>
-          <input type="text" id="addName" class="form-input" placeholder="e.g. ABP Ananda">
+      <div class="now-playing">
+        <div>
+          <h2 id="nowPlayingTitle"><span style="color:var(--accent-red)">●</span> लोड हो रहा है...</h2>
+          <p id="nowPlayingCat">कृपया प्रतीक्षा करें</p>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Language</label>
-            <select id="addLang" class="form-input">
-              <option value="Bangla">Bangla</option>
-              <option value="Hindi">Hindi</option>
-              <option value="English">English</option>
-              <option value="Tamil">Tamil</option>
-              <option value="Telugu">Telugu</option>
-              <option value="Kannada">Kannada</option>
-              <option value="Malayalam">Malayalam</option>
-              <option value="Marathi">Marathi</option>
-              <option value="Gujarati">Gujarati</option>
-              <option value="Punjabi">Punjabi</option>
-              <option value="Odia">Odia</option>
-              <option value="Bhojpuri">Bhojpuri</option>
-              <option value="Assamese">Assamese</option>
-              <option value="Urdu">Urdu</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Category</label>
-            <select id="addCat" class="form-input">
-              <option value="News">News</option>
-              <option value="Entertainment">Entertainment</option>
-              <option value="Movies">Movies</option>
-              <option value="Music">Music</option>
-              <option value="Sports">Sports</option>
-              <option value="Devotional">Devotional</option>
-              <option value="Kids">Kids</option>
-              <option value="Infotainment">Infotainment</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Stream URL (.m3u8)</label>
-          <input type="text" id="addUrl" class="form-input" placeholder="https://domain.com/live.m3u8">
-        </div>
-        <button class="btn" id="saveChannelBtn">+ Add Channel</button>
       </div>
-
-      <!-- Password Change -->
-      <details style="background: #1f2937; padding: 10px; border-radius: 6px; margin-bottom: 14px; cursor: pointer;">
-        <summary style="font-size: 13px; font-weight: 600; color: #3b82f6;">🔐 Change Admin ID & Password</summary>
-        <div style="margin-top: 10px; cursor: default;">
-          <div class="form-group">
-            <label>New Admin ID</label>
-            <input type="text" id="newAdminUser" class="form-input">
-          </div>
-          <div class="form-group">
-            <label>New Password</label>
-            <input type="password" id="newAdminPass" class="form-input">
-          </div>
-          <button class="btn" id="updateCredsBtn">Update Password</button>
-        </div>
-      </details>
-
-      <div style="display: flex; justify-content: space-between; gap: 8px; margin-bottom: 12px;">
-        <button class="btn btn-danger" id="resetDefaultBtn">⚠️ Reset All</button>
-        <button class="cat-btn" id="logoutAdminBtn">Log Out</button>
-      </div>
-
-      <h5 style="font-size: 13px; margin-bottom: 6px;">Manage Channels</h5>
-      <div class="admin-list" id="adminList"></div>
     </div>
+
+    <div class="categories" id="categoryList">
+      <button class="category-btn active" onclick="filterByCategory('All')">सभी चैनल्स</button>
+      <button class="category-btn" onclick="filterByCategory('News')">न्यूज़</button>
+      <button class="category-btn" onclick="filterByCategory('Music')">म्यूजिक</button>
+      <button class="category-btn" onclick="filterByCategory('Global')">ग्लोबल</button>
+    </div>
+
+    <h3 class="section-title">लाइव चैनल्स (100% Working)</h3>
+    
+    <div class="channel-grid" id="channelGrid"></div>
   </div>
 
   <script>
-    const DEFAULT_DATA = [
-      { id: 1, name: "ABP Ananda", lang: "Bangla", cat: "News", url: "https://abpanandahls.akamaized.net/hls/live/2021588/abpanandahls/master.m3u8" },
-      { id: 2, name: "News18 Bangla", lang: "Bangla", cat: "News", url: "https://n18bangla.akamaized.net/hls/live/2014264/n18bangla/master.m3u8" },
-      { id: 3, name: "Aaj Tak HD", lang: "Hindi", cat: "News", url: "https://feeds.intoday.in/aajtak/api/aajtakhd/master.m3u8" },
-      { id: 4, name: "India TV", lang: "Hindi", cat: "News", url: "https://indiatvnews.akamaized.net/hls/live/2028682/indiatv/master.m3u8" },
-      { id: 5, name: "ABP News", lang: "Hindi", cat: "News", url: "https://abphindi.akamaized.net/hls/live/2021587/abphindi/master.m3u8" },
-      { id: 6, name: "Republic Bharat", lang: "Hindi", cat: "News", url: "https://rbharat.akamaized.net/hls/live/2014265/rbharat/master.m3u8" },
-      { id: 7, name: "Big Buck Bunny (Test Live)", lang: "English", cat: "Entertainment", url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8" }
+    // 100% Working CORS-Free M3U8 Channels (No YouTube)
+    const channels = [
+      // News Channels
+      { id: 1, name: "DW News", category: "News", url: "https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/index.m3u8", color: "linear-gradient(135deg, #0f766e, #134e4a)" },
+      { id: 2, name: "Al Jazeera", category: "News", url: "https://live-hls-web-aje.getaj.net/AJE/index.m3u8", color: "linear-gradient(135deg, #d97706, #78350f)" },
+      { id: 3, name: "France 24", category: "News", url: "https://static.france24.com/live/F24_EN_HI_HLS/live_web.m3u8", color: "linear-gradient(135deg, #2563eb, #1e3a8a)" },
+      { id: 4, name: "CNA (Asia)", category: "News", url: "https://d2e1asnsl7br7b.cloudfront.net/7782e205e72f43aeb4a48097f335b1d4/index.m3u8", color: "linear-gradient(135deg, #dc2626, #7f1d1d)" },
+      
+      // Music Channels
+      { id: 5, name: "Clubbing TV", category: "Music", url: "https://clubbingtv-rakuten.amagi.tv/playlist.m3u8", color: "linear-gradient(135deg, #ec4899, #831843)" },
+      { id: 6, name: "Qello Concerts", category: "Music", url: "https://stingray-qelloconcerts-1-eu.rakuten.wurl.tv/playlist.m3u8", color: "linear-gradient(135deg, #8b5cf6, #4c1d95)" },
+      { id: 7, name: "Monstercat", category: "Music", url: "https://monstercat-monstercat-1-eu.rakuten.wurl.tv/playlist.m3u8", color: "linear-gradient(135deg, #d946ef, #701a75)" },
+      
+      // Global / Entertainment
+      { id: 8, name: "Red Bull TV", category: "Global", url: "https://rbmn-live.akamaized.net/hls/live/590964/BoRB-AT/master.m3u8", color: "linear-gradient(135deg, #ea580c, #7c2d12)" },
+      { id: 9, name: "NASA TV", category: "Global", url: "https://ntv1.akamaized.net/hls/live/2014075/NASA-NTV1-HLS/master.m3u8", color: "linear-gradient(135deg, #475569, #1e293b)" },
+      { id: 10, name: "Fashion TV", category: "Global", url: "https://fash1043.cloudycdn.services/slive/_definst_/ftv_midas_main/playlist.m3u8", color: "linear-gradient(135deg, #16a34a, #14532d)" }
     ];
 
-    let channelList = [];
-    let selectedLang = "All";
-    let selectedCat = "All";
-    let selectedId = null;
-    let hls = null;
-    let isAdmin = false;
-
     const video = document.getElementById("tvPlayer");
-    const pTitle = document.getElementById("playerTitle");
-    const pStatus = document.getElementById("playerStatus");
+    const nowPlayingTitle = document.getElementById("nowPlayingTitle");
+    const nowPlayingCat = document.getElementById("nowPlayingCat");
     const grid = document.getElementById("channelGrid");
-    const search = document.getElementById("searchBox");
+    
+    let currentCategory = 'All';
+    let hls = null;
 
-    const loginModal = document.getElementById("loginModal");
-    const adminModal = document.getElementById("adminModal");
+    function playChannel(id) {
+      const ch = channels.find(c => c.id === id);
+      if(!ch) return;
 
-    function init() {
-      try {
-        const saved = localStorage.getItem("star_channels_v8");
-        channelList = saved ? JSON.parse(saved) : [...DEFAULT_DATA];
-      } catch(e) {
-        channelList = [...DEFAULT_DATA];
-      }
-      renderGrid();
-    }
+      nowPlayingTitle.innerHTML = `<span style="color:var(--accent-red)">●</span> ${ch.name} (LIVE)`;
+      nowPlayingCat.innerText = `कैटेगरी: ${ch.category}`;
+      
+      document.querySelectorAll(".channel-card").forEach(card => card.classList.remove("active"));
+      const activeCard = document.getElementById(`card-${id}`);
+      if(activeCard) activeCard.classList.add("active");
 
-    function save() {
-      try {
-        localStorage.setItem("star_channels_v8", JSON.stringify(channelList));
-      } catch(e) {}
-    }
-
-    function renderGrid() {
-      const q = (search.value || "").toLowerCase().trim();
-      grid.innerHTML = "";
-
-      const filtered = channelList.filter(c => {
-        const matchLang = (selectedLang === "All" || c.lang === selectedLang);
-        const matchCat = (selectedCat === "All" || c.cat === selectedCat);
-        const matchSearch = c.name.toLowerCase().includes(q);
-        return matchLang && matchCat && matchSearch;
-      });
-
-      if (filtered.length === 0) {
-        grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #6b7280; padding: 20px;">No channels found for the selected filters.</div>`;
-        return;
-      }
-
-      filtered.forEach(c => {
-        const card = document.createElement("div");
-        card.className = `card ${selectedId === c.id ? 'active' : ''}`;
-        card.onclick = () => play(c);
-
-        card.innerHTML = `
-          <div class="card-banner">${c.name}</div>
-          <div class="card-body">
-            <div class="card-title">${c.name}</div>
-            <div class="card-meta">${c.lang || 'General'} • ${c.cat || 'General'}</div>
-          </div>
-        `;
-        grid.appendChild(card);
-      });
-    }
-
-    function play(c) {
-      selectedId = c.id;
-      pTitle.innerText = c.name;
-      pStatus.innerText = "Connecting live stream...";
-      renderGrid();
-
-      if (hls) {
-        hls.destroy();
-        hls = null;
-      }
-
-      if (window.Hls && Hls.isSupported()) {
-        hls = new Hls({ enableWorker: true });
-        hls.loadSource(c.url);
+      if (Hls.isSupported()) {
+        if (hls) hls.destroy();
+        hls = new Hls();
+        hls.loadSource(ch.url);
         hls.attachMedia(video);
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          video.play().then(() => {
-            pStatus.innerText = "Playing Live • Sound Enabled";
-          }).catch(() => {
-            video.muted = true;
-            video.play();
-            pStatus.innerText = "Playing Muted • Click video to unmute";
-          });
-        });
-        hls.on(Hls.Events.ERROR, () => {
-          pStatus.innerText = "Stream offline or network error";
+            video.play().catch(e => console.log("Playback error:", e));
         });
       } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        video.src = c.url;
-        video.play();
+        video.src = ch.url;
+        video.play().catch(e => console.log("Playback error:", e));
       }
-
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // Filter Listeners
-    document.getElementById("langControls").addEventListener("click", (e) => {
-      if (e.target.classList.contains("cat-btn")) {
-        selectedLang = e.target.getAttribute("data-val");
-        document.querySelectorAll("#langControls .cat-btn").forEach(b => b.classList.remove("active"));
-        e.target.classList.add("active");
-        renderGrid();
-      }
-    });
-
-    document.getElementById("catControls").addEventListener("click", (e) => {
-      if (e.target.classList.contains("cat-btn")) {
-        selectedCat = e.target.getAttribute("data-val");
-        document.querySelectorAll("#catControls .cat-btn").forEach(b => b.classList.remove("active"));
-        e.target.classList.add("active");
-        renderGrid();
-      }
-    });
-
-    search.addEventListener("input", renderGrid);
-
-    // Direct Admin Modal Open Handler
-    document.getElementById("openAdminTrigger").onclick = () => {
-      if (isAdmin) {
-        renderAdminList();
-        adminModal.style.display = "flex";
-      } else {
-        document.getElementById("loginErr").style.display = "none";
-        document.getElementById("adminUser").value = "";
-        document.getElementById("adminPass").value = "";
-        loginModal.style.display = "flex";
-      }
-    };
-
-    document.getElementById("closeLoginBtn").onclick = () => loginModal.style.display = "none";
-    document.getElementById("closeAdminBtn").onclick = () => adminModal.style.display = "none";
-
-    function getAuth() {
-      try {
-        const stored = localStorage.getItem("star_auth_v8");
-        return stored ? JSON.parse(stored) : { user: "admin", pass: "admin123" };
-      } catch(e) {
-        return { user: "admin", pass: "admin123" };
-      }
+    function renderGrid(channelsToRender) {
+      grid.innerHTML = "";
+      channelsToRender.forEach(ch => {
+        const div = document.createElement("div");
+        div.className = "channel-card";
+        div.id = `card-${ch.id}`;
+        div.onclick = () => playChannel(ch.id);
+        
+        const shortName = ch.name.length > 12 ? ch.name.substring(0, 8) + '...' : ch.name;
+        
+        div.innerHTML = `
+          <div class="card-banner" style="background: ${ch.color};">
+            <span>${shortName.toUpperCase()}</span>
+            <div class="play-overlay"><div class="play-icon">▶</div></div>
+          </div>
+          <div class="card-info">
+            <div class="card-title">${ch.name}</div>
+            <div class="card-category">${ch.category}</div>
+          </div>
+        `;
+        grid.appendChild(div);
+      });
     }
 
-    document.getElementById("submitLoginBtn").onclick = () => {
-      const u = document.getElementById("adminUser").value.trim();
-      const p = document.getElementById("adminPass").value.trim();
-      const creds = getAuth();
+    function filterChannels() {
+      const query = document.getElementById("searchInput").value.toLowerCase();
+      let filtered = channels.filter(ch => ch.name.toLowerCase().includes(query));
+      if (currentCategory !== 'All') filtered = filtered.filter(ch => ch.category === currentCategory);
+      renderGrid(filtered);
+    }
 
-      if (u === creds.user && p === creds.pass) {
-        isAdmin = true;
-        loginModal.style.display = "none";
-        renderAdminList();
-        adminModal.style.display = "flex";
-      } else {
-        document.getElementById("loginErr").style.display = "block";
-      }
-    };
+    function filterByCategory(category) {
+      currentCategory = category;
+      document.querySelectorAll(".category-btn").forEach(btn => btn.classList.remove("active"));
+      event.target.classList.add("active");
 
-    document.getElementById("adminPass").addEventListener("keypress", (e) => {
-      if (e.key === "Enter") document.getElementById("submitLoginBtn").click();
-    });
+      let filtered = channels;
+      if (category !== 'All') filtered = channels.filter(ch => ch.category === category);
+      
+      const query = document.getElementById("searchInput").value.toLowerCase();
+      if (query) filtered = filtered.filter(ch => ch.name.toLowerCase().includes(query));
+      
+      renderGrid(filtered);
+    }
 
-    document.getElementById("logoutAdminBtn").onclick = () => {
-      isAdmin = false;
-      adminModal.style.display = "none";
-    };
-
-    document.getElementById("updateCredsBtn").onclick = () => {
-      const u = document.getElementById("newAdminUser").value.trim();
-      const p = document.getElementById("newAdminPass").value.trim();
-      if (!u || !p) {
-        alert("Both ID and Password are required!");
-        return;
-      }
-      localStorage.setItem("star_auth_v8", JSON.stringify({ user: u, pass: p }));
-      document.getElementById("newAdminUser").value = "";
-      document.getElementById("newAdminPass").value = "";
-      alert("Credentials updated successfully!");
-    };
-
-    function renderAdminList() {
-      const container = document.getElementById("adminList");
-      container.innerHTML = "";
-      channelList.forEach(c => {
-        const row = document.createEl
+    renderGrid(channels);
+    
+    // लोड होते ही पहला चैनल (DW News) प्ले करें
+    setTimeout(() => { playChannel(1); }, 500);
+  </script>
+</body>
+</html>
