@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <title>Star Entertainment - Live TV</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,17 +15,15 @@
       --surface-card: #131d33;
       --primary: #3b82f6;
       --primary-glow: rgba(59, 130, 246, 0.4);
-      --accent: #6366f1;
       --text: #f8fafc;
       --muted: #94a3b8;
       --red: #ef4444;
       --border: rgba(255, 255, 255, 0.08);
       --border-hover: rgba(59, 130, 246, 0.5);
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; }
-    body { background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 50px; -webkit-font-smoothing: antialiased; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+    body { background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 50px; }
 
-    /* Navbar */
     .navbar {
       background: rgba(7, 9, 14, 0.85);
       backdrop-filter: blur(16px);
@@ -35,10 +32,7 @@
       display: flex; justify-content: space-between; align-items: center;
       border-bottom: 1px solid var(--border);
     }
-    .brand {
-      display: flex; align-items: center; gap: 12px;
-      font-size: 19px; font-weight: 800; letter-spacing: -0.5px;
-    }
+    .brand { display: flex; align-items: center; gap: 12px; font-size: 19px; font-weight: 800; }
     .brand img { height: 38px; width: auto; }
     .brand span { 
       background: linear-gradient(135deg, #60a5fa, #3b82f6);
@@ -49,13 +43,7 @@
       background: linear-gradient(135deg, #ef4444, #dc2626);
       color: #fff; font-size: 10px; font-weight: 800;
       padding: 3px 8px; border-radius: 6px; margin-left: 6px;
-      letter-spacing: 0.5px;
       box-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
-      animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.8; transform: scale(0.96); }
     }
     .search-wrap { position: relative; }
     .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); opacity: 0.5; font-size: 13px; }
@@ -63,95 +51,68 @@
       width: 100%; max-width: 280px; padding: 10px 16px 10px 38px;
       border-radius: 30px; border: 1px solid var(--border);
       background: rgba(255, 255, 255, 0.05); color: var(--text); font-size: 13px; outline: none;
-      transition: all 0.25s ease;
     }
-    .search-box:focus {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: var(--primary);
-      box-shadow: 0 0 15px var(--primary-glow);
-    }
+    .search-box:focus { border-color: var(--primary); }
 
     .container { max-width: 1180px; margin: 0 auto; padding: 20px 16px; }
 
-    /* Player Box */
     .player-box {
       background: #000; border-radius: 16px; overflow: hidden;
       margin-bottom: 24px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
       border: 1px solid var(--border);
-      position: relative;
     }
     .player-wrap { width: 100%; aspect-ratio: 16/9; background: #000; position: relative; }
     video { width: 100%; height: 100%; object-fit: contain; }
 
-    /* Unmute Overlay Banner */
-    .unmute-banner {
-      position: absolute; bottom: 20px; right: 20px;
-      background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px);
-      color: #fff; padding: 10px 18px; border-radius: 30px;
-      display: none; align-items: center; gap: 8px; font-size: 13px; font-weight: 600;
-      cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.2);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-      z-index: 10;
-      transition: transform 0.2s ease, background 0.2s;
-    }
-    .unmute-banner:hover { transform: scale(1.05); background: var(--primary); }
-
     .now-playing {
       background: var(--surface); padding: 16px 22px;
       border-top: 1px solid var(--border);
-      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
     }
-    .now-playing-info h2 { font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
-    .now-playing-info p { font-size: 13px; color: var(--muted); margin-top: 4px; }
+    .now-playing h2 { font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+    .now-playing p { font-size: 13px; color: var(--muted); margin-top: 4px; }
 
-    /* Categories */
     .cats { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 22px; }
     .cats::-webkit-scrollbar { display: none; }
     .cat-btn {
       background: var(--surface); border: 1px solid var(--border); color: var(--muted);
       padding: 8px 18px; border-radius: 24px; font-size: 13.5px; font-weight: 600; white-space: nowrap;
-      cursor: pointer; transition: all 0.2s ease;
+      cursor: pointer; transition: all 0.2s;
     }
-    .cat-btn:hover { color: #fff; border-color: rgba(255, 255, 255, 0.25); }
+    .cat-btn:hover { color: #fff; }
     .cat-btn.active {
       background: linear-gradient(135deg, #3b82f6, #2563eb);
       color: #fff; border-color: transparent;
       box-shadow: 0 4px 14px var(--primary-glow);
     }
 
-    .section-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .section-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
     .channel-count { font-size: 13px; color: var(--muted); font-weight: 500; }
 
-    /* Channels Grid */
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
     .card {
       background: var(--surface-card); border-radius: 14px; overflow: hidden;
       cursor: pointer; border: 1px solid var(--border); position: relative;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.2s ease;
     }
-    .card:hover { transform: translateY(-4px); border-color: var(--border-hover); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
-    .card.active { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary), 0 8px 24px var(--primary-glow); }
+    .card:hover { transform: translateY(-4px); border-color: var(--border-hover); }
+    .card.active { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary); }
     
     .banner { height: 95px; display: flex; align-items: center; justify-content: center; position: relative; }
-    .banner span { font-size: 13px; font-weight: 800; color: #fff; text-align: center; padding: 0 10px; letter-spacing: 0.3px; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+    .banner span { font-size: 13px; font-weight: 800; color: #fff; text-align: center; padding: 0 10px; text-shadow: 0 2px 4px rgba(0,0,0,0.4); }
     .overlay {
       position: absolute; inset: 0; background: rgba(7, 9, 14, 0.6);
-      backdrop-filter: blur(2px);
-      display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s ease;
+      display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s;
     }
     .card:hover .overlay { opacity: 1; }
     .play-btn {
       width: 40px; height: 40px; background: #fff; border-radius: 50%;
       display: flex; align-items: center; justify-content: center; color: #000; font-size: 14px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-      transform: scale(0.85); transition: transform 0.2s;
     }
-    .card:hover .play-btn { transform: scale(1); }
     
     .info { padding: 12px 14px; background: var(--surface-card); }
     .name { font-size: 13.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
     .cat-label { font-size: 11.5px; color: var(--muted); margin-top: 3px; font-weight: 500; }
-    .loading { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 15px; grid-column: 1 / -1; }
+    .loading { text-align: center; padding: 50px 20px; color: var(--muted); font-size: 15px; grid-column: 1 / -1; }
 
     @media (min-width: 640px) {
       .grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
@@ -175,36 +136,30 @@
     <div class="player-box">
       <div class="player-wrap">
         <video id="tvPlayer" controls playsinline webkit-playsinline></video>
-        <div class="unmute-banner" id="unmuteBanner" onclick="manualUnmute()">
-          🔊 Click to Unmute Audio
-        </div>
       </div>
       <div class="now-playing">
-        <div class="now-playing-info">
-          <h2 id="nowPlayingTitle"><span style="color:var(--red)">●</span> Loading Channels...</h2>
-          <p id="nowPlayingCat">Checking live streams...</p>
-        </div>
+        <h2 id="nowPlayingTitle"><span style="color:var(--red)">●</span> Select a Channel</h2>
+        <p id="nowPlayingCat">Ready to stream</p>
       </div>
     </div>
 
     <div class="cats">
-      <button class="cat-btn active" onclick="filterByCategory('All')">All</button>
-      <button class="cat-btn" onclick="filterByCategory('Bangla')">Bangla</button>
-      <button class="cat-btn" onclick="filterByCategory('Bangladesh')">Bangladesh</button>
-      <button class="cat-btn" onclick="filterByCategory('News')">News</button>
-      <button class="cat-btn" onclick="filterByCategory('Music')">Music</button>
-      <button class="cat-btn" onclick="filterByCategory('Movies')">Movies</button>
-      <button class="cat-btn" onclick="filterByCategory('Entertainment')">Entertainment</button>
+      <button class="cat-btn active" onclick="filterByCategory('All', event)">All</button>
+      <button class="cat-btn" onclick="filterByCategory('Bangla', event)">Bangla</button>
+      <button class="cat-btn" onclick="filterByCategory('Bangladesh', event)">Bangladesh</button>
+      <button class="cat-btn" onclick="filterByCategory('News', event)">News</button>
+      <button class="cat-btn" onclick="filterByCategory('Music', event)">Music</button>
+      <button class="cat-btn" onclick="filterByCategory('Movies', event)">Movies</button>
+      <button class="cat-btn" onclick="filterByCategory('Entertainment', event)">Entertainment</button>
     </div>
 
-    <h3 class="section-title">Live Working Channels <span class="channel-count" id="channelCount">(0)</span></h3>
+    <h3 class="section-title">Live Channels <span class="channel-count" id="channelCount">(0)</span></h3>
     <div class="grid" id="channelGrid">
-      <div class="loading">Scanning free channels & removing dead ones...</div>
+      <div class="loading">Loading channel library...</div>
     </div>
   </div>
 
   <script>
-    // Priority channels unchanged
     const PRIORITY = [
       { name: "Star Jalsha", category: "Bangla", url: "https://da86m1sqpm3o0.cloudfront.net/28072023/smil:starjalsha.smil/chunklist_b1928000.m3u8" },
       { name: "Star Jalsha HD", category: "Bangla", url: "http://103.161.153.165:8000/play/a00w/index.m3u8" },
@@ -223,7 +178,6 @@
       `https://iptv-org.github.io/iptv/categories/news.m3u?t=${timestamp}`
     ];
 
-    // Elegant modern gradients for cards
     const colors = [
       "linear-gradient(135deg, #1e3a8a, #0f172a)",
       "linear-gradient(135deg, #991b1b, #450a0a)",
@@ -242,14 +196,6 @@
     const nowTitle = document.getElementById("nowPlayingTitle");
     const nowCat = document.getElementById("nowPlayingCat");
     const grid = document.getElementById("channelGrid");
-    const unmuteBanner = document.getElementById("unmuteBanner");
-
-    function manualUnmute() {
-      video.muted = false;
-      video.play().catch(() => {});
-      unmuteBanner.style.display = "none";
-      nowCat.innerText = "Playing with audio";
-    }
 
     function normalizeCategory(group, name, source) {
       const g = (group || "").toLowerCase();
@@ -293,26 +239,10 @@
       return channels;
     }
 
-    async function checkStream(url) {
-      try {
-        const controller = new AbortController();
-        const t = setTimeout(() => controller.abort(), 2800);
-        const res = await fetch(url, { method: "GET", signal: controller.signal, mode: "cors", cache: "no-store" });
-        clearTimeout(t);
-        if (!res.ok) return false;
-        const txt = await res.text();
-        return txt.includes("#EXTM3U") || txt.includes("#EXTINF") || txt.includes(".ts");
-      } catch { return false; }
-    }
-
     async function loadAllChannels() {
-      grid.innerHTML = `<div class="loading">Scanning free channels & removing dead ones...<br>Please wait 10-20 seconds</div>`;
-      nowTitle.innerHTML = `<span style="color:var(--red)">●</span> Scanning channels...`;
-      nowCat.innerText = "Checking which channels are live";
-
       let loaded = [];
 
-      // Priority first
+      // 1. Priority channels
       PRIORITY.forEach((p, i) => {
         loaded.push({
           id: 9000 + i,
@@ -324,7 +254,7 @@
         });
       });
 
-      // Load free playlists
+      // 2. Playlists fetch
       for (const url of PLAYLISTS) {
         try {
           const res = await fetch(url, { cache: "no-store" });
@@ -334,6 +264,7 @@
         } catch (e) {}
       }
 
+      // 3. Remove duplicates
       const unique = [];
       const seen = new Set();
       for (const ch of loaded) {
@@ -344,38 +275,22 @@
         }
       }
 
-      const toCheck = unique.slice(0, 180);
-      await Promise.allSettled(toCheck.map(async ch => {
-        ch.online = await checkStream(ch.url);
-      }));
-
-      let working = unique.filter(ch => ch.online === true);
-
-      working.sort((a, b) => {
-        if (a.priority && !b.priority) return -1;
-        if (!a.priority && b.priority) return 1;
-        return 0;
-      });
-
-      allChannels = working;
+      allChannels = unique;
       document.getElementById("channelCount").innerText = `(${allChannels.length})`;
       renderGrid(allChannels);
 
-      nowTitle.innerHTML = `<span style="color:var(--red)">●</span> Select a channel`;
-      nowCat.innerText = `${allChannels.length} live channels found`;
-
+      // Auto-play first priority channel
       if (allChannels.length > 0) {
-        setTimeout(() => playChannel(allChannels[0].id, false), 600);
+        playChannel(allChannels[0].id, false);
       }
     }
 
-    // userClicked = true means the user explicitly tapped/clicked a channel
-    function playChannel(id, userClicked = true) {
+    function playChannel(id, userInitiated = true) {
       const ch = allChannels.find(c => c.id === id);
       if (!ch) return;
 
       nowTitle.innerHTML = `<span style="color:var(--red)">●</span> ${ch.name}`;
-      nowCat.innerText = "Loading stream...";
+      nowCat.innerText = "Connecting live stream...";
 
       document.querySelectorAll(".card").forEach(c => c.classList.remove("active"));
       const card = document.getElementById("card-" + id);
@@ -383,43 +298,37 @@
 
       if (hls) { hls.destroy(); hls = null; }
 
-      // Reset volume & try audio immediately
+      // Unmute audio directly on channel selection
       video.muted = false;
       video.volume = 1.0;
-      unmuteBanner.style.display = "none";
 
-      const attemptPlay = () => {
-        const playPromise = video.play();
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              nowCat.innerText = "Playing";
-              unmuteBanner.style.display = "none";
-            })
-            .catch(() => {
-              // Only if autoplay policy strictly blocks audio
-              video.muted = true;
-              video.play();
-              unmuteBanner.style.display = "flex";
-              nowCat.innerText = "Muted by browser. Tap 'Click to Unmute'";
-            });
-        }
+      const startPlayback = () => {
+        video.play().then(() => {
+          nowCat.innerText = "Playing Live • Audio ON";
+        }).catch(() => {
+          // Fallback only if initial page load blocks autoplay
+          if (!userInitiated) {
+            video.muted = true;
+            video.play().catch(() => {});
+            nowCat.innerText = "Click anywhere or select channel to enable audio";
+          }
+        });
       };
 
       if (Hls.isSupported()) {
         hls = new Hls({ enableWorker: true, lowLatencyMode: true });
         hls.loadSource(ch.url);
         hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => attemptPlay());
+        hls.on(Hls.Events.MANIFEST_PARSED, () => startPlayback());
         hls.on(Hls.Events.ERROR, (e, data) => {
-          if (data.fatal) nowCat.innerText = "Stream unavailable • Try another channel";
+          if (data.fatal) nowCat.innerText = "Stream offline • Try another channel";
         });
       } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
         video.src = ch.url;
-        attemptPlay();
+        startPlayback();
       }
 
-      if (userClicked) {
+      if (userInitiated) {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
     }
@@ -427,7 +336,7 @@
     function renderGrid(list) {
       grid.innerHTML = "";
       if (list.length === 0) {
-        grid.innerHTML = `<div class="loading">No live channels found right now. Refresh later.</div>`;
+        grid.innerHTML = `<div class="loading">No channels match your search.</div>`;
         return;
       }
       list.forEach(ch => {
@@ -435,7 +344,7 @@
         div.className = "card";
         div.id = "card-" + ch.id;
         div.onclick = () => playChannel(ch.id, true);
-        const short = ch.name.length > 14 ? ch.name.substring(0, 12) + ".." : ch.name;
+        const short = ch.name.length > 15 ? ch.name.substring(0, 13) + ".." : ch.name;
         div.innerHTML = `
           <div class="banner" style="background:${ch.color}">
             <span>${short.toUpperCase()}</span>
@@ -456,7 +365,17 @@
       renderGrid(filtered);
     }
 
-    function filterByCategory(cat) {
+    function filterByCategory(cat, evt) {
       currentCategory = cat;
       document.querySelectorAll(".cat-btn").forEach(b => b.classList.remove("active"));
-      event.target.classList.add("active")
+      if (evt && evt.target) evt.target.classList.add("active");
+      let filtered = cat === "All" ? allChannels : allChannels.filter(c => c.category === cat);
+      const q = document.getElementById("searchInput").value.toLowerCase();
+      if (q) filtered = filtered.filter(c => c.name.toLowerCase().includes(q));
+      renderGrid(filtered);
+    }
+
+    loadAllChannels();
+  </script>
+</body>
+</html>
