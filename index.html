@@ -25,24 +25,24 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
     body { background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 50px; overflow-x: hidden; }
 
-    /* Navbar */
+    /* Top Navigation */
     .navbar {
-      background: rgba(7, 9, 14, 0.9);
+      background: rgba(7, 9, 14, 0.95);
       backdrop-filter: blur(16px);
       position: sticky; top: 0; z-index: 100;
-      padding: 12px 18px;
+      padding: 10px 16px;
       display: flex; justify-content: space-between; align-items: center;
       border-bottom: 1px solid var(--border);
     }
-    .nav-left { display: flex; align-items: center; gap: 12px; }
+    .nav-left { display: flex; align-items: center; gap: 10px; }
     .menu-btn {
-      background: rgba(255,255,255,0.06); border: 1px solid var(--border);
-      color: #fff; width: 38px; height: 38px; border-radius: 10px;
+      background: rgba(255,255,255,0.08); border: 1px solid var(--border);
+      color: #fff; width: 40px; height: 40px; border-radius: 10px;
       display: flex; flex-direction: column; justify-content: center; align-items: center;
-      gap: 5px; cursor: pointer;
+      gap: 5px; cursor: pointer; outline: none; -webkit-tap-highlight-color: transparent;
     }
-    .menu-btn span { display: block; width: 18px; height: 2px; background: #fff; border-radius: 2px; }
-    .brand { display: flex; align-items: center; gap: 6px; font-size: 18px; font-weight: 800; }
+    .menu-btn span { display: block; width: 20px; height: 2px; background: #fff; border-radius: 2px; }
+    .brand { display: flex; align-items: center; gap: 6px; font-size: 17px; font-weight: 800; }
     .brand span { 
       background: linear-gradient(135deg, #60a5fa, #3b82f6);
       -webkit-background-clip: text;
@@ -53,46 +53,46 @@
       padding: 2px 6px; border-radius: 4px;
     }
     .search-box {
-      width: 140px; padding: 7px 12px; border-radius: 20px; border: 1px solid var(--border);
-      background: rgba(255, 255, 255, 0.05); color: var(--text); font-size: 12px; outline: none;
+      width: 140px; padding: 8px 12px; border-radius: 20px; border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.06); color: var(--text); font-size: 12px; outline: none;
       transition: width 0.2s;
     }
-    .search-box:focus { width: 180px; border-color: var(--primary); }
+    .search-box:focus { width: 175px; border-color: var(--primary); }
 
-    .container { max-width: 1180px; margin: 0 auto; padding: 16px 14px; }
+    .container { max-width: 1180px; margin: 0 auto; padding: 14px 12px; }
 
     /* Player */
     .player-box {
       background: #000; border-radius: 14px; overflow: hidden;
-      margin-bottom: 18px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      margin-bottom: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
       border: 1px solid var(--border);
     }
     .player-wrap { width: 100%; aspect-ratio: 16/9; background: #000; position: relative; }
     video { width: 100%; height: 100%; object-fit: contain; }
 
     .now-playing {
-      background: var(--surface); padding: 12px 18px;
+      background: var(--surface); padding: 12px 16px;
       border-top: 1px solid var(--border);
     }
-    .now-playing h2 { font-size: 15.5px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .now-playing h2 { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
     .now-playing p { font-size: 12px; color: var(--muted); margin-top: 3px; }
 
-    /* Categories */
+    /* Category Buttons */
     .cats { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; }
     .cats::-webkit-scrollbar { display: none; }
     .cat-btn {
       background: var(--surface); border: 1px solid var(--border); color: var(--muted);
       padding: 7px 15px; border-radius: 20px; font-size: 12.5px; font-weight: 600; white-space: nowrap;
-      cursor: pointer;
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
     }
     .cat-btn.active {
       background: linear-gradient(135deg, #3b82f6, #2563eb);
       color: #fff; border-color: transparent;
     }
-    .cat-btn.offline-tab { border-color: rgba(239, 68, 68, 0.3); color: #fca5a5; }
+    .cat-btn.offline-tab { border-color: rgba(239, 68, 68, 0.35); color: #fca5a5; }
     .cat-btn.offline-tab.active { background: #ef4444; color: #fff; }
 
-    .section-title { font-size: 16px; font-weight: 700; margin-bottom: 14px; }
+    .section-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
     .channel-count { font-size: 12px; color: var(--muted); font-weight: 500; }
 
     /* Grid */
@@ -100,12 +100,13 @@
     .card {
       background: var(--surface-card); border-radius: 12px; overflow: hidden;
       cursor: pointer; border: 1px solid var(--border); position: relative;
+      -webkit-tap-highlight-color: transparent;
     }
     .card:hover { border-color: var(--border-hover); }
     .card.active { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary); }
     
     .status-badge {
-      position: absolute; top: 6px; right: 6px; font-size: 9px; font-weight: 800;
+      position: absolute; top: 6px; right: 6px; font-size: 9.5px; font-weight: 800;
       padding: 2px 6px; border-radius: 4px; z-index: 5; text-transform: uppercase;
     }
     .status-badge.off { background: #ef4444; color: #fff; }
@@ -129,10 +130,10 @@
 
     /* Side Drawer Menu */
     .drawer-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
-      z-index: 300; opacity: 0; pointer-events: none; transition: 0.25s;
+      position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);
+      z-index: 300; display: none;
     }
-    .drawer-overlay.active { opacity: 1; pointer-events: auto; }
+    .drawer-overlay.active { display: block; }
     .drawer {
       position: fixed; top: 0; left: 0; bottom: 0; width: 270px; background: var(--surface);
       border-right: 1px solid var(--border); z-index: 301; padding: 20px 16px;
@@ -143,23 +144,24 @@
       display: flex; justify-content: space-between; align-items: center;
       margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
     }
-    .drawer-menu { list-style: none; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+    .drawer-menu { list-style: none; display: flex; flex-direction: column; gap: 8px; flex: 1; }
     .drawer-link {
-      display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-radius: 8px;
-      color: #fff; font-size: 13px; font-weight: 600; cursor: pointer;
+      display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 8px;
+      color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; background: rgba(255,255,255,0.03);
     }
-    .drawer-link:hover { background: rgba(255,255,255,0.06); color: var(--primary); }
-    .drawer-link.danger:hover { color: var(--red); background: rgba(239,68,68,0.1); }
+    .drawer-link:hover { background: rgba(255,255,255,0.08); color: var(--primary); }
+    .drawer-link.danger { color: #fca5a5; }
+    .drawer-link.danger:hover { background: rgba(239,68,68,0.15); color: var(--red); }
 
     /* Modals */
     .modal {
       display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
-      backdrop-filter: blur(8px); z-index: 400; align-items: center; justify-content: center; padding: 16px;
+      backdrop-filter: blur(8px); z-index: 400; align-items: center; justify-content: center; padding: 14px;
     }
     .modal.active { display: flex; }
     .modal-content {
       background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
-      width: 100%; max-width: 600px; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden;
+      width: 100%; max-width: 600px; max-height: 88vh; display: flex; flex-direction: column; overflow: hidden;
     }
     .modal-header {
       padding: 14px 18px; border-bottom: 1px solid var(--border);
@@ -181,9 +183,16 @@
       border-radius: 8px; color: #fff; font-size: 12.5px; outline: none;
     }
     .submit-btn {
-      background: var(--primary); color: #fff; border: none; padding: 8px 15px;
+      background: var(--primary); color: #fff; border: none; padding: 8px 16px;
       border-radius: 8px; font-size: 12.5px; font-weight: 600; cursor: pointer;
     }
+    .action-btn-row { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+    .tool-btn {
+      background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+      color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 11.5px; cursor: pointer; font-weight: 600;
+    }
+    .tool-btn.danger { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.3); color: var(--red); }
+
     .login-box { max-width: 340px; }
     .login-error { color: var(--red); font-size: 11.5px; margin-top: 6px; display: none; }
 
@@ -213,10 +222,10 @@
   </style>
 </head>
 <body>
-  <!-- Top Nav -->
+  <!-- Top Bar -->
   <nav class="navbar">
     <div class="nav-left">
-      <button class="menu-btn" onclick="toggleDrawer(true)">
+      <button class="menu-btn" id="openMenuBtn">
         <span></span><span></span><span></span>
       </button>
       <div class="brand">
@@ -224,68 +233,68 @@
       </div>
     </div>
     <div class="search-wrap">
-      <input type="text" id="searchInput" class="search-box" placeholder="Search..." onkeyup="filterChannels()">
+      <input type="text" id="searchInput" class="search-box" placeholder="Search..." autocomplete="off">
     </div>
   </nav>
 
   <!-- Side Drawer Menu -->
-  <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer(false)"></div>
+  <div class="drawer-overlay" id="drawerOverlay"></div>
   <div class="drawer" id="sideDrawer">
     <div class="drawer-header">
       <div class="brand">STAR <span>MENU</span></div>
-      <button class="close-btn" onclick="toggleDrawer(false)">&times;</button>
+      <button class="close-btn" id="closeMenuBtn">&times;</button>
     </div>
     <ul class="drawer-menu">
-      <li class="drawer-link" onclick="openAdminFromMenu()">
+      <li class="drawer-link" id="drawerAdminBtn">
         <span>🔒</span> Admin Panel
       </li>
-      <li class="drawer-link" onclick="reloadCurrentPlayer()">
-        <span>🔄</span> Refresh Player
+      <li class="drawer-link" id="drawerReloadBtn">
+        <span>🔄</span> Reload Player
       </li>
-      <li class="drawer-link" onclick="filterByCategory('OFFLINE'); toggleDrawer(false);">
+      <li class="drawer-link" id="drawerOfflineBtn">
         <span>🔴</span> Offline Channels
       </li>
-      <li class="drawer-link danger" onclick="resetAppData()">
-        <span>🧹</span> Force Reset / Repair
+      <li class="drawer-link danger" id="drawerResetBtn">
+        <span>🧹</span> Factory Reset App
       </li>
     </ul>
-    <div style="font-size:11px; color:var(--muted); text-align:center;">Star TV v4.0 - Stable</div>
+    <div style="font-size:11px; color:var(--muted); text-align:center;">Star TV Engine v5.0</div>
   </div>
 
   <div class="container">
-    <!-- Player -->
+    <!-- Video Player -->
     <div class="player-box">
       <div class="player-wrap">
         <video id="tvPlayer" controls playsinline webkit-playsinline></video>
       </div>
       <div class="now-playing">
         <h2 id="nowPlayingTitle"><span style="color:var(--red)">●</span> Select Any Channel</h2>
-        <p id="nowPlayingCat">Tap any channel below to play with sound</p>
+        <p id="nowPlayingCat">Click any channel card to start stream</p>
       </div>
     </div>
 
-    <!-- Category Tabs -->
-    <div class="cats">
-      <button class="cat-btn active" onclick="filterByCategory('All', event)">All Live</button>
-      <button class="cat-btn" onclick="filterByCategory('Bangla', event)">Bangla</button>
-      <button class="cat-btn" onclick="filterByCategory('Hindi', event)">Hindi</button>
-      <button class="cat-btn" onclick="filterByCategory('News', event)">News</button>
-      <button class="cat-btn" onclick="filterByCategory('Music', event)">Music</button>
-      <button class="cat-btn" onclick="filterByCategory('Movies', event)">Movies</button>
-      <button class="cat-btn" onclick="filterByCategory('Entertainment', event)">Entertainment</button>
-      <button class="cat-btn offline-tab" id="offlineTabBtn" onclick="filterByCategory('OFFLINE', event)">🔴 Offline Channels (0)</button>
+    <!-- Categories -->
+    <div class="cats" id="catsBar">
+      <button class="cat-btn active" data-cat="All">All Live</button>
+      <button class="cat-btn" data-cat="Bangla">Bangla</button>
+      <button class="cat-btn" data-cat="Hindi">Hindi</button>
+      <button class="cat-btn" data-cat="News">News</button>
+      <button class="cat-btn" data-cat="Music">Music</button>
+      <button class="cat-btn" data-cat="Movies">Movies</button>
+      <button class="cat-btn" data-cat="Entertainment">Entertainment</button>
+      <button class="cat-btn offline-tab" id="offlineTabBtn" data-cat="OFFLINE">🔴 Offline Channels (0)</button>
     </div>
 
     <h3 class="section-title"><span id="sectionHeading">Live Working Channels</span> <span class="channel-count" id="channelCount">(0)</span></h3>
     <div class="grid" id="channelGrid"></div>
   </div>
 
-  <!-- Admin Login Modal -->
+  <!-- 1. Admin Login Modal -->
   <div class="modal" id="loginModal">
     <div class="modal-content login-box">
       <div class="modal-header">
-        <h3>Admin Login</h3>
-        <button class="close-btn" onclick="closeLoginModal()">&times;</button>
+        <h3>Admin Authentication</h3>
+        <button class="close-btn" id="closeLoginBtn">&times;</button>
       </div>
       <div class="modal-body">
         <div class="form-group">
@@ -294,32 +303,35 @@
         </div>
         <div class="form-group">
           <label>Password</label>
-          <input type="password" id="adminPass" class="form-input" placeholder="admin123" onkeypress="if(event.key==='Enter') doLogin()">
+          <input type="password" id="adminPass" class="form-input" placeholder="admin123">
         </div>
         <div class="login-error" id="loginError">Invalid ID or Password!</div>
-        <button class="submit-btn" style="width:100%; margin-top:10px;" onclick="doLogin()">Login</button>
+        <button class="submit-btn" style="width:100%; margin-top:10px;" id="loginSubmitBtn">Login</button>
       </div>
     </div>
   </div>
 
-  <!-- Admin Panel Modal -->
+  <!-- 2. Master Admin Panel Modal -->
   <div class="modal" id="adminModal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>Admin Channel Manager</h3>
-        <button class="close-btn" onclick="toggleAdminModal(false)">&times;</button>
+        <h3>Admin Master Panel</h3>
+        <button class="close-btn" id="closeAdminBtn">&times;</button>
       </div>
       <div class="modal-body">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border);">
-          <span style="font-size:12px; color:var(--muted);">Logged in as <strong style="color:#fff;" id="currentAdminName">admin</strong></span>
-          <button style="background:none; border:1px solid rgba(239,68,68,0.4); color:var(--red); padding:3px 8px; border-radius:6px; cursor:pointer;" onclick="logoutAdmin()">Log Out</button>
+        <!-- Quick Action Tools -->
+        <div class="action-btn-row">
+          <button class="tool-btn" id="adminExportBtn">📥 Backup Channels</button>
+          <button class="tool-btn danger" id="adminResetBtn">⚠️ Reset All to Default</button>
+          <button class="tool-btn" id="adminLogoutBtn">Log Out</button>
         </div>
 
+        <!-- Add Channel -->
         <div class="admin-form">
           <h4>Add New Channel</h4>
           <div class="form-group">
             <label>Name</label>
-            <input type="text" id="newChName" class="form-input" placeholder="Channel name">
+            <input type="text" id="newChName" class="form-input" placeholder="e.g. Star Jalsha HD">
           </div>
           <div class="form-group">
             <label>Category</label>
@@ -334,20 +346,20 @@
           </div>
           <div class="form-group">
             <label>Stream URL (.m3u8)</label>
-            <input type="text" id="newChUrl" class="form-input" placeholder="https://domain.com/live.m3u8">
+            <input type="text" id="newChUrl" class="form-input" placeholder="https://domain.com/index.m3u8">
           </div>
-          <button class="submit-btn" onclick="addNewChannel()">+ Add Channel</button>
+          <button class="submit-btn" id="addChannelBtn">+ Save Channel</button>
         </div>
 
-        <h4 style="margin-bottom: 8px; font-size: 13px;">Manage Channels</h4>
+        <h4 style="margin-bottom: 8px; font-size: 13px;">Manage All Channels</h4>
         <div class="admin-list" id="adminChannelList"></div>
       </div>
     </div>
   </div>
 
   <script>
-    // Robust, HTTPS-supported channels
-    const DEFAULT_CHANNELS = [
+    // Stable Default Channels
+    const SEED_CHANNELS = [
       { id: 1, name: "Star Jalsha", category: "Bangla", url: "https://da86m1sqpm3o0.cloudfront.net/28072023/smil:starjalsha.smil/chunklist_b1928000.m3u8", isOff: false },
       { id: 2, name: "Zee Bangla", category: "Bangla", url: "https://raw.githubusercontent.com/amazeyourself/adaptive-streams/refs/heads/main/streams/in/YuppTV/ZeeBanglaHD.m3u8", isOff: false },
       { id: 3, name: "Colors Bangla", category: "Bangla", url: "https://itpolly.iptv.digijadoo.net/live/colors_bangla_hd/playlist.m3u8", isOff: false },
@@ -373,9 +385,8 @@
       { id: 23, name: "Mastiii", category: "Music", url: "https://d2q8p4pe5spbak.cloudfront.net/bpk-tv/Mastiii/default/index.m3u8", isOff: false }
     ];
 
-    const colors = [
+    const GRADIENTS = [
       "linear-gradient(135deg, #1e3a8a, #0f172a)",
       "linear-gradient(135deg, #991b1b, #450a0a)",
       "linear-gradient(135deg, #065f46, #022c22)",
-      "linear-gradient(135deg, #581c87, #2e1065)",
-      "linear-gradient(135deg, #9a3412,
+      "linear-gradient(1
