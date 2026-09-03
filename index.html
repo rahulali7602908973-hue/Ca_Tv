@@ -52,7 +52,7 @@
     .search-wrap { position: relative; }
     .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); opacity: 0.5; font-size: 13px; }
     .search-box {
-      width: 100%; min-width: 190px; max-width: 260px; padding: 9px 16px 9px 38px;
+      width: 100%; min-width: 180px; max-width: 250px; padding: 9px 16px 9px 38px;
       border-radius: 30px; border: 1px solid var(--border);
       background: rgba(255, 255, 255, 0.05); color: var(--text); font-size: 13px; outline: none;
     }
@@ -96,6 +96,13 @@
       color: #fff; border-color: transparent;
       box-shadow: 0 4px 14px var(--primary-glow);
     }
+    .cat-btn.offline-tab {
+      border-color: rgba(239, 68, 68, 0.3); color: #fca5a5;
+    }
+    .cat-btn.offline-tab.active {
+      background: linear-gradient(135deg, #ef4444, #b91c1c);
+      color: #fff; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
+    }
 
     .section-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
     .channel-count { font-size: 13px; color: var(--muted); font-weight: 500; }
@@ -111,13 +118,13 @@
     .card.active { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary); }
     
     .status-badge {
-      position: absolute; top: 8px; right: 8px; font-size: 10.5px; font-weight: 800;
+      position: absolute; top: 8px; right: 8px; font-size: 10px; font-weight: 800;
       padding: 3px 7px; border-radius: 5px; z-index: 5; text-transform: uppercase;
       letter-spacing: 0.5px;
     }
     .status-badge.off {
-      background: rgba(239, 68, 68, 0.9); color: #fff;
-      box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+      background: #ef4444; color: #fff;
+      box-shadow: 0 2px 8px rgba(239, 68, 68, 0.5);
     }
     .card.is-off { opacity: 0.65; filter: grayscale(0.5); }
 
@@ -138,7 +145,7 @@
     .cat-label { font-size: 11.5px; color: var(--muted); margin-top: 3px; font-weight: 500; }
     .loading { text-align: center; padding: 50px 20px; color: var(--muted); font-size: 15px; grid-column: 1 / -1; }
 
-    /* Admin Modals */
+    /* Modals */
     .modal {
       display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
       backdrop-filter: blur(8px); z-index: 200; align-items: center; justify-content: center; padding: 16px;
@@ -175,11 +182,9 @@
     }
     .submit-btn:hover { opacity: 0.9; }
 
-    /* Login Specific Box */
     .login-box { max-width: 380px; }
     .login-error { color: var(--red); font-size: 12px; margin-top: 8px; display: none; }
 
-    /* Admin Channel List */
     .admin-list { display: flex; flex-direction: column; gap: 8px; }
     .admin-item {
       display: flex; align-items: center; justify-content: space-between;
@@ -193,7 +198,7 @@
       background: transparent; border: 1px solid var(--border); color: var(--muted);
       padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;
     }
-    .status-toggle-btn.is-off { border-color: var(--red); color: var(--red); }
+    .status-toggle-btn.is-off { border-color: var(--green); color: var(--green); }
     .delete-btn {
       background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3);
       color: var(--red); padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;
@@ -240,23 +245,25 @@
       </div>
     </div>
 
+    <!-- Category Filter Bar with Offline Tab -->
     <div class="cats">
-      <button class="cat-btn active" onclick="filterByCategory('All', event)">All</button>
+      <button class="cat-btn active" onclick="filterByCategory('All', event)">All Live</button>
       <button class="cat-btn" onclick="filterByCategory('Bangla', event)">Bangla</button>
-      <button class="cat-btn" onclick="filterByCategory('Bangladesh', event)">Bangladesh</button>
+      <button class="cat-btn" onclick="filterByCategory('Hindi', event)">Hindi</button>
       <button class="cat-btn" onclick="filterByCategory('News', event)">News</button>
       <button class="cat-btn" onclick="filterByCategory('Music', event)">Music</button>
       <button class="cat-btn" onclick="filterByCategory('Movies', event)">Movies</button>
       <button class="cat-btn" onclick="filterByCategory('Entertainment', event)">Entertainment</button>
+      <button class="cat-btn offline-tab" id="offlineTabBtn" onclick="filterByCategory('OFFLINE', event)">🔴 Offline Channels (0)</button>
     </div>
 
-    <h3 class="section-title">Live Channels <span class="channel-count" id="channelCount">(0)</span></h3>
+    <h3 class="section-title"><span id="sectionHeading">Live Working Channels</span> <span class="channel-count" id="channelCount">(0)</span></h3>
     <div class="grid" id="channelGrid">
-      <div class="loading">Loading channel library...</div>
+      <div class="loading">Loading channels...</div>
     </div>
   </div>
 
-  <!-- 1. Admin Login Modal -->
+  <!-- Admin Login Modal -->
   <div class="modal" id="loginModal">
     <div class="modal-content login-box">
       <div class="modal-header">
@@ -266,11 +273,11 @@
       <div class="modal-body">
         <div class="form-group">
           <label>Admin ID</label>
-          <input type="text" id="adminUser" class="form-input" placeholder="Enter Admin ID">
+          <input type="text" id="adminUser" class="form-input" placeholder="admin">
         </div>
         <div class="form-group">
           <label>Password</label>
-          <input type="password" id="adminPass" class="form-input" placeholder="Enter Password" onkeypress="if(event.key==='Enter') doLogin()">
+          <input type="password" id="adminPass" class="form-input" placeholder="admin123" onkeypress="if(event.key==='Enter') doLogin()">
         </div>
         <div class="login-error" id="loginError">Invalid ID or Password!</div>
         <button class="submit-btn" style="width:100%; margin-top:10px;" onclick="doLogin()">Login</button>
@@ -278,7 +285,7 @@
     </div>
   </div>
 
-  <!-- 2. Admin Dashboard Modal -->
+  <!-- Admin Dashboard Modal -->
   <div class="modal" id="adminModal">
     <div class="modal-content">
       <div class="modal-header">
@@ -291,18 +298,17 @@
           <button class="logout-btn" onclick="logoutAdmin()">Log Out</button>
         </div>
 
-        <!-- Add Channel Form -->
         <div class="admin-form">
           <h4>Add New Channel</h4>
           <div class="form-group">
             <label>Channel Name</label>
-            <input type="text" id="newChName" class="form-input" placeholder="e.g. Zee Cinema HD">
+            <input type="text" id="newChName" class="form-input" placeholder="e.g. Star Gold HD">
           </div>
           <div class="form-group">
             <label>Category</label>
             <select id="newChCat" class="form-input">
               <option value="Bangla">Bangla</option>
-              <option value="Bangladesh">Bangladesh</option>
+              <option value="Hindi">Hindi</option>
               <option value="News">News</option>
               <option value="Music">Music</option>
               <option value="Movies">Movies</option>
@@ -311,12 +317,11 @@
           </div>
           <div class="form-group">
             <label>Stream URL (.m3u8)</label>
-            <input type="text" id="newChUrl" class="form-input" placeholder="https://domain.com/live/stream.m3u8">
+            <input type="text" id="newChUrl" class="form-input" placeholder="https://domain.com/live/index.m3u8">
           </div>
           <button class="submit-btn" onclick="addNewChannel()">+ Add Channel</button>
         </div>
 
-        <!-- Change Password Accordion -->
         <details class="admin-form" style="cursor:pointer; margin-bottom: 20px;">
           <summary style="font-size: 13.5px; font-weight:700; color:var(--primary); outline:none;">🔐 Change Admin ID & Password</summary>
           <div style="margin-top: 14px;">
@@ -332,109 +337,44 @@
           </div>
         </details>
 
-        <!-- Manage List -->
-        <h4 style="margin-bottom: 12px; font-size: 14px;">Manage Existing Channels</h4>
+        <h4 style="margin-bottom: 12px; font-size: 14px;">All Channels Database (Click 'Turn ON' to restore)</h4>
         <div class="admin-list" id="adminChannelList"></div>
       </div>
     </div>
   </div>
 
   <script>
-    // Priority Channels
-    const DEFAULT_PRIORITY = [
-      { id: 9001, name: "Star Jalsha", category: "Bangla", url: "https://da86m1sqpm3o0.cloudfront.net/28072023/smil:starjalsha.smil/chunklist_b1928000.m3u8", isOff: false },
-      { id: 9002, name: "Star Jalsha HD", category: "Bangla", url: "http://103.161.153.165:8000/play/a00w/index.m3u8", isOff: false },
-      { id: 9003, name: "Zee Bangla", category: "Bangla", url: "https://raw.githubusercontent.com/amazeyourself/adaptive-streams/refs/heads/main/streams/in/YuppTV/ZeeBanglaHD.m3u8", isOff: false },
-      { id: 9004, name: "Zee Bangla HD", category: "Bangla", url: "http://103.161.153.165:8000/play/zeebnhd/index.m3u8", isOff: false },
-      { id: 9005, name: "Colors Bangla", category: "Bangla", url: "https://itpolly.iptv.digijadoo.net/live/colors_bangla_hd/playlist.m3u8", isOff: false },
-      { id: 9006, name: "Colors Bangla HD", category: "Bangla", url: "https://edge01.iptv.digijadoo.net/live/colors_bangla_hd/chunks.m3u8", isOff: false },
-      { id: 9007, name: "Sony Aath", category: "Bangla", url: "http://103.205.133.19/hls/sony8.m3u8", isOff: false }
-    ];
+    // Comprehensive list of Bangla & Hindi Channels
+    const DEFAULT_CHANNELS = [
+      // Bangla Entertainment & Movies
+      { id: 101, name: "Star Jalsha", category: "Bangla", url: "https://da86m1sqpm3o0.cloudfront.net/28072023/smil:starjalsha.smil/chunklist_b1928000.m3u8", isOff: false },
+      { id: 102, name: "Star Jalsha HD", category: "Bangla", url: "http://103.161.153.165:8000/play/a00w/index.m3u8", isOff: false },
+      { id: 103, name: "Zee Bangla", category: "Bangla", url: "https://raw.githubusercontent.com/amazeyourself/adaptive-streams/refs/heads/main/streams/in/YuppTV/ZeeBanglaHD.m3u8", isOff: false },
+      { id: 104, name: "Zee Bangla HD", category: "Bangla", url: "http://103.161.153.165:8000/play/zeebnhd/index.m3u8", isOff: false },
+      { id: 105, name: "Colors Bangla", category: "Bangla", url: "https://itpolly.iptv.digijadoo.net/live/colors_bangla_hd/playlist.m3u8", isOff: false },
+      { id: 106, name: "Colors Bangla HD", category: "Bangla", url: "https://edge01.iptv.digijadoo.net/live/colors_bangla_hd/chunks.m3u8", isOff: false },
+      { id: 107, name: "Sony Aath", category: "Bangla", url: "http://103.205.133.19/hls/sony8.m3u8", isOff: false },
+      { id: 108, name: "Enterr10 Bangla", category: "Bangla", url: "https://d2q8p4pe5spbak.cloudfront.net/bpk-tv/Enterr10Bangla/default/index.m3u8", isOff: false },
+      { id: 109, name: "Channel i", category: "Bangla", url: "https://edge01.iptv.digijadoo.net/live/channel_i_hd/chunks.m3u8", isOff: false },
+      { id: 110, name: "BTV World", category: "Bangla", url: "https://btvlive.bdix.org/hls/btvworld.m3u8", isOff: false },
+      { id: 111, name: "NTV", category: "Bangla", url: "https://ntvlive.bdix.org/hls/ntv.m3u8", isOff: false },
+      { id: 112, name: "RTV", category: "Bangla", url: "https://rtvlive.bdix.org/hls/rtv.m3u8", isOff: false },
+      { id: 113, name: "Maasranga TV", category: "Bangla", url: "https://maasrangalive.bdix.org/hls/maasranga.m3u8", isOff: false },
+      { id: 114, name: "Gazi TV (GTV)", category: "Bangla", url: "https://gtvlive.bdix.org/hls/gtv.m3u8", isOff: false },
+      { id: 115, name: "Boishakhi TV", category: "Bangla", url: "https://boishakhilive.bdix.org/hls/boishakhi.m3u8", isOff: false },
 
-    const timestamp = Date.now();
-    const PLAYLISTS = [
-      `https://iptv-org.github.io/iptv/countries/bd.m3u?t=${timestamp}`,
-      `https://iptv-org.github.io/iptv/countries/in.m3u?t=${timestamp}`,
-      `https://iptv-org.github.io/iptv/categories/music.m3u?t=${timestamp}`,
-      `https://iptv-org.github.io/iptv/categories/news.m3u?t=${timestamp}`
-    ];
+      // Bangla News
+      { id: 201, name: "ABP Ananda", category: "News", url: "https://abpanandahls.akamaized.net/hls/live/2021588/abpanandahls/master.m3u8", isOff: false },
+      { id: 202, name: "Zee 24 Ghanta", category: "News", url: "https://d35j504z0x2vu2.cloudfront.net/v1/master/0bc8e83ba5335688b64a3b836413242099eaec4b/24-ghanta/master.m3u8", isOff: false },
+      { id: 203, name: "News18 Bangla", category: "News", url: "https://n18bangla.akamaized.net/hls/live/2014264/n18bangla/master.m3u8", isOff: false },
+      { id: 204, name: "Somoy News TV", category: "News", url: "https://somoylive.bdix.org/hls/somoy.m3u8", isOff: false },
+      { id: 205, name: "Jamuna TV", category: "News", url: "https://jamunalive.bdix.org/hls/jamuna.m3u8", isOff: false },
+      { id: 206, name: "DBC News", category: "News", url: "https://dbclive.bdix.org/hls/dbc.m3u8", isOff: false },
+      { id: 207, name: "Ekattor TV", category: "News", url: "https://ekattorlive.bdix.org/hls/ekattor.m3u8", isOff: false },
 
-    const colors = [
-      "linear-gradient(135deg, #1e3a8a, #0f172a)",
-      "linear-gradient(135deg, #991b1b, #450a0a)",
-      "linear-gradient(135deg, #065f46, #022c22)",
-      "linear-gradient(135deg, #581c87, #2e1065)",
-      "linear-gradient(135deg, #9a3412, #431407)",
-      "linear-gradient(135deg, #075985, #082f49)",
-      "linear-gradient(135deg, #831843, #500724)",
-      "linear-gradient(135deg, #374151, #111827)"
-    ];
-
-    let allChannels = [];
-    let currentCategory = "All";
-    let currentActiveId = null;
-    let hls = null;
-    let isAdminLoggedIn = false;
-
-    const video = document.getElementById("tvPlayer");
-    const nowTitle = document.getElementById("nowPlayingTitle");
-    const nowCat = document.getElementById("nowPlayingCat");
-    const grid = document.getElementById("channelGrid");
-
-    /* --- AUTH & SECURITY LOGIC --- */
-    function getStoredAuth() {
-      const auth = localStorage.getItem("star_tv_auth");
-      return auth ? JSON.parse(auth) : { user: "admin", pass: "admin123" };
-    }
-
-    function openAdmin() {
-      if (isAdminLoggedIn) {
-        toggleAdminModal(true);
-      } else {
-        document.getElementById("loginError").style.display = "none";
-        document.getElementById("adminUser").value = "";
-        document.getElementById("adminPass").value = "";
-        document.getElementById("loginModal").classList.add("active");
-      }
-    }
-
-    function closeLoginModal() {
-      document.getElementById("loginModal").classList.remove("active");
-    }
-
-    function doLogin() {
-      const u = document.getElementById("adminUser").value.trim();
-      const p = document.getElementById("adminPass").value.trim();
-      const creds = getStoredAuth();
-
-      if (u === creds.user && p === creds.pass) {
-        isAdminLoggedIn = true;
-        closeLoginModal();
-        document.getElementById("currentAdminName").innerText = creds.user;
-        toggleAdminModal(true);
-      } else {
-        document.getElementById("loginError").style.display = "block";
-      }
-    }
-
-    function logoutAdmin() {
-      isAdminLoggedIn = false;
-      toggleAdminModal(false);
-      alert("Logged out successfully.");
-    }
-
-    function updateCredentials() {
-      const nu = document.getElementById("changeUser").value.trim();
-      const np = document.getElementById("changePass").value.trim();
-      if (!nu || !np) {
-        alert("Both New ID and Password are required!");
-        return;
-      }
-      localStorage.setItem("star_tv_auth", JSON.stringify({ user: nu, pass: np }));
-      document.getElementById("currentAdminName").innerText = nu;
-      document.getElementById("changeUser").value = "";
-      document.getElementById("changePass").value = "";
-      alert("Admin ID & Password updated successfully!");
-    }
-
-    
+      // Hindi News
+      { id: 301, name: "Aaj Tak HD", category: "News", url: "https://feeds.intoday.in/aajtak/api/aajtakhd/master.m3u8", isOff: false },
+      { id: 302, name: "India TV", category: "News", url: "https://indiatvnews.akamaized.net/hls/live/2028682/indiatv/master.m3u8", isOff: false },
+      { id: 303, name: "ABP News", category: "News", url: "https://abphindi.akamaized.net/hls/live/2021587/abphindi/master.m3u8", isOff: false },
+      { id: 304, name: "NDTV India", category: "News", url: "https://ndtvindiaelempack-lh.akamaihd.net/i/ndtvindia_1@508754/master.m3u8", isOff: false },
+      { id: 305, name: "Republic Bharat", category: "News", url: "https://rbharat.akamaized.net/hls/live/2014265/rbharat/master.m3u8", isOf
