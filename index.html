@@ -25,7 +25,6 @@
       gap: 5px; cursor: pointer; outline: none;
     }
     .menu-btn span { display: block; width: 18px; height: 2px; background: #9ca3af; border-radius: 2px; }
-    .menu-btn:hover span { background: #fff; }
 
     .brand { font-size: 18px; font-weight: 800; color: #3b82f6; }
     .brand span { color: #ef4444; }
@@ -76,11 +75,11 @@
     /* Side Drawer */
     .drawer-overlay {
       display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75);
-      z-index: 2000; backdrop-filter: blur(2px);
+      z-index: 500;
     }
     .drawer {
       display: none; position: fixed; top: 0; left: 0; bottom: 0; width: 250px;
-      background: #111827; border-right: 1px solid #1f2937; z-index: 2001;
+      background: #111827; border-right: 1px solid #1f2937; z-index: 501;
       padding: 16px; flex-direction: column;
     }
     .drawer-header {
@@ -94,10 +93,10 @@
     }
     .drawer-item:hover { color: #fff; background: #374151; }
 
-    /* Modals Fix */
+    /* Modals */
     .modal {
       display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
-      z-index: 9999; align-items: center; justify-content: center; padding: 16px;
+      z-index: 1000; align-items: center; justify-content: center; padding: 16px;
     }
     .modal-box {
       background: #111827; border: 1px solid #374151; width: 100%; max-width: 480px;
@@ -139,30 +138,30 @@
   <!-- Header -->
   <div class="header">
     <div class="nav-left">
-      <button class="menu-btn" onclick="toggleDrawer(true)">
+      <button class="menu-btn" id="openMenuBtn">
         <span></span><span></span><span></span>
       </button>
       <div class="brand">STAR <span>LIVE</span></div>
     </div>
-    <input type="text" id="searchBox" class="search-input" placeholder="Search..." oninput="renderGrid()">
+    <input type="text" id="searchBox" class="search-input" placeholder="Search...">
   </div>
 
   <!-- Side Drawer Menu -->
-  <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer(false)"></div>
+  <div class="drawer-overlay" id="drawerOverlay"></div>
   <div class="drawer" id="sideDrawer">
     <div class="drawer-header">
       <div class="brand">STAR <span>MENU</span></div>
-      <button class="close-btn" onclick="toggleDrawer(false)">&times;</button>
+      <button class="close-btn" id="closeDrawerBtn">&times;</button>
     </div>
     <ul class="drawer-menu">
-      <li class="drawer-item" onclick="toggleDrawer(false); reloadPlayer();">
+      <li class="drawer-item" id="menuRefreshBtn">
         🔄 Refresh Player
       </li>
-      <li class="drawer-item" onclick="openAdminFromMenu()">
+      <li class="drawer-item" id="menuAdminBtn">
         🔒 Staff / Admin Panel
       </li>
     </ul>
-    <div style="font-size:11px; color:#4b5563; text-align:center;">Star Live v7.2</div>
+    <div style="font-size:11px; color:#4b5563; text-align:center;">Star Live v7.3</div>
   </div>
 
   <div class="container">
@@ -180,35 +179,35 @@
     <!-- Language Filter -->
     <div class="filter-label">Language</div>
     <div class="controls" id="langControls">
-      <button class="cat-btn active" onclick="setLang('All', this)">All</button>
-      <button class="cat-btn" onclick="setLang('Bangla', this)">Bangla</button>
-      <button class="cat-btn" onclick="setLang('Hindi', this)">Hindi</button>
-      <button class="cat-btn" onclick="setLang('English', this)">English</button>
-      <button class="cat-btn" onclick="setLang('Tamil', this)">Tamil</button>
-      <button class="cat-btn" onclick="setLang('Telugu', this)">Telugu</button>
-      <button class="cat-btn" onclick="setLang('Kannada', this)">Kannada</button>
-      <button class="cat-btn" onclick="setLang('Malayalam', this)">Malayalam</button>
-      <button class="cat-btn" onclick="setLang('Marathi', this)">Marathi</button>
-      <button class="cat-btn" onclick="setLang('Gujarati', this)">Gujarati</button>
-      <button class="cat-btn" onclick="setLang('Punjabi', this)">Punjabi</button>
-      <button class="cat-btn" onclick="setLang('Odia', this)">Odia</button>
-      <button class="cat-btn" onclick="setLang('Bhojpuri', this)">Bhojpuri</button>
-      <button class="cat-btn" onclick="setLang('Assamese', this)">Assamese</button>
-      <button class="cat-btn" onclick="setLang('Urdu', this)">Urdu</button>
+      <button class="cat-btn active" data-lang="All">All</button>
+      <button class="cat-btn" data-lang="Bangla">Bangla</button>
+      <button class="cat-btn" data-lang="Hindi">Hindi</button>
+      <button class="cat-btn" data-lang="English">English</button>
+      <button class="cat-btn" data-lang="Tamil">Tamil</button>
+      <button class="cat-btn" data-lang="Telugu">Telugu</button>
+      <button class="cat-btn" data-lang="Kannada">Kannada</button>
+      <button class="cat-btn" data-lang="Malayalam">Malayalam</button>
+      <button class="cat-btn" data-lang="Marathi">Marathi</button>
+      <button class="cat-btn" data-lang="Gujarati">Gujarati</button>
+      <button class="cat-btn" data-lang="Punjabi">Punjabi</button>
+      <button class="cat-btn" data-lang="Odia">Odia</button>
+      <button class="cat-btn" data-lang="Bhojpuri">Bhojpuri</button>
+      <button class="cat-btn" data-lang="Assamese">Assamese</button>
+      <button class="cat-btn" data-lang="Urdu">Urdu</button>
     </div>
 
     <!-- Category Filter -->
     <div class="filter-label" style="margin-top: 6px;">Category / Genre</div>
     <div class="controls" id="catControls">
-      <button class="cat-btn active" onclick="setCat('All', this)">All Categories</button>
-      <button class="cat-btn" onclick="setCat('News', this)">News</button>
-      <button class="cat-btn" onclick="setCat('Entertainment', this)">Entertainment</button>
-      <button class="cat-btn" onclick="setCat('Movies', this)">Movies</button>
-      <button class="cat-btn" onclick="setCat('Music', this)">Music</button>
-      <button class="cat-btn" onclick="setCat('Sports', this)">Sports</button>
-      <button class="cat-btn" onclick="setCat('Devotional', this)">Devotional</button>
-      <button class="cat-btn" onclick="setCat('Kids', this)">Kids</button>
-      <button class="cat-btn" onclick="setCat('Infotainment', this)">Infotainment</button>
+      <button class="cat-btn active" data-cat="All">All Categories</button>
+      <button class="cat-btn" data-cat="News">News</button>
+      <button class="cat-btn" data-cat="Entertainment">Entertainment</button>
+      <button class="cat-btn" data-cat="Movies">Movies</button>
+      <button class="cat-btn" data-cat="Music">Music</button>
+      <button class="cat-btn" data-cat="Sports">Sports</button>
+      <button class="cat-btn" data-cat="Devotional">Devotional</button>
+      <button class="cat-btn" data-cat="Kids">Kids</button>
+      <button class="cat-btn" data-cat="Infotainment">Infotainment</button>
     </div>
 
     <!-- Grid -->
@@ -220,7 +219,7 @@
     <div class="modal-box" style="max-width: 320px;">
       <div class="modal-header">
         <h4>Staff Authentication</h4>
-        <button class="close-btn" onclick="closeLogin()">&times;</button>
+        <button class="close-btn" id="closeLoginBtn">&times;</button>
       </div>
       <div class="form-group">
         <label>Admin ID</label>
@@ -228,11 +227,11 @@
       </div>
       <div class="form-group">
         <label>Password</label>
-        <input type="password" id="adminPass" class="form-input" autocomplete="off" onkeypress="if(event.key==='Enter') submitLogin()">
+        <input type="password" id="adminPass" class="form-input" autocomplete="off">
       </div>
       <div class="error-text" id="loginErr">Wrong ID or Password!</div>
       <div style="margin-top: 14px;">
-        <button class="btn" style="width: 100%;" onclick="submitLogin()">Login</button>
+        <button class="btn" style="width: 100%;" id="submitLoginBtn">Login</button>
       </div>
     </div>
   </div>
@@ -242,7 +241,7 @@
     <div class="modal-box">
       <div class="modal-header">
         <h4>⚙️ Channel Manager</h4>
-        <button class="close-btn" onclick="closeAdmin()">&times;</button>
+        <button class="close-btn" id="closeAdminBtn">&times;</button>
       </div>
 
       <!-- Add Channel Form -->
@@ -290,7 +289,7 @@
           <label>Stream URL (.m3u8)</label>
           <input type="text" id="addUrl" class="form-input" placeholder="https://domain.com/live.m3u8">
         </div>
-        <button class="btn" onclick="addChannel()">+ Add Channel</button>
+        <button class="btn" id="saveChannelBtn">+ Add Channel</button>
       </div>
 
       <!-- Password Change Section -->
@@ -305,13 +304,13 @@
             <label>New Password</label>
             <input type="password" id="newAdminPass" class="form-input">
           </div>
-          <button class="btn" onclick="changeCredentials()">Update Password</button>
+          <button class="btn" id="updateCredsBtn">Update Password</button>
         </div>
       </details>
 
       <div style="display: flex; justify-content: space-between; gap: 8px; margin-bottom: 12px;">
-        <button class="btn btn-danger" onclick="resetToDefault()">⚠️ Reset All</button>
-        <button class="cat-btn" onclick="logoutAdmin()">Log Out</button>
+        <button class="btn btn-danger" id="resetDefaultBtn">⚠️ Reset All</button>
+        <button class="cat-btn" id="logoutAdminBtn">Log Out</button>
       </div>
 
       <h5 style="font-size: 13px; margin-bottom: 6px;">Manage Channels</h5>
@@ -343,6 +342,14 @@
     const grid = document.getElementById("channelGrid");
     const search = document.getElementById("searchBox");
 
+    // Drawer Elements
+    const sideDrawer = document.getElementById("sideDrawer");
+    const drawerOverlay = document.getElementById("drawerOverlay");
+
+    // Modals
+    const loginModal = document.getElementById("loginModal");
+    const adminModal = document.getElementById("adminModal");
+
     function init() {
       try {
         const saved = localStorage.getItem("star_channels_v7_lang");
@@ -371,7 +378,7 @@
       });
 
       if (filtered.length === 0) {
-        grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #6b7280; padding: 20px;">No channels found for the selected filters.</div>`;
+        grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #6b7280; padding: 20px;">No channels found.</div>`;
         return;
       }
 
@@ -426,42 +433,44 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    function setLang(lang, el) {
-      selectedLang = lang;
-      document.querySelectorAll("#langControls .cat-btn").forEach(b => b.classList.remove("active"));
-      el.classList.add("active");
-      renderGrid();
+    // Filter Buttons
+    document.getElementById("langControls").addEventListener("click", (e) => {
+      if (e.target.classList.contains("cat-btn")) {
+        selectedLang = e.target.getAttribute("data-lang");
+        document.querySelectorAll("#langControls .cat-btn").forEach(b => b.classList.remove("active"));
+        e.target.classList.add("active");
+        renderGrid();
+      }
+    });
+
+    document.getElementById("catControls").addEventListener("click", (e) => {
+      if (e.target.classList.contains("cat-btn")) {
+        selectedCat = e.target.getAttribute("data-cat");
+        document.querySelectorAll("#catControls .cat-btn").forEach(b => b.classList.remove("active"));
+        e.target.classList.add("active");
+        renderGrid();
+      }
+    });
+
+    search.addEventListener("input", renderGrid);
+
+    // Drawer Visibility
+    function toggleDrawer(open) {
+      sideDrawer.style.display = open ? "flex" : "none";
+      drawerOverlay.style.display = open ? "block" : "none";
     }
 
-    function setCat(cat, el) {
-      selectedCat = cat;
-      document.querySelectorAll("#catControls .cat-btn").forEach(b => b.classList.remove("active"));
-      el.classList.add("active");
-      renderGrid();
-    }
+    document.getElementById("openMenuBtn").onclick = () => toggleDrawer(true);
+    document.getElementById("closeDrawerBtn").onclick = () => toggleDrawer(false);
+    drawerOverlay.onclick = () => toggleDrawer(false);
 
-    function reloadPlayer() {
+    document.getElementById("menuRefreshBtn").onclick = () => {
+      toggleDrawer(false);
       if (selectedId) {
         const c = channelList.find(item => item.id === selectedId);
         if (c) play(c);
       }
-    }
+    };
 
-    /* Drawer Controls */
-    function toggleDrawer(open) {
-      document.getElementById("sideDrawer").style.display = open ? "flex" : "none";
-      document.getElementById("drawerOverlay").style.display = open ? "block" : "none";
-    }
-
-    function openAdminFromMenu() {
-      toggleDrawer(false);
-      openLogin();
-    }
-
-    /* Modal & Auth Controls */
-    function openLogin() {
-      if (isAdmin) {
-        openAdminModal();
-      } else {
-        document.getElementById("loginErr").style.display = "none";
-        document.get
+    document.getElementById("menuAdminBtn").onclick = () => {
+     
