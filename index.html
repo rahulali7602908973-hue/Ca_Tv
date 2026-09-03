@@ -10,19 +10,33 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
     body { background: #0b0f19; color: #f3f4f6; min-height: 100vh; padding-bottom: 40px; }
 
-    /* Header */
+    /* Clean Navbar */
     .header {
-      background: #111827; padding: 12px 16px; display: flex;
+      background: #111827; padding: 10px 16px; display: flex;
       justify-content: space-between; align-items: center; border-bottom: 1px solid #1f2937;
       position: sticky; top: 0; z-index: 50;
     }
+    .nav-left { display: flex; align-items: center; gap: 12px; }
+    
+    /* 3 Line Menu Button */
+    .menu-btn {
+      background: #1f2937; border: 1px solid #374151; color: #fff;
+      width: 38px; height: 38px; border-radius: 8px; display: flex;
+      flex-direction: column; justify-content: center; align-items: center;
+      gap: 5px; cursor: pointer; outline: none;
+    }
+    .menu-btn span { display: block; width: 18px; height: 2px; background: #9ca3af; border-radius: 2px; }
+    .menu-btn:hover span { background: #fff; }
+
     .brand { font-size: 18px; font-weight: 800; color: #3b82f6; }
     .brand span { color: #ef4444; }
-    .admin-btn {
-      background: #1f2937; color: #9ca3af; border: 1px solid #374151; padding: 7px 12px;
-      border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;
+
+    .search-input {
+      width: 130px; background: #1f2937; border: 1px solid #374151;
+      padding: 7px 10px; border-radius: 20px; color: #fff; font-size: 12px; outline: none;
+      transition: width 0.2s;
     }
-    .admin-btn:hover { background: #374151; color: #fff; }
+    .search-input:focus { width: 170px; border-color: #3b82f6; }
 
     .container { max-width: 1000px; margin: 0 auto; padding: 12px; }
 
@@ -34,15 +48,12 @@
     .player-info h3 { font-size: 15px; }
     .player-info p { font-size: 12px; color: #9ca3af; margin-top: 2px; }
 
-    /* Filter & Search */
-    .controls { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
-    .search-input {
-      flex: 1; min-width: 150px; background: #1f2937; border: 1px solid #374151;
-      padding: 8px 12px; border-radius: 6px; color: #fff; font-size: 13px; outline: none;
-    }
+    /* Filters */
+    .controls { display: flex; gap: 8px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 4px; }
+    .controls::-webkit-scrollbar { display: none; }
     .cat-btn {
       background: #1f2937; border: 1px solid #374151; color: #9ca3af;
-      padding: 7px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;
+      padding: 6px 14px; border-radius: 20px; font-size: 12px; cursor: pointer; white-space: nowrap;
     }
     .cat-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
 
@@ -50,14 +61,9 @@
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
     .card {
       background: #111827; border: 1px solid #1f2937; border-radius: 8px;
-      overflow: hidden; cursor: pointer; position: relative;
+      overflow: hidden; cursor: pointer;
     }
     .card.active { border-color: #3b82f6; box-shadow: 0 0 0 2px #3b82f6; }
-    .card.is-off { opacity: 0.6; filter: grayscale(0.5); }
-    .status-badge {
-      position: absolute; top: 6px; right: 6px; background: #ef4444; color: #fff;
-      font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 4px;
-    }
     .card-banner {
       height: 75px; background: linear-gradient(135deg, #1e3a8a, #0f172a);
       display: flex; align-items: center; justify-content: center; text-align: center;
@@ -66,27 +72,46 @@
     .card-body { padding: 8px; }
     .card-title { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+    /* Side Drawer Menu */
+    .drawer-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+      z-index: 998; backdrop-filter: blur(2px);
+    }
+    .drawer {
+      display: none; position: fixed; top: 0; left: 0; bottom: 0; width: 250px;
+      background: #111827; border-right: 1px solid #1f2937; z-index: 999;
+      padding: 16px; flex-direction: column;
+    }
+    .drawer-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #1f2937;
+    }
+    .drawer-menu { list-style: none; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+    .drawer-item {
+      padding: 10px 12px; border-radius: 6px; font-size: 13px; font-weight: 600;
+      color: #9ca3af; cursor: pointer; background: #1f2937; display: flex; align-items: center; gap: 8px;
+    }
+    .drawer-item:hover { color: #fff; background: #374151; }
+
     /* Modals */
     .modal {
-      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8);
-      z-index: 100; align-items: center; justify-content: center; padding: 16px;
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+      z-index: 1000; align-items: center; justify-content: center; padding: 16px;
     }
-    .modal.show { display: flex; }
     .modal-box {
-      background: #111827; border: 1px solid #374151; width: 100%; max-width: 500px;
+      background: #111827; border: 1px solid #374151; width: 100%; max-width: 450px;
       border-radius: 8px; padding: 16px; max-height: 90vh; overflow-y: auto;
     }
     .modal-header {
       display: flex; justify-content: space-between; align-items: center;
       margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid #1f2937;
     }
-    .modal-header h4 { font-size: 15px; }
-    .close-btn { background: none; border: none; color: #9ca3af; font-size: 20px; cursor: pointer; }
+    .close-btn { background: none; border: none; color: #9ca3af; font-size: 24px; cursor: pointer; }
     
     .form-group { margin-bottom: 10px; }
     .form-group label { display: block; font-size: 11px; color: #9ca3af; margin-bottom: 4px; }
     .form-input {
-      width: 100%; padding: 8px 10px; background: #1f2937; border: 1px solid #374151;
+      width: 100%; padding: 9px 10px; background: #1f2937; border: 1px solid #374151;
       border-radius: 6px; color: #fff; font-size: 13px; outline: none;
     }
     .btn {
@@ -94,35 +119,51 @@
       border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;
     }
     .btn-danger { background: #dc2626; }
-    .btn-secondary { background: #374151; }
     .error-text { color: #ef4444; font-size: 12px; margin-top: 6px; display: none; }
 
-    /* Admin Channel Item List */
-    .admin-list { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+    .admin-list { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
     .admin-item {
       display: flex; justify-content: space-between; align-items: center;
       background: #1f2937; padding: 8px 10px; border-radius: 6px; gap: 8px;
     }
-    .admin-item-meta { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
-    .admin-actions { display: flex; gap: 4px; }
-    .action-btn {
-      border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: 600;
+    .del-btn {
+      background: rgba(239, 68, 68, 0.2); color: #ef4444; border: none;
+      padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;
     }
-    .action-btn.toggle { background: #374151; color: #f3f4f6; }
-    .action-btn.toggle.is-off { background: #ef4444; color: #fff; }
-    .action-btn.edit { background: #2563eb; color: #fff; }
-    .action-btn.delete { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
   </style>
 </head>
 <body>
 
+  <!-- Clean Header (Only Menu + Brand + Search) -->
   <div class="header">
-    <div class="brand">STAR <span>LIVE</span></div>
-    <button class="admin-btn" onclick="handleAdminClick()">🔒 Admin Panel</button>
+    <div class="nav-left">
+      <button class="menu-btn" onclick="toggleDrawer(true)">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="brand">STAR <span>LIVE</span></div>
+    </div>
+    <input type="text" id="searchBox" class="search-input" placeholder="Search..." oninput="renderGrid()">
+  </div>
+
+  <!-- Side Drawer -->
+  <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer(false)"></div>
+  <div class="drawer" id="sideDrawer">
+    <div class="drawer-header">
+      <div class="brand">STAR <span>MENU</span></div>
+      <button class="close-btn" onclick="toggleDrawer(false)">&times;</button>
+    </div>
+    <ul class="drawer-menu">
+      <li class="drawer-item" onclick="toggleDrawer(false); reloadPlayer();">
+        🔄 Refresh Player
+      </li>
+      <li class="drawer-item" onclick="openAdminFromMenu()">
+        🔒 Staff / Admin Panel
+      </li>
+    </ul>
+    <div style="font-size:11px; color:#4b5563; text-align:center;">Star TV v6.2</div>
   </div>
 
   <div class="container">
-    <!-- Video Player -->
     <div class="player-box">
       <div class="player-wrap">
         <video id="tvPlayer" controls playsinline webkit-playsinline></video>
@@ -133,55 +174,51 @@
       </div>
     </div>
 
-    <!-- Filters -->
     <div class="controls">
-      <input type="text" id="searchBox" class="search-input" placeholder="Search channels..." oninput="render()">
-      <button class="cat-btn active" onclick="setCategory('All', this)">All</button>
+      <button class="cat-btn active" onclick="setCategory('All', this)">All Channels</button>
       <button class="cat-btn" onclick="setCategory('Bangla', this)">Bangla</button>
       <button class="cat-btn" onclick="setCategory('Hindi', this)">Hindi</button>
     </div>
 
-    <!-- Grid -->
     <div class="grid" id="channelGrid"></div>
   </div>
 
-  <!-- 1. Secure Login Modal -->
+  <!-- Login Modal -->
   <div class="modal" id="loginModal">
     <div class="modal-box" style="max-width: 320px;">
       <div class="modal-header">
-        <h4>Admin Authentication</h4>
-        <button class="close-btn" onclick="closeModal('loginModal')">&times;</button>
+        <h4>Staff Authentication</h4>
+        <button class="close-btn" onclick="closeLogin()">&times;</button>
       </div>
       <div class="form-group">
         <label>Admin ID</label>
-        <input type="text" id="adminUser" class="form-input" placeholder="Enter ID" autocomplete="off">
+        <input type="text" id="adminUser" class="form-input" autocomplete="off">
       </div>
       <div class="form-group">
         <label>Password</label>
-        <input type="password" id="adminPass" class="form-input" placeholder="Enter Password" autocomplete="off" onkeypress="if(event.key==='Enter') verifyLogin()">
+        <input type="password" id="adminPass" class="form-input" autocomplete="off" onkeypress="if(event.key==='Enter') submitLogin()">
       </div>
       <div class="error-text" id="loginErr">Wrong ID or Password!</div>
       <div style="margin-top: 14px;">
-        <button class="btn" style="width: 100%;" onclick="verifyLogin()">Login</button>
+        <button class="btn" style="width: 100%;" onclick="submitLogin()">Login</button>
       </div>
     </div>
   </div>
 
-  <!-- 2. Master Admin Panel Modal -->
-  <div class="modal" id="adminPanelModal">
+  <!-- Admin Panel Modal -->
+  <div class="modal" id="adminModal">
     <div class="modal-box">
       <div class="modal-header">
         <h4>⚙️ Channel Manager</h4>
-        <button class="close-btn" onclick="closeModal('adminPanelModal')">&times;</button>
+        <button class="close-btn" onclick="closeAdmin()">&times;</button>
       </div>
 
-      <!-- Add / Edit Channel Form -->
+      <!-- Add Channel -->
       <div style="background: #1f2937; padding: 12px; border-radius: 6px; margin-bottom: 14px;">
-        <h5 id="formHeading" style="margin-bottom: 8px; font-size: 13px;">Add New Stream</h5>
-        <input type="hidden" id="editChannelId" value="">
+        <h5 style="margin-bottom: 8px; font-size: 13px;">Add New Stream</h5>
         <div class="form-group">
           <label>Channel Name</label>
-          <input type="text" id="addName" class="form-input" placeholder="Channel name">
+          <input type="text" id="addName" class="form-input">
         </div>
         <div class="form-group">
           <label>Category</label>
@@ -192,60 +229,53 @@
         </div>
         <div class="form-group">
           <label>Stream URL (.m3u8)</label>
-          <input type="text" id="addUrl" class="form-input" placeholder="https://domain.com/live.m3u8">
+          <input type="text" id="addUrl" class="form-input">
         </div>
-        <div style="display: flex; gap: 6px;">
-          <button class="btn" id="saveChannelBtn" onclick="saveChannel()">+ Save Channel</button>
-          <button class="btn btn-secondary" id="cancelEditBtn" style="display: none;" onclick="cancelEdit()">Cancel Edit</button>
-        </div>
+        <button class="btn" onclick="addChannel()">+ Add Channel</button>
       </div>
 
-      <!-- Password Change Section -->
+      <!-- Password Change -->
       <details style="background: #1f2937; padding: 10px; border-radius: 6px; margin-bottom: 14px; cursor: pointer;">
         <summary style="font-size: 13px; font-weight: 600; color: #3b82f6;">🔐 Change Admin ID & Password</summary>
         <div style="margin-top: 10px; cursor: default;">
           <div class="form-group">
             <label>New Admin ID</label>
-            <input type="text" id="newAdminUser" class="form-input" placeholder="New ID">
+            <input type="text" id="newAdminUser" class="form-input">
           </div>
           <div class="form-group">
             <label>New Password</label>
-            <input type="password" id="newAdminPass" class="form-input" placeholder="New Password">
+            <input type="password" id="newAdminPass" class="form-input">
           </div>
-          <button class="btn btn-secondary" onclick="updateCredentials()">Update Credentials</button>
+          <button class="btn" onclick="changeCredentials()">Update Password</button>
         </div>
       </details>
 
-      <!-- Advanced Tools -->
-      <div style="display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap;">
-        <button class="btn btn-secondary" onclick="exportData()">📥 Backup</button>
-        <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">📤 Restore</button>
-        <input type="file" id="importFile" style="display: none;" onchange="importData(event)" accept=".json">
-        <button class="btn btn-danger" onclick="resetChannels()">⚠️ Reset</button>
-        <button class="cat-btn" style="margin-left: auto;" onclick="adminLogout()">Log Out</button>
+      <div style="display: flex; justify-content: space-between; gap: 8px; margin-bottom: 12px;">
+        <button class="btn btn-danger" onclick="resetToDefault()">⚠️ Reset All</button>
+        <button class="cat-btn" onclick="logoutAdmin()">Log Out</button>
       </div>
 
-      <!-- Existing Channels List -->
-      <h5 style="font-size: 13px; margin-bottom: 6px;">Manage Existing Channels</h5>
-      <div class="admin-list" id="adminListContainer"></div>
+      <h5 style="font-size: 13px; margin-bottom: 6px;">Manage Channels</h5>
+      <div class="admin-list" id="adminList"></div>
     </div>
   </div>
 
   <script>
-    const DEFAULT_LIST = [
-      { id: 1, name: "ABP Ananda", cat: "Bangla", url: "https://abpanandahls.akamaized.net/hls/live/2021588/abpanandahls/master.m3u8", isOff: false },
-      { id: 2, name: "News18 Bangla", cat: "Bangla", url: "https://n18bangla.akamaized.net/hls/live/2014264/n18bangla/master.m3u8", isOff: false },
-      { id: 3, name: "Aaj Tak HD", cat: "Hindi", url: "https://feeds.intoday.in/aajtak/api/aajtakhd/master.m3u8", isOff: false },
-      { id: 4, name: "India TV", cat: "Hindi", url: "https://indiatvnews.akamaized.net/hls/live/2028682/indiatv/master.m3u8", isOff: false },
-      { id: 5, name: "ABP News", cat: "Hindi", url: "https://abphindi.akamaized.net/hls/live/2021587/abphindi/master.m3u8", isOff: false },
-      { id: 6, name: "Republic Bharat", cat: "Hindi", url: "https://rbharat.akamaized.net/hls/live/2014265/rbharat/master.m3u8", isOff: false }
+    const DEFAULT_DATA = [
+      { id: 1, name: "ABP Ananda", cat: "Bangla", url: "https://abpanandahls.akamaized.net/hls/live/2021588/abpanandahls/master.m3u8" },
+      { id: 2, name: "News18 Bangla", cat: "Bangla", url: "https://n18bangla.akamaized.net/hls/live/2014264/n18bangla/master.m3u8" },
+      { id: 3, name: "Aaj Tak HD", cat: "Hindi", url: "https://feeds.intoday.in/aajtak/api/aajtakhd/master.m3u8" },
+      { id: 4, name: "India TV", cat: "Hindi", url: "https://indiatvnews.akamaized.net/hls/live/2028682/indiatv/master.m3u8" },
+      { id: 5, name: "ABP News", cat: "Hindi", url: "https://abphindi.akamaized.net/hls/live/2021587/abphindi/master.m3u8" },
+      { id: 6, name: "Republic Bharat", cat: "Hindi", url: "https://rbharat.akamaized.net/hls/live/2014265/rbharat/master.m3u8" },
+      { id: 7, name: "Big Buck Bunny (Live Test)", cat: "Hindi", url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8" }
     ];
 
-    let channels = [];
-    let activeCat = "All";
-    let activeId = null;
+    let channelList = [];
+    let activeCategory = "All";
+    let selectedId = null;
     let hls = null;
-    let isLogged = false;
+    let isAdmin = false;
 
     const video = document.getElementById("tvPlayer");
     const pTitle = document.getElementById("playerTitle");
@@ -253,35 +283,28 @@
     const grid = document.getElementById("channelGrid");
     const search = document.getElementById("searchBox");
 
-    function getAuth() {
+    function init() {
       try {
-        const stored = localStorage.getItem("star_admin_creds");
-        return stored ? JSON.parse(stored) : { user: "admin", pass: "admin123" };
+        const saved = localStorage.getItem("star_clean_safe_v6");
+        channelList = saved ? JSON.parse(saved) : [...DEFAULT_DATA];
       } catch(e) {
-        return { user: "admin", pass: "admin123" };
+        channelList = [...DEFAULT_DATA];
       }
+      renderGrid();
     }
 
-    function loadData() {
+    function save() {
       try {
-        const saved = localStorage.getItem("star_secure_channels_v2");
-        channels = saved ? JSON.parse(saved) : DEFAULT_LIST;
-      } catch(e) {
-        channels = DEFAULT_LIST;
-      }
-      render();
+        localStorage.setItem("star_clean_safe_v6", JSON.stringify(channelList));
+      } catch(e) {}
     }
 
-    function saveData() {
-      localStorage.setItem("star_secure_channels_v2", JSON.stringify(channels));
-    }
-
-    function render() {
-      const q = search.value.toLowerCase().trim();
+    function renderGrid() {
+      const q = (search.value || "").toLowerCase().trim();
       grid.innerHTML = "";
 
-      const filtered = channels.filter(c => {
-        const matchCat = (activeCat === "All" || c.cat === activeCat);
+      const filtered = channelList.filter(c => {
+        const matchCat = (activeCategory === "All" || c.cat === activeCategory);
         const matchSearch = c.name.toLowerCase().includes(q);
         return matchCat && matchSearch;
       });
@@ -293,11 +316,10 @@
 
       filtered.forEach(c => {
         const card = document.createElement("div");
-        card.className = `card ${activeId === c.id ? 'active' : ''} ${c.isOff ? 'is-off' : ''}`;
-        card.onclick = () => playStream(c);
+        card.className = `card ${selectedId === c.id ? 'active' : ''}`;
+        card.onclick = () => play(c);
 
         card.innerHTML = `
-          ${c.isOff ? '<div class="status-badge">OFF</div>' : ''}
           <div class="card-banner">${c.name}</div>
           <div class="card-body">
             <div class="card-title">${c.name}</div>
@@ -307,18 +329,18 @@
       });
     }
 
-    function playStream(c) {
-      activeId = c.id;
+    function play(c) {
+      selectedId = c.id;
       pTitle.innerText = c.name;
-      pStatus.innerText = c.isOff ? "Channel marked as OFF • Stream may not load" : "Connecting...";
-      render();
+      pStatus.innerText = "Connecting live stream...";
+      renderGrid();
 
       if (hls) {
         hls.destroy();
         hls = null;
       }
 
-      if (Hls.isSupported()) {
+      if (window.Hls && Hls.isSupported()) {
         hls = new Hls({ enableWorker: true });
         hls.loadSource(c.url);
         hls.attachMedia(video);
@@ -332,7 +354,7 @@
           });
         });
         hls.on(Hls.Events.ERROR, () => {
-          pStatus.innerText = "Stream offline or invalid link";
+          pStatus.innerText = "Stream offline or network error";
         });
       } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
         video.src = c.url;
@@ -343,161 +365,150 @@
     }
 
     function setCategory(cat, el) {
-      activeCat = cat;
+      activeCategory = cat;
       document.querySelectorAll(".cat-btn").forEach(b => b.classList.remove("active"));
       el.classList.add("active");
-      render();
+      renderGrid();
     }
 
-    /* Auth Handlers */
-    function handleAdminClick() {
-      if (isLogged) {
-        openAdminPanel();
+    function reloadPlayer() {
+      if (selectedId) {
+        const c = channelList.find(item => item.id === selectedId);
+        if (c) play(c);
+      }
+    }
+
+    /* Drawer Controls */
+    function toggleDrawer(open) {
+      document.getElementById("sideDrawer").style.display = open ? "flex" : "none";
+      document.getElementById("drawerOverlay").style.display = open ? "block" : "none";
+    }
+
+    function openAdminFromMenu() {
+      toggleDrawer(false);
+      openLogin();
+    }
+
+    /* Modal & Auth Controls */
+    function openLogin() {
+      if (isAdmin) {
+        openAdminModal();
       } else {
         document.getElementById("loginErr").style.display = "none";
         document.getElementById("adminUser").value = "";
         document.getElementById("adminPass").value = "";
-        document.getElementById("loginModal").classList.add("show");
+        document.getElementById("loginModal").style.display = "flex";
       }
     }
 
-    function verifyLogin() {
+    function closeLogin() {
+      document.getElementById("loginModal").style.display = "none";
+    }
+
+    function openAdminModal() {
+      renderAdminList();
+      document.getElementById("adminModal").style.display = "flex";
+    }
+
+    function closeAdmin() {
+      document.getElementById("adminModal").style.display = "none";
+    }
+
+    function getAuth() {
+      try {
+        const stored = localStorage.getItem("star_auth_v6");
+        return stored ? JSON.parse(stored) : { user: "admin", pass: "admin123" };
+      } catch(e) {
+        return { user: "admin", pass: "admin123" };
+      }
+    }
+
+    function submitLogin() {
       const u = document.getElementById("adminUser").value.trim();
       const p = document.getElementById("adminPass").value.trim();
       const creds = getAuth();
 
       if (u === creds.user && p === creds.pass) {
-        isLogged = true;
-        closeModal("loginModal");
-        openAdminPanel();
+        isAdmin = true;
+        closeLogin();
+        openAdminModal();
       } else {
         document.getElementById("loginErr").style.display = "block";
       }
     }
 
-    function updateCredentials() {
+    function logoutAdmin() {
+      isAdmin = false;
+      closeAdmin();
+    }
+
+    function changeCredentials() {
       const u = document.getElementById("newAdminUser").value.trim();
       const p = document.getElementById("newAdminPass").value.trim();
       if (!u || !p) {
         alert("Both ID and Password are required!");
         return;
       }
-      localStorage.setItem("star_admin_creds", JSON.stringify({ user: u, pass: p }));
+      localStorage.setItem("star_auth_v6", JSON.stringify({ user: u, pass: p }));
       document.getElementById("newAdminUser").value = "";
       document.getElementById("newAdminPass").value = "";
       alert("Credentials updated successfully!");
     }
 
-    function openAdminPanel() {
-      renderAdminList();
-      document.getElementById("adminPanelModal").classList.add("show");
-    }
-
-    function adminLogout() {
-      isLogged = false;
-      closeModal("adminPanelModal");
-    }
-
-    function closeModal(id) {
-      document.getElementById(id).classList.remove("show");
-    }
-
-    /* Channel Management */
     function renderAdminList() {
-      const container = document.getElementById("adminListContainer");
+      const container = document.getElementById("adminList");
       container.innerHTML = "";
-      channels.forEach(c => {
+      channelList.forEach(c => {
         const row = document.createElement("div");
         row.className = "admin-item";
         row.innerHTML = `
-          <div class="admin-item-meta">
-            <strong>${c.name}</strong> (${c.cat})
-          </div>
-          <div class="admin-actions">
-            <button class="action-btn toggle ${c.isOff ? 'is-off' : ''}" onclick="toggleChannelStatus(${c.id})">
-              ${c.isOff ? 'OFF' : 'LIVE'}
-            </button>
-            <button class="action-btn edit" onclick="startEditChannel(${c.id})">Edit</button>
-            <button class="action-btn delete" onclick="deleteChannel(${c.id})">Del</button>
-          </div>
+          <span style="font-size: 12px;">${c.name} (${c.cat})</span>
+          <button class="del-btn" onclick="removeChannel(${c.id})">Delete</button>
         `;
         container.appendChild(row);
       });
     }
 
-    function toggleChannelStatus(id) {
-      const c = channels.find(item => item.id === id);
-      if (c) {
-        c.isOff = !c.isOff;
-        saveData();
-        render();
-        renderAdminList();
-      }
-    }
-
-    function saveChannel() {
-      const editId = document.getElementById("editChannelId").value;
+    function addChannel() {
       const name = document.getElementById("addName").value.trim();
       const cat = document.getElementById("addCat").value;
       const url = document.getElementById("addUrl").value.trim();
 
       if (!name || !url) {
-        alert("Enter both Name and URL");
+        alert("Please enter Name and URL");
         return;
       }
 
-      if (editId) {
-        const c = channels.find(item => item.id == editId);
-        if (c) {
-          c.name = name;
-          c.cat = cat;
-          c.url = url;
-        }
-        cancelEdit();
-      } else {
-        channels.unshift({ id: Date.now(), name, cat, url, isOff: false });
-        document.getElementById("addName").value = "";
-        document.getElementById("addUrl").value = "";
-      }
-
-      saveData();
-      render();
+      channelList.unshift({ id: Date.now(), name, cat, url });
+      save();
+      renderGrid();
       renderAdminList();
-    }
 
-    function startEditChannel(id) {
-      const c = channels.find(item => item.id === id);
-      if (!c) return;
-
-      document.getElementById("editChannelId").value = c.id;
-      document.getElementById("addName").value = c.name;
-      document.getElementById("addCat").value = c.cat;
-      document.getElementById("addUrl").value = c.url;
-
-      document.getElementById("formHeading").innerText = "Edit Channel: " + c.name;
-      document.getElementById("saveChannelBtn").innerText = "Update Channel";
-      document.getElementById("cancelEditBtn").style.display = "inline-block";
-    }
-
-    function cancelEdit() {
-      document.getElementById("editChannelId").value = "";
       document.getElementById("addName").value = "";
       document.getElementById("addUrl").value = "";
-
-      document.getElementById("formHeading").innerText = "Add New Stream";
-      document.getElementById("saveChannelBtn").innerText = "+ Save Channel";
-      document.getElementById("cancelEditBtn").style.display = "none";
+      alert("Channel added!");
     }
 
-    function deleteChannel(id) {
+    function removeChannel(id) {
       if (!confirm("Delete this channel?")) return;
-      channels = channels.filter(c => c.id !== id);
-      saveData();
-      render();
+      channelList = channelList.filter(c => c.id !== id);
+      save();
+      renderGrid();
       renderAdminList();
     }
 
-    function resetChannels() {
-      if (confirm("Reset all channels to default list?")) {
-        channels = DEFAULT_LIST.map(c => ({ ...c, isOff: false }));
-        save
+    function resetToDefault() {
+      if (confirm("Reset to default channel list?")) {
+        localStorage.removeItem("star_clean_safe_v6");
+        channelList = [...DEFAULT_DATA];
+        save();
+        renderGrid();
+        renderAdminList();
+        alert("Reset complete!");
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
