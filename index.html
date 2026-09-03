@@ -3,406 +3,307 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="referrer" content="no-referrer" />
-  <title>Star Entertainment - Live TV</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.7/hls.min.js"></script>
+  <title>Star Entertainment Live</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <style>
-    :root {
-      --bg: #07090e;
-      --surface: #0f172a;
-      --surface-card: #131d33;
-      --primary: #3b82f6;
-      --primary-glow: rgba(59, 130, 246, 0.4);
-      --text: #f8fafc;
-      --muted: #94a3b8;
-      --red: #ef4444;
-      --green: #22c55e;
-      --border: rgba(255, 255, 255, 0.08);
-      --border-hover: rgba(59, 130, 246, 0.5);
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
-    body { background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 50px; overflow-x: hidden; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background: #0b0f19; color: #f3f4f6; min-height: 100vh; padding-bottom: 40px; }
 
-    .navbar {
-      background: rgba(7, 9, 14, 0.95);
-      backdrop-filter: blur(16px);
-      position: sticky; top: 0; z-index: 100;
-      padding: 10px 16px;
-      display: flex; justify-content: space-between; align-items: center;
-      border-bottom: 1px solid var(--border);
+    /* Header */
+    .header {
+      background: #111827; padding: 12px 16px; display: flex;
+      justify-content: space-between; align-items: center; border-bottom: 1px solid #1f2937;
+      position: sticky; top: 0; z-index: 50;
     }
-    .nav-left { display: flex; align-items: center; gap: 10px; }
-    .menu-btn {
-      background: rgba(255,255,255,0.08); border: 1px solid var(--border);
-      color: #fff; width: 40px; height: 40px; border-radius: 10px;
-      display: flex; flex-direction: column; justify-content: center; align-items: center;
-      gap: 5px; cursor: pointer; outline: none;
+    .brand { font-size: 18px; font-weight: 800; color: #3b82f6; }
+    .brand span { color: #ef4444; }
+    .header-btns { display: flex; gap: 8px; }
+    .btn {
+      background: #2563eb; color: #fff; border: none; padding: 7px 12px;
+      border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;
     }
-    .menu-btn span { display: block; width: 20px; height: 2px; background: #fff; border-radius: 2px; }
-    .brand { display: flex; align-items: center; gap: 6px; font-size: 17px; font-weight: 800; }
-    .brand span { 
-      background: linear-gradient(135deg, #60a5fa, #3b82f6);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .free-badge {
-      background: var(--green); color: #fff; font-size: 9px; font-weight: 800;
-      padding: 2px 6px; border-radius: 4px;
-    }
-    .search-box {
-      width: 140px; padding: 8px 12px; border-radius: 20px; border: 1px solid var(--border);
-      background: rgba(255, 255, 255, 0.06); color: var(--text); font-size: 12px; outline: none;
-      transition: width 0.2s;
-    }
-    .search-box:focus { width: 175px; border-color: var(--primary); }
+    .btn-danger { background: #dc2626; }
 
-    .container { max-width: 1180px; margin: 0 auto; padding: 14px 12px; }
+    .container { max-width: 1000px; margin: 0 auto; padding: 12px; }
 
-    .player-box {
-      background: #000; border-radius: 14px; overflow: hidden;
-      margin-bottom: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
-      border: 1px solid var(--border);
-    }
-    .player-wrap { width: 100%; aspect-ratio: 16/9; background: #000; position: relative; }
+    /* Video Player */
+    .player-box { background: #000; border-radius: 10px; overflow: hidden; margin-bottom: 14px; }
+    .player-wrap { width: 100%; aspect-ratio: 16/9; background: #000; }
     video { width: 100%; height: 100%; object-fit: contain; }
+    .player-info { padding: 10px 14px; background: #111827; border-top: 1px solid #1f2937; }
+    .player-info h3 { font-size: 15px; }
+    .player-info p { font-size: 12px; color: #9ca3af; margin-top: 2px; }
 
-    .now-playing {
-      background: var(--surface); padding: 12px 16px;
-      border-top: 1px solid var(--border);
+    /* Filter & Search */
+    .controls { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+    .search-input {
+      flex: 1; min-width: 150px; background: #1f2937; border: 1px solid #374151;
+      padding: 8px 12px; border-radius: 6px; color: #fff; font-size: 13px; outline: none;
     }
-    .now-playing h2 { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-    .now-playing p { font-size: 12px; color: var(--muted); margin-top: 3px; }
-
-    .cats { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; }
-    .cats::-webkit-scrollbar { display: none; }
     .cat-btn {
-      background: var(--surface); border: 1px solid var(--border); color: var(--muted);
-      padding: 7px 15px; border-radius: 20px; font-size: 12.5px; font-weight: 600; white-space: nowrap;
-      cursor: pointer;
+      background: #1f2937; border: 1px solid #374151; color: #9ca3af;
+      padding: 7px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;
     }
-    .cat-btn.active {
-      background: linear-gradient(135deg, #3b82f6, #2563eb);
-      color: #fff; border-color: transparent;
-    }
-    .cat-btn.offline-tab { border-color: rgba(239, 68, 68, 0.35); color: #fca5a5; }
-    .cat-btn.offline-tab.active { background: #ef4444; color: #fff; }
+    .cat-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
 
-    .section-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
-    .channel-count { font-size: 12px; color: var(--muted); font-weight: 500; }
-
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+    /* Channel Grid */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
     .card {
-      background: var(--surface-card); border-radius: 12px; overflow: hidden;
-      cursor: pointer; border: 1px solid var(--border); position: relative;
+      background: #111827; border: 1px solid #1f2937; border-radius: 8px;
+      overflow: hidden; cursor: pointer; position: relative;
     }
-    .card:hover { border-color: var(--border-hover); }
-    .card.active { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary); }
-    
-    .status-badge {
-      position: absolute; top: 6px; right: 6px; font-size: 9.5px; font-weight: 800;
-      padding: 2px 6px; border-radius: 4px; z-index: 5; text-transform: uppercase;
+    .card.active { border-color: #3b82f6; box-shadow: 0 0 0 2px #3b82f6; }
+    .card-banner {
+      height: 75px; background: linear-gradient(135deg, #1e3a8a, #0f172a);
+      display: flex; align-items: center; justify-content: center; text-align: center;
+      padding: 6px; font-size: 12px; font-weight: 700; color: #fff;
     }
-    .status-badge.off { background: #ef4444; color: #fff; }
+    .card-body {
+      padding: 8px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .card-title { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px; }
+    .del-btn {
+      background: rgba(239, 68, 68, 0.2); color: #ef4444; border: none;
+      width: 22px; height: 22px; border-radius: 4px; font-size: 11px; cursor: pointer;
+    }
 
-    .banner { height: 85px; display: flex; align-items: center; justify-content: center; position: relative; }
-    .banner span { font-size: 12px; font-weight: 800; color: #fff; text-align: center; padding: 0 6px; text-shadow: 0 2px 4px rgba(0,0,0,0.6); }
-    .overlay {
-      position: absolute; inset: 0; background: rgba(7, 9, 14, 0.5);
-      display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.2s;
-    }
-    .card:hover .overlay { opacity: 1; }
-    .play-btn {
-      width: 34px; height: 34px; background: #fff; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center; color: #000; font-size: 12px;
-    }
-    
-    .info { padding: 9px 11px; background: var(--surface-card); }
-    .name { font-size: 12.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .cat-label { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
-    .loading { text-align: center; padding: 40px 10px; color: var(--muted); font-size: 14px; grid-column: 1 / -1; }
-
-    .drawer-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);
-      z-index: 300; display: none;
-    }
-    .drawer-overlay.active { display: block; }
-    .drawer {
-      position: fixed; top: 0; left: 0; bottom: 0; width: 270px; background: var(--surface);
-      border-right: 1px solid var(--border); z-index: 301; padding: 20px 16px;
-      transform: translateX(-100%); transition: transform 0.25s ease; display: flex; flex-direction: column;
-    }
-    .drawer.active { transform: translateX(0); }
-    .drawer-header {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
-    }
-    .drawer-menu { list-style: none; display: flex; flex-direction: column; gap: 8px; flex: 1; }
-    .drawer-link {
-      display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 8px;
-      color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; background: rgba(255,255,255,0.03);
-    }
-    .drawer-link:hover { background: rgba(255,255,255,0.08); color: var(--primary); }
-    .drawer-link.danger { color: #fca5a5; }
-
+    /* Simple Modal */
     .modal {
-      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
-      backdrop-filter: blur(8px); z-index: 400; align-items: center; justify-content: center; padding: 14px;
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+      z-index: 100; align-items: center; justify-content: center; padding: 16px;
     }
-    .modal.active { display: flex; }
-    .modal-content {
-      background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
-      width: 100%; max-width: 600px; max-height: 88vh; display: flex; flex-direction: column; overflow: hidden;
+    .modal.show { display: flex; }
+    .modal-box {
+      background: #111827; border: 1px solid #374151; width: 100%; max-width: 400px;
+      border-radius: 8px; padding: 16px;
     }
-    .modal-header {
-      padding: 14px 18px; border-bottom: 1px solid var(--border);
-      display: flex; justify-content: space-between; align-items: center;
-    }
-    .modal-header h3 { font-size: 15px; font-weight: 700; }
-    .close-btn { background: none; border: none; color: var(--muted); font-size: 22px; cursor: pointer; }
-    .modal-body { padding: 16px; overflow-y: auto; }
-    
-    .admin-form {
-      background: rgba(255,255,255,0.03); padding: 14px; border-radius: 10px;
-      border: 1px solid var(--border); margin-bottom: 16px;
-    }
+    .modal-box h4 { margin-bottom: 12px; font-size: 15px; }
     .form-group { margin-bottom: 10px; }
-    .form-group label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+    .form-group label { display: block; font-size: 11px; color: #9ca3af; margin-bottom: 4px; }
     .form-input {
-      width: 100%; padding: 8px 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--border);
-      border-radius: 8px; color: #fff; font-size: 12.5px; outline: none;
+      width: 100%; padding: 8px 10px; background: #1f2937; border: 1px solid #374151;
+      border-radius: 6px; color: #fff; font-size: 13px; outline: none;
     }
-    .submit-btn {
-      background: var(--primary); color: #fff; border: none; padding: 8px 16px;
-      border-radius: 8px; font-size: 12.5px; font-weight: 600; cursor: pointer;
-    }
-    .tool-btn {
-      background: rgba(255,255,255,0.06); border: 1px solid var(--border);
-      color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 11.5px; cursor: pointer; font-weight: 600;
-    }
-    .tool-btn.danger { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.3); color: var(--red); }
-    .login-box { max-width: 340px; }
-    .login-error { color: var(--red); font-size: 11.5px; margin-top: 6px; display: none; }
-
-    .admin-list { display: flex; flex-direction: column; gap: 8px; }
-    .admin-item {
-      display: flex; align-items: center; justify-content: space-between;
-      background: var(--surface-card); padding: 8px 12px; border-radius: 8px;
-      border: 1px solid var(--border); gap: 10px;
-    }
-    .admin-item-title { font-size: 12px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .status-toggle-btn {
-      background: transparent; border: 1px solid var(--border); color: var(--muted);
-      padding: 4px 8px; border-radius: 6px; font-size: 10.5px; font-weight: 700; cursor: pointer;
-    }
-    .status-toggle-btn.is-off { border-color: var(--green); color: var(--green); }
-    .delete-btn {
-      background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3);
-      color: var(--red); padding: 4px 8px; border-radius: 6px; font-size: 10.5px; font-weight: 700; cursor: pointer;
-    }
-
-    @media (min-width: 640px) {
-      .grid { grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); }
-      .banner { height: 95px; }
-      .search-box { width: 200px; }
-    }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
   </style>
 </head>
 <body>
-  <nav class="navbar">
-    <div class="nav-left">
-      <button class="menu-btn" onclick="toggleDrawer(true)">
-        <span></span><span></span><span></span>
-      </button>
-      <div class="brand">STAR <span>LIVE TV</span><span class="free-badge">FREE</span></div>
-    </div>
-    <div class="search-wrap">
-      <input type="text" id="searchInput" class="search-box" placeholder="Search..." oninput="renderChannels()">
-    </div>
-  </nav>
 
-  <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer(false)"></div>
-  <div class="drawer" id="sideDrawer">
-    <div class="drawer-header">
-      <div class="brand">STAR <span>MENU</span></div>
-      <button class="close-btn" onclick="toggleDrawer(false)">&times;</button>
+  <div class="header">
+    <div class="brand">STAR <span>LIVE</span></div>
+    <div class="header-btns">
+      <button class="btn" onclick="openAddModal()">+ Add Channel</button>
+      <button class="btn btn-danger" onclick="resetChannels()">Reset</button>
     </div>
-    <ul class="drawer-menu">
-      <li class="drawer-link" onclick="toggleDrawer(false); openAdmin();">
-        <span>🔒</span> Admin Panel
-      </li>
-      <li class="drawer-link" onclick="toggleDrawer(false); reloadPlayer();">
-        <span>🔄</span> Reload Stream
-      </li>
-      <li class="drawer-link" onclick="toggleDrawer(false); switchCategory('OFFLINE');">
-        <span>🔴</span> Offline Channels
-      </li>
-      <li class="drawer-link danger" onclick="toggleDrawer(false); factoryReset();">
-        <span>🧹</span> Factory Reset Cache
-      </li>
-    </ul>
   </div>
 
   <div class="container">
+    <!-- Player -->
     <div class="player-box">
       <div class="player-wrap">
         <video id="tvPlayer" controls playsinline webkit-playsinline></video>
       </div>
-      <div class="now-playing">
-        <h2 id="nowPlayingTitle"><span style="color:var(--red)">●</span> Select a Channel</h2>
-        <p id="nowPlayingCat">Tap any channel card to start streaming immediately</p>
+      <div class="player-info">
+        <h3 id="playerTitle">Select a Channel</h3>
+        <p id="playerStatus">Click any channel card below to start playing</p>
       </div>
     </div>
 
-    <div class="cats">
-      <button class="cat-btn active" onclick="switchCategory('All', event)">All Live</button>
-      <button class="cat-btn" onclick="switchCategory('Bangla', event)">Bangla</button>
-      <button class="cat-btn" onclick="switchCategory('Hindi', event)">Hindi</button>
-      <button class="cat-btn" onclick="switchCategory('News', event)">News</button>
-      <button class="cat-btn" onclick="switchCategory('Music', event)">Music</button>
-      <button class="cat-btn" onclick="switchCategory('Entertainment', event)">Entertainment</button>
-      <button class="cat-btn offline-tab" id="offlineTabBtn" onclick="switchCategory('OFFLINE', event)">🔴 Offline Channels (0)</button>
+    <!-- Filters -->
+    <div class="controls">
+      <input type="text" id="searchBox" class="search-input" placeholder="Search channels..." oninput="render()">
+      <button class="cat-btn active" onclick="setCategory('All', this)">All</button>
+      <button class="cat-btn" onclick="setCategory('Bangla', this)">Bangla</button>
+      <button class="cat-btn" onclick="setCategory('Hindi', this)">Hindi</button>
     </div>
 
-    <h3 class="section-title"><span id="sectionHeading">Free Live Channels</span> <span class="channel-count" id="channelCount">(0)</span></h3>
+    <!-- Grid -->
     <div class="grid" id="channelGrid"></div>
   </div>
 
-  <!-- Admin Login -->
-  <div class="modal" id="loginModal">
-    <div class="modal-content login-box">
-      <div class="modal-header">
-        <h3>Admin Authentication</h3>
-        <button class="close-btn" onclick="closeLoginModal()">&times;</button>
+  <!-- Add Channel Modal -->
+  <div class="modal" id="addModal">
+    <div class="modal-box">
+      <h4>Add Custom Channel</h4>
+      <div class="form-group">
+        <label>Channel Name</label>
+        <input type="text" id="addName" class="form-input" placeholder="e.g. Aaj Tak">
       </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label>Admin ID</label>
-          <input type="text" id="adminUser" class="form-input" placeholder="admin">
-        </div>
-        <div class="form-group">
-          <label>Password</label>
-          <input type="password" id="adminPass" class="form-input" placeholder="admin123" onkeypress="if(event.key==='Enter') doLogin()">
-        </div>
-        <div class="login-error" id="loginError">Invalid ID or Password!</div>
-        <button class="submit-btn" style="width:100%; margin-top:10px;" onclick="doLogin()">Login</button>
+      <div class="form-group">
+        <label>Category</label>
+        <select id="addCat" class="form-input">
+          <option value="Bangla">Bangla</option>
+          <option value="Hindi">Hindi</option>
+        </select>
       </div>
-    </div>
-  </div>
-
-  <!-- Admin Panel -->
-  <div class="modal" id="adminModal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Channel Management Panel</h3>
-        <button class="close-btn" onclick="closeAdminModal()">&times;</button>
+      <div class="form-group">
+        <label>Stream URL (.m3u8)</label>
+        <input type="text" id="addUrl" class="form-input" placeholder="https://domain.com/live.m3u8">
       </div>
-      <div class="modal-body">
-        <div style="display:flex; gap:8px; margin-bottom:14px;">
-          <button class="tool-btn danger" onclick="factoryReset()">⚠️ Reset to Default</button>
-          <button class="tool-btn" onclick="logoutAdmin()">Log Out</button>
-        </div>
-
-        <div class="admin-form">
-          <h4 style="margin-bottom:10px; font-size:13px;">Add New Stream URL</h4>
-          <div class="form-group">
-            <label>Name</label>
-            <input type="text" id="newChName" class="form-input" placeholder="Channel Name">
-          </div>
-          <div class="form-group">
-            <label>Category</label>
-            <select id="newChCat" class="form-input">
-              <option value="Bangla">Bangla</option>
-              <option value="Hindi">Hindi</option>
-              <option value="News">News</option>
-              <option value="Music">Music</option>
-              <option value="Entertainment">Entertainment</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Direct .m3u8 URL</label>
-            <input type="text" id="newChUrl" class="form-input" placeholder="https://domain.com/index.m3u8">
-          </div>
-          <button class="submit-btn" onclick="addNewChannel()">+ Save Channel</button>
-        </div>
-
-        <h4 style="margin-bottom: 8px; font-size: 13px;">Channel Database</h4>
-        <div class="admin-list" id="adminChannelList"></div>
+      <div class="modal-actions">
+        <button class="cat-btn" onclick="closeAddModal()">Cancel</button>
+        <button class="btn" onclick="saveNewChannel()">Save Channel</button>
       </div>
     </div>
   </div>
 
   <script>
-    // 100% Free, Legal & Direct Streams
-    const SEED_FREE_CHANNELS = [
-      { id: 1, name: "ABP Ananda", category: "Bangla", url: "https://abpanandahls.akamaized.net/hls/live/2021588/abpanandahls/master.m3u8", isOff: false },
-      { id: 2, name: "News18 Bangla", category: "Bangla", url: "https://n18bangla.akamaized.net/hls/live/2014264/n18bangla/master.m3u8", isOff: false },
-      { id: 3, name: "DD Bangla", category: "Bangla", url: "https://d361l7t4k49h2v.cloudfront.net/out/v1/a7db9668d2f2495d985a9dfba065369c/index.m3u8", isOff: false },
-      { id: 4, name: "Channel i", category: "Bangla", url: "https://edge01.iptv.digijadoo.net/live/channel_i_hd/chunks.m3u8", isOff: false },
-      { id: 5, name: "Aaj Tak HD", category: "News", url: "https://feeds.intoday.in/aajtak/api/aajtakhd/master.m3u8", isOff: false },
-      { id: 6, name: "India TV", category: "News", url: "https://indiatvnews.akamaized.net/hls/live/2028682/indiatv/master.m3u8", isOff: false },
-      { id: 7, name: "ABP News", category: "News", url: "https://abphindi.akamaized.net/hls/live/2021587/abphindi/master.m3u8", isOff: false },
-      { id: 8, name: "Republic Bharat", category: "News", url: "https://rbharat.akamaized.net/hls/live/2014265/rbharat/master.m3u8", isOff: false },
-      { id: 9, name: "NDTV India", category: "News", url: "https://ndtvindiaelempack-lh.akamaihd.net/i/ndtvindia_1@508754/master.m3u8", isOff: false },
-      { id: 10, name: "B4U Movies", category: "Entertainment", url: "https://b4umovies-ott.akamaized.net/hls/live/2003058/b4umovies/master.m3u8", isOff: false },
-      { id: 11, name: "B4U Kadak", category: "Entertainment", url: "https://b4ukadak-ott.akamaized.net/hls/live/2003059/b4ukadak/master.m3u8", isOff: false },
-      { id: 12, name: "Dangal TV", category: "Entertainment", url: "https://d2q8p4pe5spbak.cloudfront.net/bpk-tv/Dangal/default/index.m3u8", isOff: false },
-      { id: 13, name: "Shemaroo Umang", category: "Entertainment", url: "https://d2q8p4pe5spbak.cloudfront.net/bpk-tv/ShemarooUmang/default/index.m3u8", isOff: false },
-      { id: 14, name: "9XM Music", category: "Music", url: "https://d2q8p4pe5spbak.cloudfront.net/bpk-tv/9XM/default/index.m3u8", isOff: false },
-      { id: 15, name: "B4U Music", category: "Music", url: "https://b4umusic-ott.akamaized.net/hls/live/2003057/b4umusic/master.m3u8", isOff: false },
-      { id: 16, name: "Mastiii", category: "Music", url: "https://d2q8p4pe5spbak.cloudfront.net/bpk-tv/Mastiii/default/index.m3u8", isOff: false }
+    // 100% Reliable Official Streams
+    const DEFAULT_LIST = [
+      { id: 1, name: "ABP Ananda", cat: "Bangla", url: "https://abpanandahls.akamaized.net/hls/live/2021588/abpanandahls/master.m3u8" },
+      { id: 2, name: "News18 Bangla", cat: "Bangla", url: "https://n18bangla.akamaized.net/hls/live/2014264/n18bangla/master.m3u8" },
+      { id: 3, name: "Aaj Tak HD", cat: "Hindi", url: "https://feeds.intoday.in/aajtak/api/aajtakhd/master.m3u8" },
+      { id: 4, name: "India TV", cat: "Hindi", url: "https://indiatvnews.akamaized.net/hls/live/2028682/indiatv/master.m3u8" },
+      { id: 5, name: "ABP News", cat: "Hindi", url: "https://abphindi.akamaized.net/hls/live/2021587/abphindi/master.m3u8" },
+      { id: 6, name: "Republic Bharat", cat: "Hindi", url: "https://rbharat.akamaized.net/hls/live/2014265/rbharat/master.m3u8" },
+      { id: 7, name: "Big Buck Bunny (Live Test)", cat: "Hindi", url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8" }
     ];
 
-    const GRADIENTS = [
-      "linear-gradient(135deg, #1e3a8a, #0f172a)",
-      "linear-gradient(135deg, #991b1b, #450a0a)",
-      "linear-gradient(135deg, #065f46, #022c22)",
-      "linear-gradient(135deg, #581c87, #2e1065)",
-      "linear-gradient(135deg, #9a3412, #431407)",
-      "linear-gradient(135deg, #075985, #082f49)",
-      "linear-gradient(135deg, #831843, #500724)"
-    ];
-
-    let channelStore = [];
-    let activeCategory = "All";
-    let activeChannelId = null;
-    let hlsInstance = null;
-    let isAdminAuth = false;
+    let channels = [];
+    let activeCat = "All";
+    let activeId = null;
+    let hls = null;
 
     const video = document.getElementById("tvPlayer");
-    const nowTitle = document.getElementById("nowPlayingTitle");
-    const nowCat = document.getElementById("nowPlayingCat");
+    const pTitle = document.getElementById("playerTitle");
+    const pStatus = document.getElementById("playerStatus");
     const grid = document.getElementById("channelGrid");
-    const count = document.getElementById("channelCount");
-    const heading = document.getElementById("sectionHeading");
-    const offlineBtn = document.getElementById("offlineTabBtn");
-    const searchInput = document.getElementById("searchInput");
+    const search = document.getElementById("searchBox");
 
-    // नया वर्जन की ताकि पुराना खाली कैश तुरंत ओवरराइट हो जाए
-    const STORAGE_KEY = "star_live_clean_v10_force";
-
-    function syncStorage() {
+    // Load Data
+    function loadData() {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(channelStore));
-      } catch (e) {}
-      updateCounters();
+        const saved = localStorage.getItem("star_lite_v1");
+        channels = saved ? JSON.parse(saved) : DEFAULT_LIST;
+      } catch(e) {
+        channels = DEFAULT_LIST;
+      }
+      render();
     }
 
-    function updateCounters() {
-      const offCount = channelStore.filter(c => c.isOff).length;
-      offlineBtn.innerText = `🔴 Offline Channels (${offCount})`;
+    function saveData() {
+      localStorage.setItem("star_lite_v1", JSON.stringify(channels));
     }
 
-    function boot() {
-      // अगर स्टोर खाली मिले तो जबरन डिफ़ॉल्ट चैनल्स लोड करना
-      try {
-        const local = localStorage.getItem(STORAGE_KEY);
-        if (local) {
-          const parsed = JSON.parse(local);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            channelStore = parsed;
-          }
-        }
-      } catch
+    // Render Channels
+    function render() {
+      const q = search.value.toLowerCase().trim();
+      grid.innerHTML = "";
+
+      const filtered = channels.filter(c => {
+        const matchCat = (activeCat === "All" || c.cat === activeCat);
+        const matchSearch = c.name.toLowerCase().includes(q);
+        return matchCat && matchSearch;
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #6b7280; padding: 20px;">No channels found. Click '+ Add Channel' to add one.</div>`;
+        return;
+      }
+
+      filtered.forEach(c => {
+        const card = document.createElement("div");
+        card.className = `card ${activeId === c.id ? 'active' : ''}`;
+        card.onclick = () => playStream(c);
+
+        card.innerHTML = `
+          <div class="card-banner">${c.name}</div>
+          <div class="card-body">
+            <span class="card-title">${c.name}</span>
+            <button class="del-btn" onclick="deleteChannel(event, ${c.id})">&times;</button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // Play Stream
+    function playStream(c) {
+      activeId = c.id;
+      pTitle.innerText = c.name;
+      pStatus.innerText = "Loading stream...";
+      render();
+
+      if (hls) {
+        hls.destroy();
+        hls = null;
+      }
+
+      if (Hls.isSupported()) {
+        hls = new Hls({ enableWorker: true });
+        hls.loadSource(c.url);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          video.play().then(() => {
+            pStatus.innerText = "Playing Live • Sound Enabled";
+          }).catch(() => {
+            video.muted = true;
+            video.play();
+            pStatus.innerText = "Playing Muted • Click video to unmute";
+          });
+        });
+        hls.on(Hls.Events.ERROR, () => {
+          pStatus.innerText = "Stream offline or invalid link";
+        });
+      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+        video.src = c.url;
+        video.play();
+      }
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    // Filters
+    function setCategory(cat, el) {
+      activeCat = cat;
+      document.querySelectorAll(".cat-btn").forEach(b => b.classList.remove("active"));
+      el.classList.add("active");
+      render();
+    }
+
+    // Delete Channel
+    function deleteChannel(e, id) {
+      e.stopPropagation();
+      channels = channels.filter(c => c.id !== id);
+      saveData();
+      render();
+    }
+
+    // Modal Operations
+    function openAddModal() { document.getElementById("addModal").classList.add("show"); }
+    function closeAddModal() { document.getElementById("addModal").classList.remove("show"); }
+
+    function saveNewChannel() {
+      const name = document.getElementById("addName").value.trim();
+      const cat = document.getElementById("addCat").value;
+      const url = document.getElementById("addUrl").value.trim();
+
+      if (!name || !url) {
+        alert("Please enter Name and URL");
+        return;
+      }
+
+      channels.unshift({ id: Date.now(), name, cat, url });
+      saveData();
+      render();
+
+      document.getElementById("addName").value = "";
+      document.getElementById("addUrl").value = "";
+      closeAddModal();
+    }
+
+    // Reset Defaults
+    function resetChannels() {
+      if (confirm("Reset to default channels list?")) {
+        localStorage.removeItem("star_lite_v1");
+        channels = DEFAULT_LIST;
+        saveData();
+        render();
+      }
+    }
+
+    // Start
+    loadData();
+  </script>
+</body>
+</html>
