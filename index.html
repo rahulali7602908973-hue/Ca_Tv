@@ -10,7 +10,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
     body { background: #0b0f19; color: #f3f4f6; min-height: 100vh; padding-bottom: 40px; }
 
-    /* Clean Navbar */
+    /* Header */
     .header {
       background: #111827; padding: 10px 16px; display: flex;
       justify-content: space-between; align-items: center; border-bottom: 1px solid #1f2937;
@@ -18,7 +18,6 @@
     }
     .nav-left { display: flex; align-items: center; gap: 12px; }
     
-    /* 3 Line Menu Button */
     .menu-btn {
       background: #1f2937; border: 1px solid #374151; color: #fff;
       width: 38px; height: 38px; border-radius: 8px; display: flex;
@@ -48,8 +47,9 @@
     .player-info h3 { font-size: 15px; }
     .player-info p { font-size: 12px; color: #9ca3af; margin-top: 2px; }
 
-    /* Filters */
-    .controls { display: flex; gap: 8px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 4px; }
+    /* Filter Bar */
+    .filter-label { font-size: 11px; color: #9ca3af; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
+    .controls { display: flex; gap: 8px; margin-bottom: 10px; overflow-x: auto; padding-bottom: 4px; }
     .controls::-webkit-scrollbar { display: none; }
     .cat-btn {
       background: #1f2937; border: 1px solid #374151; color: #9ca3af;
@@ -58,7 +58,7 @@
     .cat-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
 
     /* Grid */
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-top: 12px; }
     .card {
       background: #111827; border: 1px solid #1f2937; border-radius: 8px;
       overflow: hidden; cursor: pointer;
@@ -71,8 +71,9 @@
     }
     .card-body { padding: 8px; }
     .card-title { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-meta { font-size: 10px; color: #9ca3af; margin-top: 2px; }
 
-    /* Side Drawer Menu */
+    /* Side Drawer */
     .drawer-overlay {
       display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75);
       z-index: 998; backdrop-filter: blur(2px);
@@ -99,7 +100,7 @@
       z-index: 1000; align-items: center; justify-content: center; padding: 16px;
     }
     .modal-box {
-      background: #111827; border: 1px solid #374151; width: 100%; max-width: 450px;
+      background: #111827; border: 1px solid #374151; width: 100%; max-width: 480px;
       border-radius: 8px; padding: 16px; max-height: 90vh; overflow-y: auto;
     }
     .modal-header {
@@ -114,6 +115,7 @@
       width: 100%; padding: 9px 10px; background: #1f2937; border: 1px solid #374151;
       border-radius: 6px; color: #fff; font-size: 13px; outline: none;
     }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .btn {
       background: #2563eb; color: #fff; border: none; padding: 8px 14px;
       border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;
@@ -134,7 +136,7 @@
 </head>
 <body>
 
-  <!-- Clean Header (Only Menu + Brand + Search) -->
+  <!-- Header -->
   <div class="header">
     <div class="nav-left">
       <button class="menu-btn" onclick="toggleDrawer(true)">
@@ -145,7 +147,7 @@
     <input type="text" id="searchBox" class="search-input" placeholder="Search..." oninput="renderGrid()">
   </div>
 
-  <!-- Side Drawer -->
+  <!-- Side Drawer Menu -->
   <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer(false)"></div>
   <div class="drawer" id="sideDrawer">
     <div class="drawer-header">
@@ -160,10 +162,11 @@
         🔒 Staff / Admin Panel
       </li>
     </ul>
-    <div style="font-size:11px; color:#4b5563; text-align:center;">Star TV v6.2</div>
+    <div style="font-size:11px; color:#4b5563; text-align:center;">Star Live v7.0</div>
   </div>
 
   <div class="container">
+    <!-- Video Player -->
     <div class="player-box">
       <div class="player-wrap">
         <video id="tvPlayer" controls playsinline webkit-playsinline></video>
@@ -174,12 +177,41 @@
       </div>
     </div>
 
-    <div class="controls">
-      <button class="cat-btn active" onclick="setCategory('All', this)">All Channels</button>
-      <button class="cat-btn" onclick="setCategory('Bangla', this)">Bangla</button>
-      <button class="cat-btn" onclick="setCategory('Hindi', this)">Hindi</button>
+    <!-- Language Filter -->
+    <div class="filter-label">Language</div>
+    <div class="controls" id="langControls">
+      <button class="cat-btn active" onclick="setLang('All', this)">All</button>
+      <button class="cat-btn" onclick="setLang('Bangla', this)">Bangla</button>
+      <button class="cat-btn" onclick="setLang('Hindi', this)">Hindi</button>
+      <button class="cat-btn" onclick="setLang('English', this)">English</button>
+      <button class="cat-btn" onclick="setLang('Tamil', this)">Tamil</button>
+      <button class="cat-btn" onclick="setLang('Telugu', this)">Telugu</button>
+      <button class="cat-btn" onclick="setLang('Kannada', this)">Kannada</button>
+      <button class="cat-btn" onclick="setLang('Malayalam', this)">Malayalam</button>
+      <button class="cat-btn" onclick="setLang('Marathi', this)">Marathi</button>
+      <button class="cat-btn" onclick="setLang('Gujarati', this)">Gujarati</button>
+      <button class="cat-btn" onclick="setLang('Punjabi', this)">Punjabi</button>
+      <button class="cat-btn" onclick="setLang('Odia', this)">Odia</button>
+      <button class="cat-btn" onclick="setLang('Bhojpuri', this)">Bhojpuri</button>
+      <button class="cat-btn" onclick="setLang('Assamese', this)">Assamese</button>
+      <button class="cat-btn" onclick="setLang('Urdu', this)">Urdu</button>
     </div>
 
+    <!-- Category Filter -->
+    <div class="filter-label" style="margin-top: 6px;">Category / Genre</div>
+    <div class="controls" id="catControls">
+      <button class="cat-btn active" onclick="setCat('All', this)">All Categories</button>
+      <button class="cat-btn" onclick="setCat('News', this)">News</button>
+      <button class="cat-btn" onclick="setCat('Entertainment', this)">Entertainment</button>
+      <button class="cat-btn" onclick="setCat('Movies', this)">Movies</button>
+      <button class="cat-btn" onclick="setCat('Music', this)">Music</button>
+      <button class="cat-btn" onclick="setCat('Sports', this)">Sports</button>
+      <button class="cat-btn" onclick="setCat('Devotional', this)">Devotional</button>
+      <button class="cat-btn" onclick="setCat('Kids', this)">Kids</button>
+      <button class="cat-btn" onclick="setCat('Infotainment', this)">Infotainment</button>
+    </div>
+
+    <!-- Grid -->
     <div class="grid" id="channelGrid"></div>
   </div>
 
@@ -213,28 +245,55 @@
         <button class="close-btn" onclick="closeAdmin()">&times;</button>
       </div>
 
-      <!-- Add Channel -->
+      <!-- Add Channel Form -->
       <div style="background: #1f2937; padding: 12px; border-radius: 6px; margin-bottom: 14px;">
         <h5 style="margin-bottom: 8px; font-size: 13px;">Add New Stream</h5>
         <div class="form-group">
           <label>Channel Name</label>
-          <input type="text" id="addName" class="form-input">
+          <input type="text" id="addName" class="form-input" placeholder="e.g. ABP Ananda">
         </div>
-        <div class="form-group">
-          <label>Category</label>
-          <select id="addCat" class="form-input">
-            <option value="Bangla">Bangla</option>
-            <option value="Hindi">Hindi</option>
-          </select>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Language</label>
+            <select id="addLang" class="form-input">
+              <option value="Bangla">Bangla</option>
+              <option value="Hindi">Hindi</option>
+              <option value="English">English</option>
+              <option value="Tamil">Tamil</option>
+              <option value="Telugu">Telugu</option>
+              <option value="Kannada">Kannada</option>
+              <option value="Malayalam">Malayalam</option>
+              <option value="Marathi">Marathi</option>
+              <option value="Gujarati">Gujarati</option>
+              <option value="Punjabi">Punjabi</option>
+              <option value="Odia">Odia</option>
+              <option value="Bhojpuri">Bhojpuri</option>
+              <option value="Assamese">Assamese</option>
+              <option value="Urdu">Urdu</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <select id="addCat" class="form-input">
+              <option value="News">News</option>
+              <option value="Entertainment">Entertainment</option>
+              <option value="Movies">Movies</option>
+              <option value="Music">Music</option>
+              <option value="Sports">Sports</option>
+              <option value="Devotional">Devotional</option>
+              <option value="Kids">Kids</option>
+              <option value="Infotainment">Infotainment</option>
+            </select>
+          </div>
         </div>
         <div class="form-group">
           <label>Stream URL (.m3u8)</label>
-          <input type="text" id="addUrl" class="form-input">
+          <input type="text" id="addUrl" class="form-input" placeholder="https://domain.com/live.m3u8">
         </div>
         <button class="btn" onclick="addChannel()">+ Add Channel</button>
       </div>
 
-      <!-- Password Change -->
+      <!-- Password Change Section -->
       <details style="background: #1f2937; padding: 10px; border-radius: 6px; margin-bottom: 14px; cursor: pointer;">
         <summary style="font-size: 13px; font-weight: 600; color: #3b82f6;">🔐 Change Admin ID & Password</summary>
         <div style="margin-top: 10px; cursor: default;">
@@ -262,17 +321,18 @@
 
   <script>
     const DEFAULT_DATA = [
-      { id: 1, name: "ABP Ananda", cat: "Bangla", url: "https://abpanandahls.akamaized.net/hls/live/2021588/abpanandahls/master.m3u8" },
-      { id: 2, name: "News18 Bangla", cat: "Bangla", url: "https://n18bangla.akamaized.net/hls/live/2014264/n18bangla/master.m3u8" },
-      { id: 3, name: "Aaj Tak HD", cat: "Hindi", url: "https://feeds.intoday.in/aajtak/api/aajtakhd/master.m3u8" },
-      { id: 4, name: "India TV", cat: "Hindi", url: "https://indiatvnews.akamaized.net/hls/live/2028682/indiatv/master.m3u8" },
-      { id: 5, name: "ABP News", cat: "Hindi", url: "https://abphindi.akamaized.net/hls/live/2021587/abphindi/master.m3u8" },
-      { id: 6, name: "Republic Bharat", cat: "Hindi", url: "https://rbharat.akamaized.net/hls/live/2014265/rbharat/master.m3u8" },
-      { id: 7, name: "Big Buck Bunny (Live Test)", cat: "Hindi", url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8" }
+      { id: 1, name: "ABP Ananda", lang: "Bangla", cat: "News", url: "https://abpanandahls.akamaized.net/hls/live/2021588/abpanandahls/master.m3u8" },
+      { id: 2, name: "News18 Bangla", lang: "Bangla", cat: "News", url: "https://n18bangla.akamaized.net/hls/live/2014264/n18bangla/master.m3u8" },
+      { id: 3, name: "Aaj Tak HD", lang: "Hindi", cat: "News", url: "https://feeds.intoday.in/aajtak/api/aajtakhd/master.m3u8" },
+      { id: 4, name: "India TV", lang: "Hindi", cat: "News", url: "https://indiatvnews.akamaized.net/hls/live/2028682/indiatv/master.m3u8" },
+      { id: 5, name: "ABP News", lang: "Hindi", cat: "News", url: "https://abphindi.akamaized.net/hls/live/2021587/abphindi/master.m3u8" },
+      { id: 6, name: "Republic Bharat", lang: "Hindi", cat: "News", url: "https://rbharat.akamaized.net/hls/live/2014265/rbharat/master.m3u8" },
+      { id: 7, name: "Big Buck Bunny (Test Live)", lang: "English", cat: "Entertainment", url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8" }
     ];
 
     let channelList = [];
-    let activeCategory = "All";
+    let selectedLang = "All";
+    let selectedCat = "All";
     let selectedId = null;
     let hls = null;
     let isAdmin = false;
@@ -285,7 +345,7 @@
 
     function init() {
       try {
-        const saved = localStorage.getItem("star_clean_safe_v6");
+        const saved = localStorage.getItem("star_channels_v7_lang");
         channelList = saved ? JSON.parse(saved) : [...DEFAULT_DATA];
       } catch(e) {
         channelList = [...DEFAULT_DATA];
@@ -295,7 +355,7 @@
 
     function save() {
       try {
-        localStorage.setItem("star_clean_safe_v6", JSON.stringify(channelList));
+        localStorage.setItem("star_channels_v7_lang", JSON.stringify(channelList));
       } catch(e) {}
     }
 
@@ -304,13 +364,14 @@
       grid.innerHTML = "";
 
       const filtered = channelList.filter(c => {
-        const matchCat = (activeCategory === "All" || c.cat === activeCategory);
+        const matchLang = (selectedLang === "All" || c.lang === selectedLang);
+        const matchCat = (selectedCat === "All" || c.cat === selectedCat);
         const matchSearch = c.name.toLowerCase().includes(q);
-        return matchCat && matchSearch;
+        return matchLang && matchCat && matchSearch;
       });
 
       if (filtered.length === 0) {
-        grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #6b7280; padding: 20px;">No channels found.</div>`;
+        grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #6b7280; padding: 20px;">No channels found for the selected filters.</div>`;
         return;
       }
 
@@ -323,6 +384,7 @@
           <div class="card-banner">${c.name}</div>
           <div class="card-body">
             <div class="card-title">${c.name}</div>
+            <div class="card-meta">${c.lang || 'General'} • ${c.cat || 'General'}</div>
           </div>
         `;
         grid.appendChild(card);
@@ -364,9 +426,16 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    function setCategory(cat, el) {
-      activeCategory = cat;
-      document.querySelectorAll(".cat-btn").forEach(b => b.classList.remove("active"));
+    function setLang(lang, el) {
+      selectedLang = lang;
+      document.querySelectorAll("#langControls .cat-btn").forEach(b => b.classList.remove("active"));
+      el.classList.add("active");
+      renderGrid();
+    }
+
+    function setCat(cat, el) {
+      selectedCat = cat;
+      document.querySelectorAll("#catControls .cat-btn").forEach(b => b.classList.remove("active"));
       el.classList.add("active");
       renderGrid();
     }
@@ -395,120 +464,4 @@
         openAdminModal();
       } else {
         document.getElementById("loginErr").style.display = "none";
-        document.getElementById("adminUser").value = "";
-        document.getElementById("adminPass").value = "";
-        document.getElementById("loginModal").style.display = "flex";
-      }
-    }
-
-    function closeLogin() {
-      document.getElementById("loginModal").style.display = "none";
-    }
-
-    function openAdminModal() {
-      renderAdminList();
-      document.getElementById("adminModal").style.display = "flex";
-    }
-
-    function closeAdmin() {
-      document.getElementById("adminModal").style.display = "none";
-    }
-
-    function getAuth() {
-      try {
-        const stored = localStorage.getItem("star_auth_v6");
-        return stored ? JSON.parse(stored) : { user: "admin", pass: "admin123" };
-      } catch(e) {
-        return { user: "admin", pass: "admin123" };
-      }
-    }
-
-    function submitLogin() {
-      const u = document.getElementById("adminUser").value.trim();
-      const p = document.getElementById("adminPass").value.trim();
-      const creds = getAuth();
-
-      if (u === creds.user && p === creds.pass) {
-        isAdmin = true;
-        closeLogin();
-        openAdminModal();
-      } else {
-        document.getElementById("loginErr").style.display = "block";
-      }
-    }
-
-    function logoutAdmin() {
-      isAdmin = false;
-      closeAdmin();
-    }
-
-    function changeCredentials() {
-      const u = document.getElementById("newAdminUser").value.trim();
-      const p = document.getElementById("newAdminPass").value.trim();
-      if (!u || !p) {
-        alert("Both ID and Password are required!");
-        return;
-      }
-      localStorage.setItem("star_auth_v6", JSON.stringify({ user: u, pass: p }));
-      document.getElementById("newAdminUser").value = "";
-      document.getElementById("newAdminPass").value = "";
-      alert("Credentials updated successfully!");
-    }
-
-    function renderAdminList() {
-      const container = document.getElementById("adminList");
-      container.innerHTML = "";
-      channelList.forEach(c => {
-        const row = document.createElement("div");
-        row.className = "admin-item";
-        row.innerHTML = `
-          <span style="font-size: 12px;">${c.name} (${c.cat})</span>
-          <button class="del-btn" onclick="removeChannel(${c.id})">Delete</button>
-        `;
-        container.appendChild(row);
-      });
-    }
-
-    function addChannel() {
-      const name = document.getElementById("addName").value.trim();
-      const cat = document.getElementById("addCat").value;
-      const url = document.getElementById("addUrl").value.trim();
-
-      if (!name || !url) {
-        alert("Please enter Name and URL");
-        return;
-      }
-
-      channelList.unshift({ id: Date.now(), name, cat, url });
-      save();
-      renderGrid();
-      renderAdminList();
-
-      document.getElementById("addName").value = "";
-      document.getElementById("addUrl").value = "";
-      alert("Channel added!");
-    }
-
-    function removeChannel(id) {
-      if (!confirm("Delete this channel?")) return;
-      channelList = channelList.filter(c => c.id !== id);
-      save();
-      renderGrid();
-      renderAdminList();
-    }
-
-    function resetToDefault() {
-      if (confirm("Reset to default channel list?")) {
-        localStorage.removeItem("star_clean_safe_v6");
-        channelList = [...DEFAULT_DATA];
-        save();
-        renderGrid();
-        renderAdminList();
-        alert("Reset complete!");
-      }
-    }
-
-    init();
-  </script>
-</body>
-</html>
+        document.getElemen
