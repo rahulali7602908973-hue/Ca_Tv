@@ -76,11 +76,11 @@
     /* Side Drawer */
     .drawer-overlay {
       display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75);
-      z-index: 998; backdrop-filter: blur(2px);
+      z-index: 2000; backdrop-filter: blur(2px);
     }
     .drawer {
       display: none; position: fixed; top: 0; left: 0; bottom: 0; width: 250px;
-      background: #111827; border-right: 1px solid #1f2937; z-index: 999;
+      background: #111827; border-right: 1px solid #1f2937; z-index: 2001;
       padding: 16px; flex-direction: column;
     }
     .drawer-header {
@@ -94,10 +94,10 @@
     }
     .drawer-item:hover { color: #fff; background: #374151; }
 
-    /* Modals */
+    /* Modals Fix */
     .modal {
       display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
-      z-index: 1000; align-items: center; justify-content: center; padding: 16px;
+      z-index: 9999; align-items: center; justify-content: center; padding: 16px;
     }
     .modal-box {
       background: #111827; border: 1px solid #374151; width: 100%; max-width: 480px;
@@ -162,7 +162,7 @@
         🔒 Staff / Admin Panel
       </li>
     </ul>
-    <div style="font-size:11px; color:#4b5563; text-align:center;">Star Live v7.0</div>
+    <div style="font-size:11px; color:#4b5563; text-align:center;">Star Live v7.2</div>
   </div>
 
   <div class="container">
@@ -464,4 +464,4 @@
         openAdminModal();
       } else {
         document.getElementById("loginErr").style.display = "none";
-        document.getElemen
+        document.get
