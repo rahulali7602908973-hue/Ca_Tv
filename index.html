@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="referrer" content="no-referrer" />
   <title>Star Entertainment Live</title>
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <style>
@@ -17,12 +18,11 @@
     }
     .brand { font-size: 18px; font-weight: 800; color: #3b82f6; }
     .brand span { color: #ef4444; }
-    .header-btns { display: flex; gap: 8px; }
-    .btn {
-      background: #2563eb; color: #fff; border: none; padding: 7px 12px;
+    .admin-btn {
+      background: #1f2937; color: #9ca3af; border: 1px solid #374151; padding: 7px 12px;
       border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;
     }
-    .btn-danger { background: #dc2626; }
+    .admin-btn:hover { background: #374151; color: #fff; }
 
     .container { max-width: 1000px; margin: 0 auto; padding: 12px; }
 
@@ -46,11 +46,11 @@
     }
     .cat-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
 
-    /* Channel Grid */
+    /* Grid */
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
     .card {
       background: #111827; border: 1px solid #1f2937; border-radius: 8px;
-      overflow: hidden; cursor: pointer; position: relative;
+      overflow: hidden; cursor: pointer;
     }
     .card.active { border-color: #3b82f6; box-shadow: 0 0 0 2px #3b82f6; }
     .card-banner {
@@ -58,43 +58,58 @@
       display: flex; align-items: center; justify-content: center; text-align: center;
       padding: 6px; font-size: 12px; font-weight: 700; color: #fff;
     }
-    .card-body {
-      padding: 8px; display: flex; justify-content: space-between; align-items: center;
-    }
-    .card-title { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px; }
-    .del-btn {
-      background: rgba(239, 68, 68, 0.2); color: #ef4444; border: none;
-      width: 22px; height: 22px; border-radius: 4px; font-size: 11px; cursor: pointer;
-    }
+    .card-body { padding: 8px; }
+    .card-title { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    /* Simple Modal */
+    /* Modals */
     .modal {
       display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8);
       z-index: 100; align-items: center; justify-content: center; padding: 16px;
     }
     .modal.show { display: flex; }
     .modal-box {
-      background: #111827; border: 1px solid #374151; width: 100%; max-width: 400px;
-      border-radius: 8px; padding: 16px;
+      background: #111827; border: 1px solid #374151; width: 100%; max-width: 480px;
+      border-radius: 8px; padding: 16px; max-height: 90vh; overflow-y: auto;
     }
-    .modal-box h4 { margin-bottom: 12px; font-size: 15px; }
+    .modal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid #1f2937;
+    }
+    .modal-header h4 { font-size: 15px; }
+    .close-btn { background: none; border: none; color: #9ca3af; font-size: 20px; cursor: pointer; }
+    
     .form-group { margin-bottom: 10px; }
     .form-group label { display: block; font-size: 11px; color: #9ca3af; margin-bottom: 4px; }
     .form-input {
       width: 100%; padding: 8px 10px; background: #1f2937; border: 1px solid #374151;
       border-radius: 6px; color: #fff; font-size: 13px; outline: none;
     }
-    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+    .btn {
+      background: #2563eb; color: #fff; border: none; padding: 8px 14px;
+      border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;
+    }
+    .btn-danger { background: #dc2626; }
+    .error-text { color: #ef4444; font-size: 12px; margin-top: 6px; display: none; }
+
+    /* Admin Channel Item List */
+    .admin-list { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
+    .admin-item {
+      display: flex; justify-content: space-between; align-items: center;
+      background: #1f2937; padding: 8px 10px; border-radius: 6px;
+    }
+    .admin-item span { font-size: 12px; }
+    .del-btn {
+      background: rgba(239, 68, 68, 0.2); color: #ef4444; border: none;
+      padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;
+    }
+    .del-btn:hover { background: #ef4444; color: #fff; }
   </style>
 </head>
 <body>
 
   <div class="header">
     <div class="brand">STAR <span>LIVE</span></div>
-    <div class="header-btns">
-      <button class="btn" onclick="openAddModal()">+ Add Channel</button>
-      <button class="btn btn-danger" onclick="resetChannels()">Reset</button>
-    </div>
+    <button class="admin-btn" onclick="handleAdminClick()">🔒 Admin Panel</button>
   </div>
 
   <div class="container">
@@ -121,48 +136,84 @@
     <div class="grid" id="channelGrid"></div>
   </div>
 
-  <!-- Add Channel Modal -->
-  <div class="modal" id="addModal">
-    <div class="modal-box">
-      <h4>Add Custom Channel</h4>
-      <div class="form-group">
-        <label>Channel Name</label>
-        <input type="text" id="addName" class="form-input" placeholder="e.g. Aaj Tak">
+  <!-- 1. Login Modal -->
+  <div class="modal" id="loginModal">
+    <div class="modal-box" style="max-width: 320px;">
+      <div class="modal-header">
+        <h4>Admin Authentication</h4>
+        <button class="close-btn" onclick="closeModal('loginModal')">&times;</button>
       </div>
       <div class="form-group">
-        <label>Category</label>
-        <select id="addCat" class="form-input">
-          <option value="Bangla">Bangla</option>
-          <option value="Hindi">Hindi</option>
-        </select>
+        <label>Admin ID</label>
+        <input type="text" id="adminUser" class="form-input" placeholder="admin">
       </div>
       <div class="form-group">
-        <label>Stream URL (.m3u8)</label>
-        <input type="text" id="addUrl" class="form-input" placeholder="https://domain.com/live.m3u8">
+        <label>Password</label>
+        <input type="password" id="adminPass" class="form-input" placeholder="admin123" onkeypress="if(event.key==='Enter') verifyLogin()">
       </div>
-      <div class="modal-actions">
-        <button class="cat-btn" onclick="closeAddModal()">Cancel</button>
-        <button class="btn" onclick="saveNewChannel()">Save Channel</button>
+      <div class="error-text" id="loginErr">Wrong ID or Password!</div>
+      <div style="margin-top: 14px;">
+        <button class="btn" style="width: 100%;" onclick="verifyLogin()">Login</button>
       </div>
     </div>
   </div>
 
+  <!-- 2. Secure Admin Panel Modal -->
+  <div class="modal" id="adminPanelModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h4>⚙️ Channel Manager</h4>
+        <button class="close-btn" onclick="closeModal('adminPanelModal')">&times;</button>
+      </div>
+
+      <!-- Add New Channel Form -->
+      <div style="background: #1f2937; padding: 12px; border-radius: 6px; margin-bottom: 14px;">
+        <h5 style="margin-bottom: 8px; font-size: 13px;">Add New Stream</h5>
+        <div class="form-group">
+          <label>Channel Name</label>
+          <input type="text" id="addName" class="form-input" placeholder="e.g. Aaj Tak">
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="addCat" class="form-input">
+            <option value="Bangla">Bangla</option>
+            <option value="Hindi">Hindi</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Stream URL (.m3u8)</label>
+          <input type="text" id="addUrl" class="form-input" placeholder="https://domain.com/live.m3u8">
+        </div>
+        <button class="btn" onclick="saveNewChannel()">+ Add Channel</button>
+      </div>
+
+      <!-- Quick Action Buttons -->
+      <div style="display: flex; justify-content: space-between; gap: 8px; margin-bottom: 12px;">
+        <button class="btn btn-danger" onclick="resetChannels()">⚠️ Reset All Channels</button>
+        <button class="cat-btn" onclick="adminLogout()">Log Out</button>
+      </div>
+
+      <!-- Existing Channels List -->
+      <h5 style="font-size: 13px; margin-bottom: 6px;">Manage Existing Channels</h5>
+      <div class="admin-list" id="adminListContainer"></div>
+    </div>
+  </div>
+
   <script>
-    // 100% Reliable Official Streams
     const DEFAULT_LIST = [
       { id: 1, name: "ABP Ananda", cat: "Bangla", url: "https://abpanandahls.akamaized.net/hls/live/2021588/abpanandahls/master.m3u8" },
       { id: 2, name: "News18 Bangla", cat: "Bangla", url: "https://n18bangla.akamaized.net/hls/live/2014264/n18bangla/master.m3u8" },
       { id: 3, name: "Aaj Tak HD", cat: "Hindi", url: "https://feeds.intoday.in/aajtak/api/aajtakhd/master.m3u8" },
       { id: 4, name: "India TV", cat: "Hindi", url: "https://indiatvnews.akamaized.net/hls/live/2028682/indiatv/master.m3u8" },
       { id: 5, name: "ABP News", cat: "Hindi", url: "https://abphindi.akamaized.net/hls/live/2021587/abphindi/master.m3u8" },
-      { id: 6, name: "Republic Bharat", cat: "Hindi", url: "https://rbharat.akamaized.net/hls/live/2014265/rbharat/master.m3u8" },
-      { id: 7, name: "Big Buck Bunny (Live Test)", cat: "Hindi", url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8" }
+      { id: 6, name: "Republic Bharat", cat: "Hindi", url: "https://rbharat.akamaized.net/hls/live/2014265/rbharat/master.m3u8" }
     ];
 
     let channels = [];
     let activeCat = "All";
     let activeId = null;
     let hls = null;
+    let isLogged = false;
 
     const video = document.getElementById("tvPlayer");
     const pTitle = document.getElementById("playerTitle");
@@ -170,10 +221,9 @@
     const grid = document.getElementById("channelGrid");
     const search = document.getElementById("searchBox");
 
-    // Load Data
     function loadData() {
       try {
-        const saved = localStorage.getItem("star_lite_v1");
+        const saved = localStorage.getItem("star_secure_channels");
         channels = saved ? JSON.parse(saved) : DEFAULT_LIST;
       } catch(e) {
         channels = DEFAULT_LIST;
@@ -182,10 +232,9 @@
     }
 
     function saveData() {
-      localStorage.setItem("star_lite_v1", JSON.stringify(channels));
+      localStorage.setItem("star_secure_channels", JSON.stringify(channels));
     }
 
-    // Render Channels
     function render() {
       const q = search.value.toLowerCase().trim();
       grid.innerHTML = "";
@@ -197,7 +246,7 @@
       });
 
       if (filtered.length === 0) {
-        grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #6b7280; padding: 20px;">No channels found. Click '+ Add Channel' to add one.</div>`;
+        grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #6b7280; padding: 20px;">No channels found.</div>`;
         return;
       }
 
@@ -209,19 +258,17 @@
         card.innerHTML = `
           <div class="card-banner">${c.name}</div>
           <div class="card-body">
-            <span class="card-title">${c.name}</span>
-            <button class="del-btn" onclick="deleteChannel(event, ${c.id})">&times;</button>
+            <div class="card-title">${c.name}</div>
           </div>
         `;
         grid.appendChild(card);
       });
     }
 
-    // Play Stream
     function playStream(c) {
       activeId = c.id;
       pTitle.innerText = c.name;
-      pStatus.innerText = "Loading stream...";
+      pStatus.innerText = "Connecting...";
       render();
 
       if (hls) {
@@ -253,7 +300,6 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    // Filters
     function setCategory(cat, el) {
       activeCat = cat;
       document.querySelectorAll(".cat-btn").forEach(b => b.classList.remove("active"));
@@ -261,17 +307,58 @@
       render();
     }
 
-    // Delete Channel
-    function deleteChannel(e, id) {
-      e.stopPropagation();
-      channels = channels.filter(c => c.id !== id);
-      saveData();
-      render();
+    /* Admin & Security Functions */
+    function handleAdminClick() {
+      if (isLogged) {
+        openAdminPanel();
+      } else {
+        document.getElementById("loginErr").style.display = "none";
+        document.getElementById("adminUser").value = "";
+        document.getElementById("adminPass").value = "";
+        document.getElementById("loginModal").classList.add("show");
+      }
     }
 
-    // Modal Operations
-    function openAddModal() { document.getElementById("addModal").classList.add("show"); }
-    function closeAddModal() { document.getElementById("addModal").classList.remove("show"); }
+    function verifyLogin() {
+      const u = document.getElementById("adminUser").value.trim();
+      const p = document.getElementById("adminPass").value.trim();
+
+      if (u === "admin" && p === "admin123") {
+        isLogged = true;
+        closeModal("loginModal");
+        openAdminPanel();
+      } else {
+        document.getElementById("loginErr").style.display = "block";
+      }
+    }
+
+    function openAdminPanel() {
+      renderAdminList();
+      document.getElementById("adminPanelModal").classList.add("show");
+    }
+
+    function adminLogout() {
+      isLogged = false;
+      closeModal("adminPanelModal");
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove("show");
+    }
+
+    function renderAdminList() {
+      const container = document.getElementById("adminListContainer");
+      container.innerHTML = "";
+      channels.forEach(c => {
+        const row = document.createElement("div");
+        row.className = "admin-item";
+        row.innerHTML = `
+          <span>${c.name} (${c.cat})</span>
+          <button class="del-btn" onclick="deleteChannel(${c.id})">Delete</button>
+        `;
+        container.appendChild(row);
+      });
+    }
 
     function saveNewChannel() {
       const name = document.getElementById("addName").value.trim();
@@ -279,30 +366,38 @@
       const url = document.getElementById("addUrl").value.trim();
 
       if (!name || !url) {
-        alert("Please enter Name and URL");
+        alert("Enter both Name and URL");
         return;
       }
 
       channels.unshift({ id: Date.now(), name, cat, url });
       saveData();
       render();
+      renderAdminList();
 
       document.getElementById("addName").value = "";
       document.getElementById("addUrl").value = "";
-      closeAddModal();
+      alert(`Channel "${name}" added!`);
     }
 
-    // Reset Defaults
+    function deleteChannel(id) {
+      if (!confirm("Delete this channel?")) return;
+      channels = channels.filter(c => c.id !== id);
+      saveData();
+      render();
+      renderAdminList();
+    }
+
     function resetChannels() {
-      if (confirm("Reset to default channels list?")) {
-        localStorage.removeItem("star_lite_v1");
-        channels = DEFAULT_LIST;
+      if (confirm("Reset all channels to default list?")) {
+        channels = [...DEFAULT_LIST];
         saveData();
         render();
+        renderAdminList();
+        alert("Reset complete!");
       }
     }
 
-    // Start
     loadData();
   </script>
 </body>
