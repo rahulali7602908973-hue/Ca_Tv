@@ -32,7 +32,6 @@
     video { width: 100%; height: 100%; object-fit: contain; }
     .now-playing { background: var(--surface); padding: 16px 22px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
     
-    /* Categories */
     .category-tabs { display: flex; gap: 10px; overflow-x: auto; margin-bottom: 15px; padding-bottom: 5px; scrollbar-width: none; }
     .category-tabs::-webkit-scrollbar { display: none; }
     .cat-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--muted); padding: 8px 16px; border-radius: 20px; cursor: pointer; white-space: nowrap; font-size: 13px; font-weight: 600; transition: 0.3s; }
@@ -49,7 +48,6 @@
     .offline-badge { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.8); color: var(--red); font-size: 10px; padding: 3px 6px; border-radius: 4px; font-weight: bold; border: 1px solid var(--red); }
     .card.offline { opacity: 0.5; pointer-events: none; }
 
-    /* Modals */
     .admin-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 10px; backdrop-filter: blur(5px); }
     .admin-panel { background: var(--surface); width: 100%; max-width: 650px; border-radius: 16px; padding: 24px; border: 1px solid var(--border); max-height: 90vh; overflow-y: auto; }
     .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px;}
@@ -79,16 +77,13 @@
 </head>
 <body>
   
-  <!-- VISIBLE ERROR LOGGER FOR DEBUGGING -->
   <div id="debugLog" style="background: #dc2626; color: white; padding: 15px; position: fixed; top: 0; left: 0; width: 100%; z-index: 999999; display: none; font-family: monospace; font-size: 14px;">
     <strong>System Error:</strong> <span id="debugText"></span>
   </div>
 
   <script>
-    // Catches JavaScript syntax errors immediately
-    window.onerror = function(message, source, lineno, colno, error) {
-      const logBox = document.getElementById('debugLog');
-      logBox.style.display = 'block';
+    window.onerror = function(message, source, lineno) {
+      document.getElementById('debugLog').style.display = 'block';
       document.getElementById('debugText').innerText = message + " (Line: " + lineno + ")";
       return false;
     };
@@ -213,10 +208,9 @@
   </div>
 
   <script>
-    // AUTOMATIC SYSTEM RESET ON FIRST LOAD
-    if (localStorage.getItem("clean_install_v7") !== "true") {
+    if (localStorage.getItem("clean_install_v8") !== "true") {
         localStorage.clear();
-        localStorage.setItem("clean_install_v7", "true");
+        localStorage.setItem("clean_install_v8", "true");
     }
 
     let hls = null;
@@ -268,7 +262,6 @@
             renderAdminList();
             
         } catch(e) {
-            console.error("Critical Failure:", e);
             allData = JSON.parse(JSON.stringify(DEFAULT_CHANNELS));
             renderFrontend();
         }
@@ -361,4 +354,138 @@
       
       filteredKeys.forEach(function(key) {
         const ch = allData[key];
-        const 
+        const aItem = document.createElement('div');
+        aItem.className = 'admin-ch-item';
+        aItem.innerHTML = 
+          '<div style="font-size:13px; font-weight:bold;">' + ch.name + ' <span style="font-weight:normal; color:#888;">(' + (ch.category || "General") + ')</span></div>' +
+          '<div class="ch-actions">' +
+            '<button class="btn-edit" onclick="editChannel(\'' + key + '\')">Edit</button>' +
+            '<button class="btn-off" onclick="toggleOffline(\'' + key + '\')">' + (ch.isOffline ? 'On' : 'Off') + '</button>' +
+            '<button class="btn-del" onclick="deleteChannel(\'' + key + '\')">Del</button>' +
+          '</div>';
+        list.appendChild(aItem);
+      });
+    }
+
+    function saveChannel() {
+      const key = document.getElementById('editKey').value;
+      const nameVal = document.getElementById('chName').value;
+      const catVal = document.getElementById('chCat').value || "Entertainment";
+      const urlVal = document.getElementById('chUrl').value;
+      
+      if(!nameVal || !urlVal) return alert("Required fields missing!");
+
+      if(key) {
+        allData[key].name = nameVal;
+        allData[key].category = catVal;
+        allData[key].url = urlVal;
+        document.getElementById('editKey').value = ""; 
+        document.getElementById('formTitle').innerText = "Add New Channel"; 
+        document.getElementById('saveBtn').innerText = "+ Add Channel";
+        alert("Channel Updated!");
+      } else {
+        const newKey = "ch_" + Date.now();
+        allData[newKey] = { name: nameVal, category: catVal, url: urlVal, isOffline: false };
+        alert("Channel Added!");
+      }
+      saveLocalData(); updateStats(); renderFrontend(); renderAdminList();
+      document.getElementById('chName').value = ""; document.getElementById('chUrl').value = ""; document.getElementById('chCat').value = "";
+    }
+
+    function editChannel(key) {
+      const ch = allData[key];
+      document.getElementById('editKey').value = key; 
+      document.getElementById('chName').value = ch.name; 
+      document.getElementById('chCat').value = ch.category; 
+      document.getElementById('chUrl').value = ch.url;
+      document.getElementById('formTitle').innerText = "Edit Channel"; 
+      document.getElementById('saveBtn').innerText = "Update Channel";
+    }
+    
+    function deleteChannel(key) { if(confirm("Delete this channel?")) { delete allData[key]; saveLocalData(); updateStats(); renderFrontend(); renderAdminList(); } }
+    function toggleOffline(key) { allData[key].isOffline = !allData[key].isOffline; saveLocalData(); updateStats(); renderFrontend(); renderAdminList(); }
+    
+    function clearAllChannels() {
+      if(confirm("WARNING: Are you sure you want to delete ALL channels?")) {
+        allData = {}; saveLocalData(); updateStats(); renderFrontend(); renderAdminList(); alert("All channels deleted.");
+      }
+    }
+    
+    function exportData() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allData));
+      const downloadAnchorNode = document.createElement('a');
+      downloadAnchorNode.setAttribute("href", dataStr);
+      downloadAnchorNode.setAttribute("download", "startv_backup.json");
+      document.body.appendChild(downloadAnchorNode);
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
+    }
+
+    function updateNotice() { settings.notice = document.getElementById('adminNotice').value; saveSettings(); applySettings(); alert("Notice Updated!"); }
+    function updateContact() {
+      settings.contact.email = document.getElementById('adminContactEmail').value;
+      settings.contact.phone = document.getElementById('adminContactPhone').value;
+      saveSettings(); applySettings(); alert("Contact Info Updated!");
+    }
+    
+    function changeCredentials() {
+      const nu = document.getElementById('newAdminUser').value.trim();
+      const np = document.getElementById('newAdminPass').value.trim();
+      if(!nu && !np) return alert("Please enter a new username or password.");
+      if(confirm("Are you sure you want to change your admin credentials?")) { 
+        if(nu) settings.admin_username = nu;
+        if(np) settings.admin_password = np;
+        saveSettings(); 
+        alert("Credentials Updated successfully!"); 
+        document.getElementById('newAdminUser').value = "";
+        document.getElementById('newAdminPass').value = "";
+      }
+    }
+
+    function playChannel(ch) {
+      const video = document.getElementById('tvPlayer');
+      document.getElementById('nowTitle').innerHTML = '<span style="color:var(--red)">&bull;</span> ' + ch.name;
+      if (hls) hls.destroy();
+      
+      if (typeof Hls !== 'undefined' && Hls.isSupported()) { 
+        hls = new Hls(); hls.loadSource(ch.url); hls.attachMedia(video); 
+        hls.on(Hls.Events.MANIFEST_PARSED, function() { video.play(); }); 
+      } 
+      else if (video.canPlayType('application/vnd.apple.mpegurl')) { 
+        video.src = ch.url; video.play(); 
+      }
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    window.openMenu = function() { document.getElementById('menuOverlay').style.display = 'flex'; };
+    window.closeMenu = function() { document.getElementById('menuOverlay').style.display = 'none'; };
+    window.openAdmin = function() { 
+        document.getElementById('adminOverlay').style.display = 'flex'; 
+        document.getElementById('loginView').style.display = 'block'; 
+        document.getElementById('dashboardView').style.display = 'none'; 
+    };
+    window.closeAdmin = function() { document.getElementById('adminOverlay').style.display = 'none'; };
+    
+    window.checkLogin = function() { 
+      const user = document.getElementById('adminUser').value;
+      const pass = document.getElementById('adminPass').value;
+      
+      if(user === settings.admin_username && pass === settings.admin_password) { 
+        document.getElementById('loginView').style.display = 'none'; 
+        document.getElementById('dashboardView').style.display = 'block'; 
+        document.getElementById('adminUser').value = "";
+        document.getElementById('adminPass').value = "";
+      } else {
+        alert("Wrong Username or Password!"); 
+      }
+    };
+
+    // DIRECT EXECUTION (Bypasses window.onload delays)
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initApp);
+    } else {
+        initApp();
+    }
+  </script>
+</body>
+</html>
