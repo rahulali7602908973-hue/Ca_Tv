@@ -187,7 +187,26 @@
       "ch_1": { name: "Aaj Tak", category: "News", url: "https://feeds.intoday.in/aajtak/api/aajtaktv/master.m3u8", isOffline: false },
       "ch_2": { name: "Red Bull TV", category: "Sports", url: "https://rbmn-live.akamaized.net/hls/live/590964/BoRB-AT/master.m3u8", isOffline: false },
       "ch_3": { name: "NASA TV", category: "Entertainment", url: "https://ntv1.akamaized.net/hls/live/2014075/NASA-NTV1-HLS/master.m3u8", isOffline: false },
-      "ch_4": { name: "Big Buck Bunny", category: "Movies", url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8", isOffline: false }
+      "ch_4": { name: "Big Buck Bunny", category: "Movies", url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8", isOffline: false },
+
+      // ===== Indian Hindi News =====
+      "ch_5": { name: "NDTV India", category: "News", url: "https://ndtvindiaelemarchana.akamaized.net/hls/live/2003679/ndtvindia/master.m3u8", isOffline: false },
+      "ch_6": { name: "ABP News", category: "News", url: "https://d2l4ar6y3mrs4k.cloudfront.net/live-streaming/abpnews-livetv/master.m3u8", isOffline: false },
+      "ch_7": { name: "News18 India", category: "News", url: "https://nw18live.cdn.jio.com/bpk-tv/News18_India_NW18_MOB/output01/index.m3u8", isOffline: false },
+      "ch_8": { name: "CNN-News18", category: "News", url: "https://nw18live.cdn.jio.com/bpk-tv/CNN_News18_NW18_MOB/output01/index.m3u8", isOffline: false },
+      "ch_9": { name: "NDTV 24x7", category: "News", url: "https://ndtv24x7elemarchana.akamaized.net/hls/live/2003678/ndtv24x7/master.m3u8", isOffline: false },
+      "ch_10": { name: "NDTV Profit", category: "News", url: "https://ndtvprofit.akamaized.net/hls/live/2107404/ndtvprofit/master_1.m3u8", isOffline: false },
+
+      // ===== Indian Bangla =====
+      "ch_11": { name: "ABP Ananda", category: "Bangla", url: "https://d2l4ar6y3mrs4k.cloudfront.net/live-streaming/ananda-livetv/master.m3u8", isOffline: false },
+
+      // ===== Bangladeshi Bangla =====
+      "ch_12": { name: "Somoy TV", category: "Bangla", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1702/output/index.m3u8", isOffline: false },
+      "ch_13": { name: "Jamuna TV", category: "Bangla", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1701/output/index.m3u8", isOffline: false },
+      "ch_14": { name: "Channel 24", category: "Bangla", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1703/output/index.m3u8", isOffline: false },
+      "ch_15": { name: "Independent TV", category: "Bangla", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1704/output/index.m3u8", isOffline: false },
+      "ch_16": { name: "Ekattor TV", category: "Bangla", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1705/output/index.m3u8", isOffline: false },
+      "ch_17": { name: "BTV", category: "Bangla", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1709/output/index.m3u8", isOffline: false }
     };
 
     // Initialize Data
@@ -241,9 +260,9 @@
         card.onclick = () => !ch.isOffline && playChannel(ch);
         
         let color = "#1e3a8a"; 
-        if(ch.category === "News") color = "#991b1b"; else if(ch.category === "Sports") color = "#065f46"; else if(ch.category === "Movies") color = "#581c87";
+        if(ch.category === "News") color = "#991b1b"; else if(ch.category === "Sports") color = "#065f46"; else if(ch.category === "Movies") color = "#581c87"; else if(ch.category === "Bangla") color = "#7c3aed";
         
-        card.innerHTML = `<div class="banner" style="background:${color}"><span>${ch.name.substring(0,12)}</span>${ch.isOffline ? '<div class="offline-badge">OFFLINE</div>' : ''}</div><div class="info"><div class="name">${ch.name}</div><div class="cat-label">${ch.category}</div></div>`;
+        card.innerHTML = `<div class="banner" style="background:\( {color}"><span> \){ch.name.substring(0,12)}</span>\( {ch.isOffline ? '<div class="offline-badge">OFFLINE</div>' : ''}</div><div class="info"><div class="name"> \){ch.name}</div><div class="cat-label">${ch.category}</div></div>`;
         grid.appendChild(card);
       });
     }
@@ -261,10 +280,10 @@
         const aItem = document.createElement('div');
         aItem.className = 'admin-ch-item';
         aItem.innerHTML = `
-          <div style="font-size:13px; font-weight:bold;">${ch.name} <span style="font-weight:normal; color:#888;">(${ch.category})</span></div>
+          <div style="font-size:13px; font-weight:bold;">\( {ch.name} <span style="font-weight:normal; color:#888;">( \){ch.category})</span></div>
           <div class="ch-actions">
             <button class="btn-edit" onclick="editChannel('${key}')">Edit</button>
-            <button class="btn-off" onclick="toggleOffline('${key}')">${ch.isOffline ? 'Make Online' : 'Set Offline'}</button>
+            <button class="btn-off" onclick="toggleOffline('\( {key}')"> \){ch.isOffline ? 'Make Online' : 'Set Offline'}</button>
             <button class="btn-del" onclick="deleteChannel('${key}')">Del</button>
           </div>`;
         list.appendChild(aItem);
@@ -310,38 +329,4 @@
     function updateContact() {
       settings.contact.email = document.getElementById('adminContactEmail').value;
       settings.contact.phone = document.getElementById('adminContactPhone').value;
-      saveSettings(); applySettings(); alert("Contact Info Updated!");
-    }
-    function changePassword() {
-      const np = document.getElementById('newAdminPass').value;
-      if(np && confirm("Change admin password?")) { settings.admin_password = np; saveSettings(); alert("Password Changed!"); document.getElementById('newAdminPass').value = ""; }
-    }
-
-    // Video Player
-    function playChannel(ch) {
-      const video = document.getElementById('tvPlayer');
-      document.getElementById('nowTitle').innerHTML = `<span style="color:var(--red)">●</span> ${ch.name}`;
-      if (hls) hls.destroy();
-      
-      if (Hls.isSupported()) { 
-        hls = new Hls(); hls.loadSource(ch.url); hls.attachMedia(video); 
-        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play()); 
-      } 
-      else if (video.canPlayType('application/vnd.apple.mpegurl')) { 
-        video.src = ch.url; video.play(); 
-      }
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-
-    // Modals
-    function openMenu() { document.getElementById('menuOverlay').style.display = 'flex'; }
-    function closeMenu() { document.getElementById('menuOverlay').style.display = 'none'; }
-    function openAdmin() { document.getElementById('adminOverlay').style.display = 'flex'; document.getElementById('loginView').style.display = 'block'; document.getElementById('dashboardView').style.display = 'none'; }
-    function closeAdmin() { document.getElementById('adminOverlay').style.display = 'none'; }
-    function checkLogin() { if(document.getElementById('adminPass').value === settings.admin_password) { document.getElementById('loginView').style.display = 'none'; document.getElementById('dashboardView').style.display = 'block'; } else alert("Wrong Password!"); }
-
-    // Start App
-    window.onload = initApp;
-  </script>
-</body>
-</html>
+      saveSetting
