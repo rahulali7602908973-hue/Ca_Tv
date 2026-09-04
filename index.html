@@ -43,7 +43,6 @@
     .offline-badge { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.8); color: var(--red); font-size: 10px; padding: 3px 6px; border-radius: 4px; font-weight: bold; border: 1px solid var(--red); }
     .card.offline { opacity: 0.5; pointer-events: none; }
 
-    /* Modals */
     .admin-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 10px; }
     .admin-panel { background: var(--surface); width: 100%; max-width: 650px; border-radius: 16px; padding: 24px; border: 1px solid var(--border); max-height: 90vh; overflow-y: auto; }
     .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px;}
@@ -113,14 +112,12 @@
   <div class="admin-overlay" id="adminOverlay">
     <div class="admin-panel">
       
-      <!-- Login -->
       <div id="loginView">
         <div class="admin-header"><h2>Admin Login</h2><div class="close-btn" onclick="closeAdmin()">✖</div></div>
         <input type="password" id="adminPass" class="admin-input" placeholder="Enter Password">
         <button class="admin-btn" onclick="checkLogin()">Login</button>
       </div>
 
-      <!-- Dashboard -->
       <div id="dashboardView">
         <div class="admin-header"><h2>Admin Dashboard</h2><div class="close-btn" onclick="closeAdmin()">✖</div></div>
         
@@ -136,9 +133,12 @@
           <input type="text" id="chName" class="admin-input" placeholder="Enter Channel Name">
           <select id="chCat" class="admin-input">
             <option value="" disabled selected>Select Category</option>
-            <option value="News">News</option><option value="Movies">Movies</option>
-            <option value="Entertainment">Entertainment</option><option value="Sports">Sports</option>
-            <option value="Kids">Kids</option><option value="Bangla">Bangla</option>
+            <option value="News">News</option>
+            <option value="Movies">Movies</option>
+            <option value="Entertainment">Entertainment</option>
+            <option value="Sports">Sports</option>
+            <option value="Kids">Kids</option>
+            <option value="Bangla">Bangla</option>
           </select>
           <input type="text" id="chUrl" class="admin-input" placeholder="Stream URL (.m3u8)">
           <button class="admin-btn" id="saveBtn" onclick="saveChannel()">+ Add Channel</button>
@@ -166,6 +166,7 @@
           <h3 style="margin-bottom: 10px;">Security</h3>
           <input type="password" id="newAdminPass" class="admin-input" placeholder="New Admin Password">
           <button class="admin-btn" style="background:var(--green);" onclick="changePassword()">Change Password</button>
+          <button class="admin-btn" style="background:#ef4444; margin-top:10px;" onclick="resetChannels()">Reset to Default Channels</button>
         </div>
 
       </div>
@@ -173,43 +174,40 @@
   </div>
 
   <script>
-    // System Variables
     let hls = null;
     let allData = JSON.parse(localStorage.getItem('startv_channels')) || null;
     let settings = JSON.parse(localStorage.getItem('startv_settings')) || {
         admin_password: "admin123",
-        notice: "Welcome to Star TV! Enjoy Live Streaming.",
+        notice: "Welcome to Star TV! Free Indian & Bangladeshi Channels.",
         contact: { email: "support@startv.com", phone: "+91 0000000000" }
     };
 
-    // Default Working Channels (Added if database is empty)
+    // Default Channels - Indian + Bangladeshi only
     const DEFAULT_CHANNELS = {
       "ch_1": { name: "Aaj Tak", category: "News", url: "https://feeds.intoday.in/aajtak/api/aajtaktv/master.m3u8", isOffline: false },
-      "ch_2": { name: "Red Bull TV", category: "Sports", url: "https://rbmn-live.akamaized.net/hls/live/590964/BoRB-AT/master.m3u8", isOffline: false },
-      "ch_3": { name: "NASA TV", category: "Entertainment", url: "https://ntv1.akamaized.net/hls/live/2014075/NASA-NTV1-HLS/master.m3u8", isOffline: false },
-      "ch_4": { name: "Big Buck Bunny", category: "Movies", url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8", isOffline: false },
-
-      // ===== Indian Hindi News =====
-      "ch_5": { name: "NDTV India", category: "News", url: "https://ndtvindiaelemarchana.akamaized.net/hls/live/2003679/ndtvindia/master.m3u8", isOffline: false },
-      "ch_6": { name: "ABP News", category: "News", url: "https://d2l4ar6y3mrs4k.cloudfront.net/live-streaming/abpnews-livetv/master.m3u8", isOffline: false },
-      "ch_7": { name: "News18 India", category: "News", url: "https://nw18live.cdn.jio.com/bpk-tv/News18_India_NW18_MOB/output01/index.m3u8", isOffline: false },
-      "ch_8": { name: "CNN-News18", category: "News", url: "https://nw18live.cdn.jio.com/bpk-tv/CNN_News18_NW18_MOB/output01/index.m3u8", isOffline: false },
-      "ch_9": { name: "NDTV 24x7", category: "News", url: "https://ndtv24x7elemarchana.akamaized.net/hls/live/2003678/ndtv24x7/master.m3u8", isOffline: false },
-      "ch_10": { name: "NDTV Profit", category: "News", url: "https://ndtvprofit.akamaized.net/hls/live/2107404/ndtvprofit/master_1.m3u8", isOffline: false },
-
-      // ===== Indian Bangla =====
-      "ch_11": { name: "ABP Ananda", category: "Bangla", url: "https://d2l4ar6y3mrs4k.cloudfront.net/live-streaming/ananda-livetv/master.m3u8", isOffline: false },
-
-      // ===== Bangladeshi Bangla =====
-      "ch_12": { name: "Somoy TV", category: "Bangla", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1702/output/index.m3u8", isOffline: false },
-      "ch_13": { name: "Jamuna TV", category: "Bangla", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1701/output/index.m3u8", isOffline: false },
-      "ch_14": { name: "Channel 24", category: "Bangla", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1703/output/index.m3u8", isOffline: false },
-      "ch_15": { name: "Independent TV", category: "Bangla", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1704/output/index.m3u8", isOffline: false },
-      "ch_16": { name: "Ekattor TV", category: "Bangla", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1705/output/index.m3u8", isOffline: false },
-      "ch_17": { name: "BTV", category: "Bangla", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1709/output/index.m3u8", isOffline: false }
+      "ch_2": { name: "NDTV India", category: "News", url: "https://ndtvindiaelemarchana.akamaized.net/hls/live/2003679/ndtvindia/master.m3u8", isOffline: false },
+      "ch_3": { name: "ABP News", category: "News", url: "https://d2l4ar6y3mrs4k.cloudfront.net/live-streaming/abpnews-livetv/master.m3u8", isOffline: false },
+      "ch_4": { name: "News18 India", category: "News", url: "https://nw18live.cdn.jio.com/bpk-tv/News18_India_NW18_MOB/output01/index.m3u8", isOffline: false },
+      "ch_5": { name: "CNN-News18", category: "News", url: "https://nw18live.cdn.jio.com/bpk-tv/CNN_News18_NW18_MOB/output01/index.m3u8", isOffline: false },
+      "ch_6": { name: "NDTV 24x7", category: "News", url: "https://ndtv24x7elemarchana.akamaized.net/hls/live/2003678/ndtv24x7/master.m3u8", isOffline: false },
+      "ch_7": { name: "NDTV Profit", category: "News", url: "https://ndtvprofit.akamaized.net/hls/live/2107404/ndtvprofit/master_1.m3u8", isOffline: false },
+      "ch_8": { name: "India TV", category: "News", url: "https://pl-indiatvnews.akamaized.net/out/v1/db79179b608641ceaa5a4d0dd0dca8da/index.m3u8", isOffline: false },
+      "ch_9": { name: "TV9 Kannada", category: "News", url: "https://dyjmyiv3bp2ez.cloudfront.net/pub-iotv9kanmo6oiq/liveabr/playlist.m3u8", isOffline: false },
+      "ch_10": { name: "TV9 Telugu", category: "News", url: "https://dyjmyiv3bp2ez.cloudfront.net/pub-iotv9telcmjhcs/liveabr/playlist.m3u8", isOffline: false },
+      "ch_11": { name: "TV9 Marathi", category: "News", url: "https://dyjmyiv3bp2ez.cloudfront.net/pub-iotv9marlygv8h/liveabr/playlist.m3u8", isOffline: false },
+      "ch_12": { name: "ABP Ananda", category: "Bangla", url: "https://d2l4ar6y3mrs4k.cloudfront.net/live-streaming/ananda-livetv/master.m3u8", isOffline: false },
+      "ch_13": { name: "Somoy TV", category: "Bangla", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1702/output/index.m3u8", isOffline: false },
+      "ch_14": { name: "Jamuna TV", category: "Bangla", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1701/output/index.m3u8", isOffline: false },
+      "ch_15": { name: "Channel 24", category: "Bangla", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1703/output/index.m3u8", isOffline: false },
+      "ch_16": { name: "Independent TV", category: "Bangla", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1704/output/index.m3u8", isOffline: false },
+      "ch_17": { name: "Ekattor TV", category: "Bangla", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1705/output/index.m3u8", isOffline: false },
+      "ch_18": { name: "BTV", category: "Bangla", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1709/output/index.m3u8", isOffline: false },
+      "ch_19": { name: "Channel I", category: "Bangla", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1723/output/index.m3u8", isOffline: false },
+      "ch_20": { name: "Red Bull TV", category: "Sports", url: "https://rbmn-live.akamaized.net/hls/live/590964/BoRB-AT/master.m3u8", isOffline: false },
+      "ch_21": { name: "NASA TV", category: "Entertainment", url: "https://ntv1.akamaized.net/hls/live/2014075/NASA-NTV1-HLS/master.m3u8", isOffline: false },
+      "ch_22": { name: "Big Buck Bunny", category: "Movies", url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8", isOffline: false }
     };
 
-    // Initialize Data
     function initApp() {
         if (!allData || Object.keys(allData).length === 0) {
             allData = DEFAULT_CHANNELS;
@@ -221,15 +219,16 @@
         renderAdminList();
     }
 
-    // Save Data Helpers
     function saveLocalData() { localStorage.setItem('startv_channels', JSON.stringify(allData)); }
     function saveSettings() { localStorage.setItem('startv_settings', JSON.stringify(settings)); }
 
-    // Apply Settings to UI
     function applySettings() {
-        if(settings.notice) { document.getElementById('marqueeText').innerText = settings.notice; document.getElementById('noticeBar').style.display = 'block'; } 
-        else { document.getElementById('noticeBar').style.display = 'none'; }
-        
+        if(settings.notice) { 
+          document.getElementById('marqueeText').innerText = settings.notice; 
+          document.getElementById('noticeBar').style.display = 'block'; 
+        } else { 
+          document.getElementById('noticeBar').style.display = 'none'; 
+        }
         document.getElementById('displayEmail').innerText = settings.contact.email; 
         document.getElementById('displayPhone').innerText = settings.contact.phone;
         document.getElementById('adminContactEmail').value = settings.contact.email; 
@@ -237,21 +236,24 @@
         document.getElementById('adminNotice').value = settings.notice || "";
     }
 
-    // Stats
     function updateStats() {
       let total = 0, online = 0, offline = 0;
       Object.values(allData).forEach(ch => { total++; if(ch.isOffline) offline++; else online++; });
-      document.getElementById('statTotal').innerText = total; document.getElementById('statOnline').innerText = online; document.getElementById('statOffline').innerText = offline;
+      document.getElementById('statTotal').innerText = total; 
+      document.getElementById('statOnline').innerText = online; 
+      document.getElementById('statOffline').innerText = offline;
     }
 
-    // Render Frontend
     function renderFrontend() {
       const grid = document.getElementById("channelGrid");
       const query = document.getElementById("homeSearch").value.toLowerCase();
       grid.innerHTML = "";
       
       const filteredKeys = Object.keys(allData).filter(k => allData[k].name.toLowerCase().includes(query));
-      if (filteredKeys.length === 0) { grid.innerHTML = `<div style="color:var(--muted); grid-column: 1/-1;">No channels found.</div>`; return; }
+      if (filteredKeys.length === 0) { 
+        grid.innerHTML = `<div style="color:var(--muted); grid-column: 1/-1;">No channels found.</div>`; 
+        return; 
+      }
 
       filteredKeys.forEach(key => {
         const ch = allData[key];
@@ -260,14 +262,16 @@
         card.onclick = () => !ch.isOffline && playChannel(ch);
         
         let color = "#1e3a8a"; 
-        if(ch.category === "News") color = "#991b1b"; else if(ch.category === "Sports") color = "#065f46"; else if(ch.category === "Movies") color = "#581c87"; else if(ch.category === "Bangla") color = "#7c3aed";
+        if(ch.category === "News") color = "#991b1b"; 
+        else if(ch.category === "Sports") color = "#065f46"; 
+        else if(ch.category === "Movies") color = "#581c87";
+        else if(ch.category === "Bangla") color = "#7c3aed";
         
         card.innerHTML = `<div class="banner" style="background:\( {color}"><span> \){ch.name.substring(0,12)}</span>\( {ch.isOffline ? '<div class="offline-badge">OFFLINE</div>' : ''}</div><div class="info"><div class="name"> \){ch.name}</div><div class="cat-label">${ch.category}</div></div>`;
         grid.appendChild(card);
       });
     }
 
-    // Render Admin List
     function renderAdminList() {
       const list = document.getElementById("adminChList");
       const query = document.getElementById("adminSearch").value.toLowerCase();
@@ -290,7 +294,6 @@
       });
     }
 
-    // CRUD Channels
     function saveChannel() {
       const key = document.getElementById('editKey').value;
       const data = {
@@ -303,7 +306,9 @@
 
       if(key) {
         allData[key] = { ...allData[key], ...data };
-        document.getElementById('editKey').value = ""; document.getElementById('formTitle').innerText = "Add New Channel"; document.getElementById('saveBtn').innerText = "+ Add Channel";
+        document.getElementById('editKey').value = ""; 
+        document.getElementById('formTitle').innerText = "Add New Channel"; 
+        document.getElementById('saveBtn').innerText = "+ Add Channel";
         alert("Channel Updated!");
       } else {
         const newKey = "ch_" + Date.now();
@@ -311,22 +316,16 @@
         alert("Channel Added!");
       }
       saveLocalData(); updateStats(); renderFrontend(); renderAdminList();
-      document.getElementById('chName').value = ""; document.getElementById('chUrl').value = ""; document.getElementById('chCat').value = "";
+      document.getElementById('chName').value = ""; 
+      document.getElementById('chUrl').value = ""; 
+      document.getElementById('chCat').value = "";
     }
 
     function editChannel(key) {
       const ch = allData[key];
-      document.getElementById('editKey').value = key; document.getElementById('chName').value = ch.name; document.getElementById('chCat').value = ch.category; document.getElementById('chUrl').value = ch.url;
-      document.getElementById('formTitle').innerText = "Edit Channel"; document.getElementById('saveBtn').innerText = "Update Channel";
-      window.scrollTo(0,0);
-    }
-    
-    function deleteChannel(key) { if(confirm("Delete this channel?")) { delete allData[key]; saveLocalData(); updateStats(); renderFrontend(); renderAdminList(); } }
-    function toggleOffline(key) { allData[key].isOffline = !allData[key].isOffline; saveLocalData(); updateStats(); renderFrontend(); renderAdminList(); }
-    
-    // Admin Settings Updates
-    function updateNotice() { settings.notice = document.getElementById('adminNotice').value; saveSettings(); applySettings(); alert("Notice Updated!"); }
-    function updateContact() {
-      settings.contact.email = document.getElementById('adminContactEmail').value;
-      settings.contact.phone = document.getElementById('adminContactPhone').value;
-      saveSetting
+      document.getElementById('editKey').value = key; 
+      document.getElementById('chName').value = ch.name; 
+      document.getElementById('chCat').value = ch.category; 
+      document.getElementById('chUrl').value = ch.url;
+      document.getElementById('formTitle').innerText = "Edit Channel"; 
+      document.getElementById('saveBtn').innerText = "Up
