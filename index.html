@@ -114,9 +114,7 @@
     </div>
 
     <!-- DYNAMIC CATEGORY TABS -->
-    <div class="category-tabs" id="categoryTabs">
-      <!-- Tabs will be generated here automatically -->
-    </div>
+    <div class="category-tabs" id="categoryTabs"></div>
 
     <div class="grid" id="channelGrid">Loading channels...</div>
 
@@ -127,7 +125,6 @@
       </h3>
       <div class="grid" id="offlineGrid"></div>
     </div>
-
   </div>
 
   <div class="admin-overlay" id="menuOverlay">
@@ -167,16 +164,12 @@
           <h3 id="formTitle" style="margin-bottom: 10px;">Add / Edit Channel</h3>
           <input type="hidden" id="editKey">
           <input type="text" id="chName" class="admin-input" placeholder="Enter Channel Name">
-          <!-- DYNAMIC DROPDOWN -->
-          <select id="chCat" class="admin-input">
-            <!-- Options populated dynamically -->
-          </select>
+          <select id="chCat" class="admin-input"></select>
           <input type="text" id="chUrl" class="admin-input" placeholder="Stream URL (.m3u8)">
           <input type="text" id="chLogo" class="admin-input" placeholder="Channel Logo Image URL (Optional)">
           <button class="admin-btn" id="saveBtn" onclick="saveChannel()">+ Add Channel</button>
         </div>
 
-        <!-- NEW: MANAGE CATEGORIES SECTION -->
         <div class="admin-section">
           <h3 style="margin-bottom: 10px;">Manage Categories</h3>
           <div style="display: flex; gap: 10px; margin-bottom: 10px;">
@@ -243,37 +236,39 @@
   </div>
 
   <script>
-    // Version v14 Auto-Reset
-    if (localStorage.getItem("clean_install_v14") !== "true") {
-        localStorage.clear();
-        localStorage.setItem("clean_install_v14", "true");
-    }
+    // Safe Initialization Wrapper
+    try {
+        if (localStorage.getItem("clean_install_v15") !== "true") {
+            localStorage.clear();
+            localStorage.setItem("clean_install_v15", "true");
+        }
+    } catch(e) {}
 
-    let hls = null;
-    let currentCategory = "All";
+    var hls = null;
+    var currentCategory = "All";
     
-    const DEFAULT_CHANNELS = {
+    var DEFAULT_CHANNELS = {
       "ch_1": { name: "Aaj Tak", category: "News", url: "https://feeds.intoday.in/aajtak/api/aajtaktv/master.m3u8", isOffline: false, logo: "" },
       "ch_2": { name: "Red Bull TV", category: "Sports", url: "https://rbmn-live.akamaized.net/hls/live/590964/BoRB-AT/master.m3u8", isOffline: false, logo: "" },
       "ch_3": { name: "NASA TV", category: "Entertainment", url: "https://ntv1.akamaized.net/hls/live/2014075/NASA-NTV1-HLS/master.m3u8", isOffline: false, logo: "" }
     };
 
-    let settings = {
+    var settings = {
         admin_username: "admin",
         admin_password: "admin123",
         notice: "Welcome to Star TV! Enjoy Live Streaming.",
         theme_color: "#3b82f6",
         site_logo: "", 
-        categories: ["News", "Sports", "Movies", "Entertainment", "Kids", "Bangla"], // Default Categories
+        categories: ["News", "Sports", "Movies", "Entertainment", "Kids", "Bangla"],
         contact: { email: "support@startv.com", phone: "+91 0000000000" }
     };
-    let allData = {};
+    var allData = {};
 
     function initApp() {
         try {
-            let savedSettings = localStorage.getItem('startv_settings');
+            var savedSettings = localStorage.getItem('startv_settings');
             if (savedSettings) {
-                let parsedSettings = JSON.parse(savedSettings);
+                var parsedSettings = JSON.parse(savedSettings);
                 if(parsedSettings) {
                     settings.admin_username = parsedSettings.admin_username || "admin";
                     settings.admin_password = parsedSettings.admin_password || "admin123";
@@ -288,7 +283,7 @@
                 }
             }
 
-            let savedChannels = localStorage.getItem('startv_channels');
+            var savedChannels = localStorage.getItem('startv_channels');
             if (savedChannels && savedChannels !== "{}" && savedChannels !== "null") {
                 allData = JSON.parse(savedChannels);
             } else {
@@ -298,7 +293,7 @@
             saveLocalData();
             saveSettings();
             applySettings();
-            renderCategoriesUI(); // Render categories dynamically
+            renderCategoriesUI();
             updateStats();
             renderFrontend();
             renderAdminList();
@@ -311,15 +306,19 @@
     }
 
     function saveLocalData() { 
-      localStorage.setItem('startv_channels', JSON.stringify(allData)); 
-      if(Object.keys(allData).length > 0) {
-        localStorage.setItem('startv_emergency_backup_channels', JSON.stringify(allData));
-      }
+      try {
+          localStorage.setItem('startv_channels', JSON.stringify(allData)); 
+          if(Object.keys(allData).length > 0) {
+            localStorage.setItem('startv_emergency_backup_channels', JSON.stringify(allData));
+          }
+      } catch(e) {}
     }
     
     function saveSettings() { 
-      localStorage.setItem('startv_settings', JSON.stringify(settings)); 
-      localStorage.setItem('startv_emergency_backup_settings', JSON.stringify(settings));
+      try {
+          localStorage.setItem('startv_settings', JSON.stringify(settings)); 
+          localStorage.setItem('startv_emergency_backup_settings', JSON.stringify(settings));
+      } catch(e) {}
     }
 
     function applySettings() {
@@ -338,4 +337,7 @@
         document.getElementById('adminSiteLogo').value = settings.site_logo || "";
         document.getElementById('themeColor').value = settings.theme_color || "#3b82f6";
         
-        document.documentElement.style.setProperty('--primary', settings.th
+        document.documentElement.style.setProperty('--primary', settings.theme_color);
+
+        var brandDiv = document.getElementById('siteBrand');
+        if (settings.site_logo && settings.site_logo.tr
