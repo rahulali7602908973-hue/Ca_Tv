@@ -7,75 +7,59 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <style>
-    /* लाइट थीम के कलर्स */
     :root {
-      --bg: #f8fafc; 
-      --surface: #ffffff; 
-      --surface-card: #ffffff;
-      --primary: #2563eb; 
-      --text: #0f172a; 
-      --muted: #64748b;
-      --red: #ef4444; 
-      --green: #10b981; 
-      --border: #e2e8f0;
+      --bg: #07090e; --surface: #0f172a; --surface-card: #131d33;
+      --primary: #3b82f6; --text: #f8fafc; --muted: #94a3b8;
+      --red: #ef4444; --green: #10b981; --border: rgba(255, 255, 255, 0.08);
     }
-    
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
     body { background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 50px; }
 
     .notice-bar { background: var(--red); color: white; padding: 5px 15px; font-size: 13px; font-weight: 600; display: none; }
     
-    .navbar { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(16px); position: sticky; top: 0; z-index: 100; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+    .navbar { background: rgba(7, 9, 14, 0.85); backdrop-filter: blur(16px); position: sticky; top: 0; z-index: 100; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
     .nav-left { display: flex; align-items: center; gap: 15px; }
     .menu-icon { font-size: 24px; cursor: pointer; color: var(--text); }
     .brand { display: flex; align-items: center; gap: 12px; font-size: 19px; font-weight: 800; }
     .brand span { color: var(--primary); }
     
-    .search-box { padding: 8px 15px; border-radius: 20px; border: 1px solid #cbd5e1; background: #f1f5f9; color: var(--text); outline: none; font-size: 13px; width: 100%; max-width: 250px; }
-    .search-box:focus { border-color: var(--primary); background: #ffffff; }
+    .search-box { padding: 8px 15px; border-radius: 20px; border: 1px solid var(--border); background: rgba(255,255,255,0.05); color: #fff; outline: none; font-size: 13px; width: 100%; max-width: 250px; }
+    .search-box:focus { border-color: var(--primary); }
 
     .container { max-width: 1180px; margin: 0 auto; padding: 20px 16px; }
-    .player-box { background: var(--surface); border-radius: 16px; overflow: hidden; margin-bottom: 24px; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+    .player-box { background: #000; border-radius: 16px; overflow: hidden; margin-bottom: 24px; border: 1px solid var(--border); }
     .player-wrap { width: 100%; aspect-ratio: 16/9; background: #000; position: relative; }
     video { width: 100%; height: 100%; object-fit: contain; }
     .now-playing { background: var(--surface); padding: 16px 22px; border-top: 1px solid var(--border); }
     
-    /* कैटेगरी फिल्टर CSS */
-    .category-filter { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 15px; padding-bottom: 5px; scrollbar-width: none; }
-    .category-filter::-webkit-scrollbar { display: none; }
-    .cat-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; white-space: nowrap; font-size: 13px; font-weight: 600; transition: all 0.2s;}
-    .cat-btn:hover { border-color: var(--primary); }
-    .cat-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
-
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
-    .card { background: var(--surface-card); border-radius: 14px; overflow: hidden; cursor: pointer; border: 1px solid var(--border); position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-    .card:hover { border-color: var(--primary); box-shadow: 0 4px 6px rgba(37, 99, 235, 0.1); }
-    .banner { height: 95px; display: flex; align-items: center; justify-content: center; color: white; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; margin-top: 20px; }
+    .card { background: var(--surface-card); border-radius: 14px; overflow: hidden; cursor: pointer; border: 1px solid var(--border); position: relative; }
+    .card:hover { border-color: var(--primary); }
+    .banner { height: 95px; display: flex; align-items: center; justify-content: center; background: #1e3a8a; }
     .banner span { font-size: 13px; font-weight: 800; padding: 0 10px; text-transform: uppercase; }
     .info { padding: 12px 14px; }
     .name { font-size: 13.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .cat-label { font-size: 11.5px; color: var(--muted); margin-top: 3px; }
-    .offline-badge { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.9); color: var(--red); font-size: 10px; padding: 3px 6px; border-radius: 4px; font-weight: bold; border: 1px solid var(--red); }
+    .offline-badge { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.8); color: var(--red); font-size: 10px; padding: 3px 6px; border-radius: 4px; font-weight: bold; border: 1px solid var(--red); }
     .card.offline { opacity: 0.5; pointer-events: none; }
 
     /* Modals */
-    .admin-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 10px; backdrop-filter: blur(4px); }
-    .admin-panel { background: var(--surface); width: 100%; max-width: 650px; border-radius: 16px; padding: 24px; border: 1px solid var(--border); max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+    .admin-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 10px; }
+    .admin-panel { background: var(--surface); width: 100%; max-width: 650px; border-radius: 16px; padding: 24px; border: 1px solid var(--border); max-height: 90vh; overflow-y: auto; }
     .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px;}
     .close-btn { cursor: pointer; font-size: 20px; color: var(--red); font-weight: bold;}
     
     .stats-box { display: flex; gap: 10px; margin-bottom: 15px; }
-    .stat { flex: 1; background: var(--bg); padding: 10px; border-radius: 8px; text-align: center; border: 1px solid var(--border); }
+    .stat { flex: 1; background: var(--surface-card); padding: 10px; border-radius: 8px; text-align: center; border: 1px solid var(--border); }
     .stat span { font-size: 18px; font-weight: bold; color: var(--primary); display: block; }
     .stat div { font-size: 11px; color: var(--muted); text-transform: uppercase; margin-top: 5px; }
 
-    .admin-section { background: var(--bg); padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid var(--border); }
-    .admin-input { width: 100%; padding: 12px; margin-bottom: 10px; background: var(--surface); border: 1px solid #cbd5e1; color: var(--text); border-radius: 6px; outline: none; }
-    .admin-input:focus { border-color: var(--primary); }
+    .admin-section { background: var(--surface-card); padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid var(--border); }
+    .admin-input { width: 100%; padding: 12px; margin-bottom: 10px; background: #000; border: 1px solid var(--border); color: #fff; border-radius: 6px; }
     .admin-btn { background: var(--primary); color: #fff; padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; }
     
     .admin-ch-list { max-height: 250px; overflow-y: auto; margin-top: 10px; }
-    .admin-ch-item { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 10px; border-radius: 6px; margin-bottom: 8px; border: 1px solid var(--border); }
+    .admin-ch-item { display: flex; justify-content: space-between; align-items: center; background: #000; padding: 10px; border-radius: 6px; margin-bottom: 8px; border: 1px solid var(--border); }
     .ch-actions button { padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; color: white; margin-left: 5px; font-size: 11px; }
     .btn-edit { background: var(--primary); }
     .btn-off { background: #d97706; }
@@ -102,24 +86,10 @@
     <div class="player-box">
       <div class="player-wrap"><video id="tvPlayer" controls autoplay></video></div>
       <div class="now-playing">
-        <h2 id="nowTitle" style="font-size: 18px;"><span style="color:var(--red)">●</span> Select a Channel</h2>
+        <h2 id="nowTitle"><span style="color:var(--red)">●</span> Select a Channel</h2>
       </div>
     </div>
-    
-    <!-- Category Filter UI -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-      <h3 style="font-size: 18px;">Live Channels</h3>
-    </div>
-    <div class="category-filter" id="categoryFilter">
-      <button class="cat-btn active" onclick="setCategory('All', this)">All</button>
-      <button class="cat-btn" onclick="setCategory('News', this)">News</button>
-      <button class="cat-btn" onclick="setCategory('Movies', this)">Movies</button>
-      <button class="cat-btn" onclick="setCategory('Entertainment', this)">Entertainment</button>
-      <button class="cat-btn" onclick="setCategory('Sports', this)">Sports</button>
-      <button class="cat-btn" onclick="setCategory('Kids', this)">Kids</button>
-      <button class="cat-btn" onclick="setCategory('Bangla', this)">Bangla</button>
-    </div>
-
+    <h3 style="font-size: 18px; margin-bottom: 15px;">Live Channels</h3>
     <div class="grid" id="channelGrid">Loading channels...</div>
   </div>
 
@@ -132,10 +102,10 @@
       </div>
       <div class="admin-section" style="text-align: center;">
         <h3 style="margin-bottom: 15px; color: var(--primary);">Contact Us</h3>
-        <p style="color: var(--text); font-size: 14px; margin-bottom: 8px;">📧 <span id="displayEmail"></span></p>
-        <p style="color: var(--text); font-size: 14px; margin-bottom: 20px;">📞 <span id="displayPhone"></span></p>
+        <p style="color: var(--muted); font-size: 14px; margin-bottom: 8px;">📧 <span id="displayEmail" style="color:#fff;"></span></p>
+        <p style="color: var(--muted); font-size: 14px; margin-bottom: 20px;">📞 <span id="displayPhone" style="color:#fff;"></span></p>
       </div>
-      <button class="admin-btn" style="background: transparent; border: 1px solid #cbd5e1; color: var(--text);" onclick="closeMenu(); openAdmin();">Admin Login 🔒</button>
+      <button class="admin-btn" style="background: transparent; border: 1px solid var(--border); color: var(--muted);" onclick="closeMenu(); openAdmin();">Admin Login 🔒</button>
     </div>
   </div>
 
@@ -205,7 +175,6 @@
   <script>
     // System Variables
     let hls = null;
-    let currentCategory = 'All'; // New variable for active category
     let allData = JSON.parse(localStorage.getItem('startv_channels')) || null;
     let settings = JSON.parse(localStorage.getItem('startv_settings')) || {
         admin_password: "admin123",
@@ -213,6 +182,7 @@
         contact: { email: "support@startv.com", phone: "+91 0000000000" }
     };
 
+    // Default Working Channels (Added if database is empty)
     const DEFAULT_CHANNELS = {
       "ch_1": { name: "Aaj Tak", category: "News", url: "https://feeds.intoday.in/aajtak/api/aajtaktv/master.m3u8", isOffline: false },
       "ch_2": { name: "Red Bull TV", category: "Sports", url: "https://rbmn-live.akamaized.net/hls/live/590964/BoRB-AT/master.m3u8", isOffline: false },
@@ -220,6 +190,7 @@
       "ch_4": { name: "Big Buck Bunny", category: "Movies", url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8", isOffline: false }
     };
 
+    // Initialize Data
     function initApp() {
         if (!allData || Object.keys(allData).length === 0) {
             allData = DEFAULT_CHANNELS;
@@ -231,9 +202,11 @@
         renderAdminList();
     }
 
+    // Save Data Helpers
     function saveLocalData() { localStorage.setItem('startv_channels', JSON.stringify(allData)); }
     function saveSettings() { localStorage.setItem('startv_settings', JSON.stringify(settings)); }
 
+    // Apply Settings to UI
     function applySettings() {
         if(settings.notice) { document.getElementById('marqueeText').innerText = settings.notice; document.getElementById('noticeBar').style.display = 'block'; } 
         else { document.getElementById('noticeBar').style.display = 'none'; }
@@ -245,38 +218,21 @@
         document.getElementById('adminNotice').value = settings.notice || "";
     }
 
+    // Stats
     function updateStats() {
       let total = 0, online = 0, offline = 0;
       Object.values(allData).forEach(ch => { total++; if(ch.isOffline) offline++; else online++; });
       document.getElementById('statTotal').innerText = total; document.getElementById('statOnline').innerText = online; document.getElementById('statOffline').innerText = offline;
     }
 
-    // New Category Setter Function
-    function setCategory(cat, btnElement) {
-      currentCategory = cat;
-      
-      // Update active class on buttons
-      const buttons = document.querySelectorAll('.cat-btn');
-      buttons.forEach(btn => btn.classList.remove('active'));
-      btnElement.classList.add('active');
-      
-      renderFrontend();
-    }
-
-    // Updated Render Frontend with Category Logic
+    // Render Frontend
     function renderFrontend() {
       const grid = document.getElementById("channelGrid");
       const query = document.getElementById("homeSearch").value.toLowerCase();
       grid.innerHTML = "";
       
-      const filteredKeys = Object.keys(allData).filter(k => {
-        const ch = allData[k];
-        const matchSearch = ch.name.toLowerCase().includes(query);
-        const matchCategory = currentCategory === 'All' || ch.category === currentCategory;
-        return matchSearch && matchCategory;
-      });
-
-      if (filteredKeys.length === 0) { grid.innerHTML = `<div style="color:var(--muted); grid-column: 1/-1;">No channels found in this category.</div>`; return; }
+      const filteredKeys = Object.keys(allData).filter(k => allData[k].name.toLowerCase().includes(query));
+      if (filteredKeys.length === 0) { grid.innerHTML = `<div style="color:var(--muted); grid-column: 1/-1;">No channels found.</div>`; return; }
 
       filteredKeys.forEach(key => {
         const ch = allData[key];
@@ -284,16 +240,15 @@
         card.className = `card ${ch.isOffline ? 'offline' : ''}`;
         card.onclick = () => !ch.isOffline && playChannel(ch);
         
-        let color = "#2563eb"; // Blue for all else
-        if(ch.category === "News") color = "#dc2626"; // Red
-        else if(ch.category === "Sports") color = "#059669"; // Green
-        else if(ch.category === "Movies") color = "#7c3aed"; // Purple
+        let color = "#1e3a8a"; 
+        if(ch.category === "News") color = "#991b1b"; else if(ch.category === "Sports") color = "#065f46"; else if(ch.category === "Movies") color = "#581c87";
         
         card.innerHTML = `<div class="banner" style="background:${color}"><span>${ch.name.substring(0,12)}</span>${ch.isOffline ? '<div class="offline-badge">OFFLINE</div>' : ''}</div><div class="info"><div class="name">${ch.name}</div><div class="cat-label">${ch.category}</div></div>`;
         grid.appendChild(card);
       });
     }
 
+    // Render Admin List
     function renderAdminList() {
       const list = document.getElementById("adminChList");
       const query = document.getElementById("adminSearch").value.toLowerCase();
@@ -306,7 +261,7 @@
         const aItem = document.createElement('div');
         aItem.className = 'admin-ch-item';
         aItem.innerHTML = `
-          <div style="font-size:13px; font-weight:bold;">${ch.name} <span style="font-weight:normal; color:var(--muted);">(${ch.category})</span></div>
+          <div style="font-size:13px; font-weight:bold;">${ch.name} <span style="font-weight:normal; color:#888;">(${ch.category})</span></div>
           <div class="ch-actions">
             <button class="btn-edit" onclick="editChannel('${key}')">Edit</button>
             <button class="btn-off" onclick="toggleOffline('${key}')">${ch.isOffline ? 'Make Online' : 'Set Offline'}</button>
@@ -316,6 +271,7 @@
       });
     }
 
+    // CRUD Channels
     function saveChannel() {
       const key = document.getElementById('editKey').value;
       const data = {
@@ -349,7 +305,43 @@
     function deleteChannel(key) { if(confirm("Delete this channel?")) { delete allData[key]; saveLocalData(); updateStats(); renderFrontend(); renderAdminList(); } }
     function toggleOffline(key) { allData[key].isOffline = !allData[key].isOffline; saveLocalData(); updateStats(); renderFrontend(); renderAdminList(); }
     
+    // Admin Settings Updates
     function updateNotice() { settings.notice = document.getElementById('adminNotice').value; saveSettings(); applySettings(); alert("Notice Updated!"); }
     function updateContact() {
       settings.contact.email = document.getElementById('adminContactEmail').value;
-      settings.contact.phone = docume
+      settings.contact.phone = document.getElementById('adminContactPhone').value;
+      saveSettings(); applySettings(); alert("Contact Info Updated!");
+    }
+    function changePassword() {
+      const np = document.getElementById('newAdminPass').value;
+      if(np && confirm("Change admin password?")) { settings.admin_password = np; saveSettings(); alert("Password Changed!"); document.getElementById('newAdminPass').value = ""; }
+    }
+
+    // Video Player
+    function playChannel(ch) {
+      const video = document.getElementById('tvPlayer');
+      document.getElementById('nowTitle').innerHTML = `<span style="color:var(--red)">●</span> ${ch.name}`;
+      if (hls) hls.destroy();
+      
+      if (Hls.isSupported()) { 
+        hls = new Hls(); hls.loadSource(ch.url); hls.attachMedia(video); 
+        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play()); 
+      } 
+      else if (video.canPlayType('application/vnd.apple.mpegurl')) { 
+        video.src = ch.url; video.play(); 
+      }
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    // Modals
+    function openMenu() { document.getElementById('menuOverlay').style.display = 'flex'; }
+    function closeMenu() { document.getElementById('menuOverlay').style.display = 'none'; }
+    function openAdmin() { document.getElementById('adminOverlay').style.display = 'flex'; document.getElementById('loginView').style.display = 'block'; document.getElementById('dashboardView').style.display = 'none'; }
+    function closeAdmin() { document.getElementById('adminOverlay').style.display = 'none'; }
+    function checkLogin() { if(document.getElementById('adminPass').value === settings.admin_password) { document.getElementById('loginView').style.display = 'none'; document.getElementById('dashboardView').style.display = 'block'; } else alert("Wrong Password!"); }
+
+    // Start App
+    window.onload = initApp;
+  </script>
+</body>
+</html>
