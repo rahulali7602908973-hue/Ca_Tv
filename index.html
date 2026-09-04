@@ -206,19 +206,9 @@
   </div>
 
   <script>
-    // --- FORCE RESET CORRUPTED DATA ---
-    const APP_VERSION = "v3_fixed";
-    if (localStorage.getItem('startv_version') !== APP_VERSION) {
-        localStorage.clear(); // Wipes old corrupted cache completely
-        localStorage.setItem('startv_version', APP_VERSION);
-    }
-    // ----------------------------------
-
     let hls = null;
     let currentCategory = "All";
-    let allData = null;
-    let settings = null;
-
+    
     const DEFAULT_CHANNELS = {
       "ch_1": { name: "Aaj Tak", category: "News", url: "https://feeds.intoday.in/aajtak/api/aajtaktv/master.m3u8", isOffline: false },
       "ch_2": { name: "Red Bull TV", category: "Sports", url: "https://rbmn-live.akamaized.net/hls/live/590964/BoRB-AT/master.m3u8", isOffline: false },
@@ -226,31 +216,46 @@
       "ch_4": { name: "Big Buck Bunny", category: "Movies", url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8", isOffline: false }
     };
 
-    const DEFAULT_SETTINGS = {
-      admin_username: "admin",
-      admin_password: "admin123",
-      notice: "Welcome to Star TV! Enjoy Live Streaming.",
-      contact: { email: "support@startv.com", phone: "+91 0000000000" }
+    let settings = {
+        admin_username: "admin",
+        admin_password: "admin123",
+        notice: "Welcome to Star TV! Enjoy Live Streaming.",
+        contact: { email: "support@startv.com", phone: "+91 0000000000" }
     };
+    let allData = {};
 
     function initApp() {
         try {
-            settings = JSON.parse(localStorage.getItem('startv_settings')) || DEFAULT_SETTINGS;
-            allData = JSON.parse(localStorage.getItem('startv_channels')) || DEFAULT_CHANNELS;
-            
+            // 1. Safely load and merge settings
+            let savedSettings = localStorage.getItem('startv_settings');
+            if (savedSettings) {
+                let parsedSettings = JSON.parse(savedSettings);
+                settings = { ...settings, ...parsedSettings }; 
+                if(parsedSettings.contact) {
+                    settings.contact = { ...settings.contact, ...parsedSettings.contact };
+                }
+            }
+
+            // 2. Safely load channels
+            let savedChannels = localStorage.getItem('startv_channels');
+            if (savedChannels && savedChannels !== "{}" && savedChannels !== "null") {
+                allData = JSON.parse(savedChannels);
+            } else {
+                allData = JSON.parse(JSON.stringify(DEFAULT_CHANNELS));
+            }
+
             saveLocalData();
             saveSettings();
-            
             applySettings();
             updateStats();
             renderFrontend();
             renderAdminList();
+            
         } catch(e) {
             console.error("Critical Failure:", e);
-            alert("Local data was heavily corrupted. The app has been reset.");
-            localStorage.clear();
-            localStorage.setItem('startv_version', APP_VERSION);
-            window.location.reload();
+            // Fallback rendering even if storage crashes
+            allData = JSON.parse(JSON.stringify(DEFAULT_CHANNELS));
+            renderFrontend();
         }
     }
 
@@ -290,7 +295,8 @@
 
     function renderFrontend() {
       const grid = document.getElementById("channelGrid");
-      const query = document.getElementById("homeSearch").value.toLowerCase();
+      const searchBox = document.getElementById("homeSearch");
+      const query = searchBox ? searchBox.value.toLowerCase() : "";
       grid.innerHTML = "";
       
       const filteredKeys = Object.keys(allData || {}).filter(k => {
@@ -331,7 +337,8 @@
 
     function renderAdminList() {
       const list = document.getElementById("adminChList");
-      const query = document.getElementById("adminSearch").value.toLowerCase();
+      const searchBox = document.getElementById("adminSearch");
+      const query = searchBox ? searchBox.value.toLowerCase() : "";
       list.innerHTML = "";
 
       const filteredKeys = Object.keys(allData || {}).filter(k => (allData[k].name||"").toLowerCase().includes(query));
@@ -362,9 +369,4 @@
       if(!data.name || !data.url) return alert("Required fields missing!");
 
       if(key) {
-        allData[key] = { ...allData[key], ...data };
-        document.getElementById('editKey').value = ""; 
-        document.getElementById('formTitle').innerText = "Add New Channel"; 
-        document.getElementById('saveBtn').innerText = "+ Add Channel";
-        alert("Channel Updated!");
-      } els
+  
