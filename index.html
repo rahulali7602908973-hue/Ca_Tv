@@ -96,7 +96,8 @@
   <nav class="navbar">
     <div class="nav-left">
       <div class="menu-icon" onclick="openMenu()">&equiv;</div>
-      <div class="brand" onclick="emergencyLogoTap()"><div>STAR <span>TV</span></div></div>
+      <!-- MAIN SITE LOGO ID ADDED HERE -->
+      <div class="brand" id="siteBrand" onclick="emergencyLogoTap()"><div>STAR <span>TV</span></div></div>
     </div>
     <input type="text" id="homeSearch" class="search-box" placeholder="Search Channels..." onkeyup="renderFrontend()">
   </nav>
@@ -179,7 +180,6 @@
             <option value="Kids">Kids</option><option value="Bangla">Bangla</option>
           </select>
           <input type="text" id="chUrl" class="admin-input" placeholder="Stream URL (.m3u8)">
-          <!-- NEW: Logo URL Input -->
           <input type="text" id="chLogo" class="admin-input" placeholder="Channel Logo Image URL (Optional)">
           <button class="admin-btn" id="saveBtn" onclick="saveChannel()">+ Add Channel</button>
         </div>
@@ -198,21 +198,21 @@
                <input type="file" id="importFile" accept=".json" onchange="importData(event)" style="opacity: 0; position: absolute; top:0; left:0; width:100%; height:100%; cursor: pointer;">
             </button>
           </div>
-          <!-- NEW: Bulk Clean Offline Channels -->
           <button class="admin-btn" style="background:var(--surface-card); color:var(--red); border:1px solid var(--red); margin-top:10px;" onclick="cleanOfflineChannels()">Clear All Offline Channels</button>
         </div>
 
         <div class="admin-section">
           <h3 style="margin-bottom: 10px;">Site Appearance & Notice</h3>
-          
-          <!-- NEW: Theme Color Picker -->
           <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
             <label style="font-size: 14px;">Theme Color:</label>
             <input type="color" id="themeColor" value="#3b82f6" style="height: 35px; width: 60px; border:none; background:transparent; cursor:pointer;" onchange="updateTheme()">
           </div>
 
+          <!-- NEW: MAIN SITE LOGO UPLOAD -->
+          <input type="text" id="adminSiteLogo" class="admin-input" placeholder="Main Site Logo URL (.jpg, .png) (Optional)">
+
           <input type="text" id="adminNotice" class="admin-input" placeholder="Enter message for homepage marquee">
-          <button class="admin-btn" style="background:#8b5cf6;" onclick="updateNotice()">Save Appearance & Notice</button>
+          <button class="admin-btn" style="background:#8b5cf6;" onclick="updateAppearance()">Save Appearance</button>
         </div>
 
         <div class="admin-section">
@@ -244,10 +244,10 @@
   </div>
 
   <script>
-    // Version Bump to initialize new features smoothly
-    if (localStorage.getItem("clean_install_v12") !== "true") {
+    // Version Bump
+    if (localStorage.getItem("clean_install_v13") !== "true") {
         localStorage.clear();
-        localStorage.setItem("clean_install_v12", "true");
+        localStorage.setItem("clean_install_v13", "true");
     }
 
     let hls = null;
@@ -264,6 +264,7 @@
         admin_password: "admin123",
         notice: "Welcome to Star TV! Enjoy Live Streaming.",
         theme_color: "#3b82f6",
+        site_logo: "", // NEW FIELD FOR MAIN LOGO
         contact: { email: "support@startv.com", phone: "+91 0000000000" }
     };
     let allData = {};
@@ -278,6 +279,7 @@
                     settings.admin_password = parsedSettings.admin_password || "admin123";
                     settings.notice = parsedSettings.notice || "";
                     settings.theme_color = parsedSettings.theme_color || "#3b82f6";
+                    settings.site_logo = parsedSettings.site_logo || "";
                     if(parsedSettings.contact) {
                        settings.contact.email = parsedSettings.contact.email || "";
                        settings.contact.phone = parsedSettings.contact.phone || "";
@@ -318,21 +320,34 @@
     }
 
     function applySettings() {
+        // Notice Logic
         if(settings.notice) { 
             document.getElementById('marqueeText').innerText = settings.notice; 
             document.getElementById('noticeBar').style.display = 'block'; 
         } else { 
             document.getElementById('noticeBar').style.display = 'none'; 
         }
+        
+        // Input Fields Logic
         document.getElementById('displayEmail').innerText = settings.contact.email; 
         document.getElementById('displayPhone').innerText = settings.contact.phone;
         document.getElementById('adminContactEmail').value = settings.contact.email; 
         document.getElementById('adminContactPhone').value = settings.contact.phone;
         document.getElementById('adminNotice').value = settings.notice || "";
+        document.getElementById('adminSiteLogo').value = settings.site_logo || "";
         document.getElementById('themeColor').value = settings.theme_color || "#3b82f6";
         
         // Apply Theme Color
         document.documentElement.style.setProperty('--primary', settings.theme_color);
+
+        // Render Main Site Logo or Default Text
+        const brandDiv = document.getElementById('siteBrand');
+        if (settings.site_logo && settings.site_logo.trim() !== "") {
+            // Using max-height so it doesn't break navbar
+            brandDiv.innerHTML = '<img src="' + settings.site_logo + '" style="height: 32px; object-fit: contain;">';
+        } else {
+            brandDiv.innerHTML = '<div>STAR <span>TV</span></div>';
+        }
     }
 
     function updateStats() {
@@ -341,4 +356,297 @@
         const ch = allData[k];
         if(ch) { total++; if(ch.isOffline) offline++; else online++; }
       });
-      document.getElementById('statTot
+      document.getElementById('statTotal').innerText = total; 
+      document.getElementById('statOnline').innerText = online; 
+      document.getElementById('statOffline').innerText = offline;
+    }
+
+    function setCategory(cat, btnElement) {
+      currentCategory = cat;
+      document.querySelectorAll('.cat-btn').forEach(function(btn) { btn.classList.remove('active'); });
+      btnElement.classList.add('active');
+      renderFrontend();
+    }
+
+    function renderFrontend() {
+      const grid = document.getElementById("channelGrid");
+      const offlineGrid = document.getElementById("offlineGrid");
+      const offlineSection = document.getElementById("offlineSection");
+      const searchBox = document.getElementById("homeSearch");
+      const query = searchBox ? searchBox.value.toLowerCase() : "";
+      
+      grid.innerHTML = "";
+      offlineGrid.innerHTML = "";
+      
+      let hasActive = false;
+      let hasOffline = false;
+      
+      const filteredKeys = Object.keys(allData || {}).filter(function(k) {
+        if(!allData[k]) return false;
+        const matchesQuery = (allData[k].name || "").toLowerCase().includes(query);
+        const matchesCategory = currentCategory === "All" || allData[k].category === currentCategory;
+        return matchesQuery && matchesCategory;
+      });
+
+      if (filteredKeys.length === 0) { 
+          grid.innerHTML = '<div style="color:var(--muted); grid-column: 1/-1;">No channels found.</div>'; 
+          offlineSection.style.display = 'none';
+          return; 
+      }
+
+      filteredKeys.forEach(function(key) {
+        const ch = allData[key];
+        const card = document.createElement('div');
+        card.className = "card " + (ch.isOffline ? 'offline' : '');
+        card.onclick = function() { if(!ch.isOffline) playChannel(ch); };
+        
+        let bannerInner = '';
+        if (ch.logo && ch.logo.trim() !== "") {
+            bannerInner = '<img src="' + ch.logo + '" style="width:100%; height:100%; object-fit:cover;">';
+        } else {
+            let color = "#1e3a8a"; 
+            if(ch.category === "News") color = "#991b1b"; 
+            else if(ch.category === "Sports") color = "#065f46"; 
+            else if(ch.category === "Movies") color = "#581c87";
+            bannerInner = '<div style="width:100%; height:100%; background:'+color+'; display:flex; align-items:center; justify-content:center;"><span>' + (ch.name||"").substring(0,12) + '</span></div>';
+        }
+        
+        card.innerHTML = 
+          '<div class="banner">' +
+            bannerInner +
+            (ch.isOffline ? '<div class="offline-badge">OFFLINE</div>' : '') +
+          '</div>' +
+          '<div class="info">' +
+            '<div class="name">' + ch.name + '</div>' +
+            '<div class="cat-label">' + (ch.category || "General") + '</div>' +
+          '</div>';
+
+        if(ch.isOffline) {
+            offlineGrid.appendChild(card);
+            hasOffline = true;
+        } else {
+            grid.appendChild(card);
+            hasActive = true;
+        }
+      });
+      
+      if(!hasActive && hasOffline) {
+          grid.innerHTML = '<div style="color:var(--muted); grid-column: 1/-1;">All channels in this category are currently offline.</div>'; 
+      }
+
+      offlineSection.style.display = hasOffline ? 'block' : 'none';
+    }
+
+    function renderAdminList() {
+      const list = document.getElementById("adminChList");
+      const searchBox = document.getElementById("adminSearch");
+      const query = searchBox ? searchBox.value.toLowerCase() : "";
+      list.innerHTML = "";
+
+      const filteredKeys = Object.keys(allData || {}).filter(function(k) { return (allData[k].name||"").toLowerCase().includes(query); });
+      
+      filteredKeys.forEach(function(key) {
+        const ch = allData[key];
+        const aItem = document.createElement('div');
+        aItem.className = 'admin-ch-item';
+        aItem.innerHTML = 
+          '<div style="font-size:13px; font-weight:bold;">' + ch.name + ' <span style="font-weight:normal; color:#888;">(' + (ch.category || "General") + ')</span></div>' +
+          '<div class="ch-actions">' +
+            '<button class="btn-edit" onclick="editChannel(\'' + key + '\')">Edit</button>' +
+            '<button class="btn-off" onclick="toggleOffline(\'' + key + '\')">' + (ch.isOffline ? 'On' : 'Off') + '</button>' +
+            '<button class="btn-del" onclick="deleteChannel(\'' + key + '\')">Del</button>' +
+          '</div>';
+        list.appendChild(aItem);
+      });
+    }
+
+    function saveChannel() {
+      const key = document.getElementById('editKey').value;
+      const nameVal = document.getElementById('chName').value;
+      const catVal = document.getElementById('chCat').value || "Entertainment";
+      const urlVal = document.getElementById('chUrl').value;
+      const logoVal = document.getElementById('chLogo').value;
+      
+      if(!nameVal || !urlVal) return alert("Name and Stream URL are required fields!");
+
+      if(key) {
+        allData[key].name = nameVal;
+        allData[key].category = catVal;
+        allData[key].url = urlVal;
+        allData[key].logo = logoVal;
+        document.getElementById('editKey').value = ""; 
+        document.getElementById('formTitle').innerText = "Add New Channel"; 
+        document.getElementById('saveBtn').innerText = "+ Add Channel";
+        alert("Channel Updated!");
+      } else {
+        const newKey = "ch_" + Date.now();
+        allData[newKey] = { name: nameVal, category: catVal, url: urlVal, logo: logoVal, isOffline: false };
+        alert("Channel Added!");
+      }
+      saveLocalData(); updateStats(); renderFrontend(); renderAdminList();
+      document.getElementById('chName').value = ""; document.getElementById('chUrl').value = ""; document.getElementById('chCat').value = ""; document.getElementById('chLogo').value = "";
+    }
+
+    function editChannel(key) {
+      const ch = allData[key];
+      document.getElementById('editKey').value = key; 
+      document.getElementById('chName').value = ch.name; 
+      document.getElementById('chCat').value = ch.category; 
+      document.getElementById('chUrl').value = ch.url;
+      document.getElementById('chLogo').value = ch.logo || "";
+      document.getElementById('formTitle').innerText = "Edit Channel"; 
+      document.getElementById('saveBtn').innerText = "Update Channel";
+    }
+    
+    function deleteChannel(key) { if(confirm("Delete this channel?")) { delete allData[key]; saveLocalData(); updateStats(); renderFrontend(); renderAdminList(); } }
+    function toggleOffline(key) { allData[key].isOffline = !allData[key].isOffline; saveLocalData(); updateStats(); renderFrontend(); renderAdminList(); }
+    
+    function cleanOfflineChannels() {
+        if(confirm("Are you sure you want to permanently delete ALL offline channels?")) {
+            let count = 0;
+            Object.keys(allData).forEach(function(key) {
+                if(allData[key].isOffline) { delete allData[key]; count++; }
+            });
+            if(count > 0) {
+                saveLocalData(); updateStats(); renderFrontend(); renderAdminList();
+                alert(count + " offline channels deleted.");
+            } else { alert("No offline channels found."); }
+        }
+    }
+
+    function exportData() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allData));
+      const downloadAnchorNode = document.createElement('a');
+      downloadAnchorNode.setAttribute("href", dataStr);
+      downloadAnchorNode.setAttribute("download", "startv_backup.json");
+      document.body.appendChild(downloadAnchorNode);
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
+    }
+
+    function importData(event) {
+      const file = event.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+          try {
+              const importedData = JSON.parse(e.target.result);
+              allData = { ...allData, ...importedData };
+              saveLocalData(); updateStats(); renderFrontend(); renderAdminList();
+              alert("Backup Imported Successfully!");
+          } catch(err) { alert("Error: Invalid Backup File Format."); }
+          event.target.value = ""; 
+      };
+      reader.readAsText(file);
+    }
+
+    function updateTheme() { settings.theme_color = document.getElementById('themeColor').value; }
+
+    function updateAppearance() { 
+        settings.notice = document.getElementById('adminNotice').value; 
+        settings.site_logo = document.getElementById('adminSiteLogo').value;
+        updateTheme();
+        saveSettings(); applySettings(); alert("Appearance Updated!"); 
+    }
+
+    function updateContact() {
+      settings.contact.email = document.getElementById('adminContactEmail').value;
+      settings.contact.phone = document.getElementById('adminContactPhone').value;
+      saveSettings(); applySettings(); alert("Contact Info Updated!");
+    }
+    
+    function changeCredentials() {
+      const nu = document.getElementById('newAdminUser').value.trim();
+      const np = document.getElementById('newAdminPass').value.trim();
+      if(!nu && !np) return alert("Please enter a new username or password.");
+      if(confirm("Are you sure you want to change your admin credentials?")) { 
+        if(nu) settings.admin_username = nu;
+        if(np) settings.admin_password = np;
+        saveSettings(); 
+        alert("Credentials Updated successfully!"); 
+        document.getElementById('newAdminUser').value = "";
+        document.getElementById('newAdminPass').value = "";
+      }
+    }
+
+    function playChannel(ch) {
+      const video = document.getElementById('tvPlayer');
+      document.getElementById('nowTitle').innerHTML = '<span style="color:var(--red)">&bull;</span> ' + ch.name;
+      if (hls) hls.destroy();
+      
+      if (typeof Hls !== 'undefined' && Hls.isSupported()) { 
+        hls = new Hls(); hls.loadSource(ch.url); hls.attachMedia(video); 
+        hls.on(Hls.Events.MANIFEST_PARSED, function() { video.play(); }); 
+      } 
+      else if (video.canPlayType('application/vnd.apple.mpegurl')) { 
+        video.src = ch.url; video.play(); 
+      }
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    window.hardFactoryReset = function() {
+        if(confirm("CRITICAL WARNING: This will delete ALL channels and settings, restoring the system to factory defaults. Are you sure?")) {
+            localStorage.clear();
+            window.location.reload();
+        }
+    };
+
+    window.restoreEmergencyBackup = function() {
+        if(confirm("Are you sure you want to RESTORE the 100% Emergency Backup? This will overwrite your current screen with the last safely saved channels.")) {
+            let bCh = localStorage.getItem('startv_emergency_backup_channels');
+            let bSet = localStorage.getItem('startv_emergency_backup_settings');
+            
+            if(bCh) { localStorage.setItem('startv_channels', bCh); }
+            if(bSet) { localStorage.setItem('startv_settings', bSet); }
+            
+            alert("100% Backup Restored Successfully! Reloading site...");
+            window.location.reload();
+        }
+    };
+
+    let tapCount = 0;
+    let tapTimer;
+    window.emergencyLogoTap = function() {
+        tapCount++;
+        clearTimeout(tapTimer);
+        if(tapCount >= 5) {
+            if(confirm("EMERGENCY RESET TRIGGERED: Do you want to fix crashes and reset the website?")) {
+                localStorage.clear();
+                window.location.reload();
+            }
+            tapCount = 0;
+        }
+        tapTimer = setTimeout(function(){ tapCount = 0; }, 1500); 
+    };
+
+    window.openMenu = function() { document.getElementById('menuOverlay').style.display = 'flex'; };
+    window.closeMenu = function() { document.getElementById('menuOverlay').style.display = 'none'; };
+    window.openAdmin = function() { 
+        document.getElementById('adminOverlay').style.display = 'flex'; 
+        document.getElementById('loginView').style.display = 'block'; 
+        document.getElementById('dashboardView').style.display = 'none'; 
+    };
+    window.closeAdmin = function() { document.getElementById('adminOverlay').style.display = 'none'; };
+    
+    window.checkLogin = function() { 
+      const user = document.getElementById('adminUser').value;
+      const pass = document.getElementById('adminPass').value;
+      
+      if(user === settings.admin_username && pass === settings.admin_password) { 
+        document.getElementById('loginView').style.display = 'none'; 
+        document.getElementById('dashboardView').style.display = 'block'; 
+        document.getElementById('adminUser').value = "";
+        document.getElementById('adminPass').value = "";
+      } else {
+        alert("Wrong Username or Password!"); 
+      }
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initApp);
+    } else {
+        initApp();
+    }
+  </script>
+</body>
+</html>
