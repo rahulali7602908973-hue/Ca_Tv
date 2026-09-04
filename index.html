@@ -4,10 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Star TV - Live TV</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <style>
     :root {
       --bg: #07090e; --surface: #0f172a; --surface-card: #131d33;
@@ -17,23 +18,18 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
     body { background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 50px; }
 
-    .navbar {
-      background: rgba(7, 9, 14, 0.85); backdrop-filter: blur(16px);
-      position: sticky; top: 0; z-index: 100; padding: 14px 24px;
-      display: flex; justify-content: space-between; align-items: center;
-      border-bottom: 1px solid var(--border);
-    }
+    .notice-bar { background: var(--red); color: white; padding: 5px 15px; font-size: 13px; font-weight: 600; display: none; }
+    
+    .navbar { background: rgba(7, 9, 14, 0.85); backdrop-filter: blur(16px); position: sticky; top: 0; z-index: 100; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
     .nav-left { display: flex; align-items: center; gap: 15px; }
     .menu-icon { font-size: 24px; cursor: pointer; color: var(--text); }
     .brand { display: flex; align-items: center; gap: 12px; font-size: 19px; font-weight: 800; }
     .brand span { color: var(--primary); }
-    .live-badge {
-      background: var(--red); color: #fff; font-size: 10px; padding: 3px 8px; 
-      border-radius: 6px; margin-left: 6px;
-    }
+    
+    .search-box { padding: 8px 15px; border-radius: 20px; border: 1px solid var(--border); background: rgba(255,255,255,0.05); color: #fff; outline: none; font-size: 13px; width: 100%; max-width: 250px; }
+    .search-box:focus { border-color: var(--primary); }
 
     .container { max-width: 1180px; margin: 0 auto; padding: 20px 16px; }
-    
     .player-box { background: #000; border-radius: 16px; overflow: hidden; margin-bottom: 24px; border: 1px solid var(--border); }
     .player-wrap { width: 100%; aspect-ratio: 16/9; background: #000; position: relative; }
     video { width: 100%; height: 100%; object-fit: contain; }
@@ -50,112 +46,131 @@
     .offline-badge { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.8); color: var(--red); font-size: 10px; padding: 3px 6px; border-radius: 4px; font-weight: bold; border: 1px solid var(--red); }
     .card.offline { opacity: 0.5; pointer-events: none; }
 
-    /* Admin Panel */
-    .admin-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: none; align-items: center; justify-content: center; }
-    .admin-panel { background: var(--surface); width: 95%; max-width: 600px; border-radius: 16px; padding: 24px; border: 1px solid var(--border); max-height: 90vh; overflow-y: auto; }
+    /* Modals */
+    .admin-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 10px; }
+    .admin-panel { background: var(--surface); width: 100%; max-width: 650px; border-radius: 16px; padding: 24px; border: 1px solid var(--border); max-height: 90vh; overflow-y: auto; }
     .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px;}
     .close-btn { cursor: pointer; font-size: 20px; color: var(--red); font-weight: bold;}
     
-    .admin-section { background: var(--surface-card); padding: 15px; border-radius: 10px; margin-bottom: 15px; }
+    .stats-box { display: flex; gap: 10px; margin-bottom: 15px; }
+    .stat { flex: 1; background: var(--surface-card); padding: 10px; border-radius: 8px; text-align: center; border: 1px solid var(--border); }
+    .stat span { font-size: 18px; font-weight: bold; color: var(--primary); display: block; }
+    .stat div { font-size: 11px; color: var(--muted); text-transform: uppercase; margin-top: 5px; }
+
+    .admin-section { background: var(--surface-card); padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid var(--border); }
     .admin-input { width: 100%; padding: 12px; margin-bottom: 10px; background: #000; border: 1px solid var(--border); color: #fff; border-radius: 6px; }
     .admin-btn { background: var(--primary); color: #fff; padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; }
-    .admin-btn.danger { background: var(--red); }
     
-    /* Admin Channel List */
-    .admin-ch-list { max-height: 200px; overflow-y: auto; margin-top: 10px; }
+    .admin-ch-list { max-height: 250px; overflow-y: auto; margin-top: 10px; }
     .admin-ch-item { display: flex; justify-content: space-between; align-items: center; background: #000; padding: 10px; border-radius: 6px; margin-bottom: 8px; border: 1px solid var(--border); }
     .ch-actions button { padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; color: white; margin-left: 5px; font-size: 11px; }
+    .btn-edit { background: var(--primary); }
     .btn-off { background: #d97706; }
     .btn-del { background: var(--red); }
-
-    /* Viewers UI */
-    .viewer-item { display: flex; justify-content: space-between; align-items: center; background: #000; padding: 12px; border-radius: 6px; margin-bottom: 8px; border: 1px solid var(--border); }
-    .v-info { display: flex; flex-direction: column; }
-    .v-ip { font-size: 11px; color: var(--muted); }
-    .v-kick { background: var(--red); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
 
     #loginView, #dashboardView { display: none; }
   </style>
 </head>
 <body>
+
+  <!-- Notice Bar -->
+  <div class="notice-bar" id="noticeBar">
+    <marquee id="marqueeText" scrollamount="5"></marquee>
+  </div>
+
   <nav class="navbar">
     <div class="nav-left">
-      <div class="menu-icon" onclick="openAdmin()">☰</div>
-      <div class="brand">
-        <div>STAR <span>TV</span><span class="live-badge">LIVE</span></div>
-      </div>
+      <div class="menu-icon" onclick="openMenu()">☰</div>
+      <div class="brand"><div>STAR <span>TV</span></div></div>
     </div>
+    <!-- Live Search Front-end -->
+    <input type="text" id="homeSearch" class="search-box" placeholder="Search Channels..." onkeyup="renderFrontend()">
   </nav>
 
   <div class="container">
     <div class="player-box">
-      <div class="player-wrap">
-        <video id="tvPlayer" controls></video>
-      </div>
+      <div class="player-wrap"><video id="tvPlayer" controls autoplay></video></div>
       <div class="now-playing">
         <h2 id="nowTitle"><span style="color:var(--red)">●</span> Select a Channel</h2>
       </div>
     </div>
-
     <h3 style="font-size: 18px; margin-bottom: 15px;">Live Channels</h3>
-    <div class="grid" id="channelGrid">
-      <!-- Channels will load here dynamically -->
+    <div class="grid" id="channelGrid">Loading channels...</div>
+  </div>
+
+  <!-- User Menu Modal -->
+  <div class="admin-overlay" id="menuOverlay">
+    <div class="admin-panel" style="max-width: 400px;">
+      <div class="admin-header">
+        <h2>Menu</h2>
+        <div class="close-btn" onclick="closeMenu()">✖</div>
+      </div>
+      <div class="admin-section" style="text-align: center;">
+        <h3 style="margin-bottom: 15px; color: var(--primary);">Contact Us</h3>
+        <p style="color: var(--muted); font-size: 14px; margin-bottom: 8px;">📧 <span id="displayEmail" style="color:#fff;">support@startv.com</span></p>
+        <p style="color: var(--muted); font-size: 14px; margin-bottom: 20px;">📞 <span id="displayPhone" style="color:#fff;">+91 0000000000</span></p>
+      </div>
+      <button class="admin-btn" style="background: transparent; border: 1px solid var(--border); color: var(--muted);" onclick="closeMenu(); openAdmin();">Admin Login 🔒</button>
     </div>
   </div>
 
-  <!-- Admin Panel Overlay -->
+  <!-- Admin Panel Modal -->
   <div class="admin-overlay" id="adminOverlay">
     <div class="admin-panel">
       
-      <!-- Login View -->
+      <!-- Login -->
       <div id="loginView">
-        <div class="admin-header">
-          <h2>Admin Login</h2>
-          <div class="close-btn" onclick="closeAdmin()">✖</div>
-        </div>
+        <div class="admin-header"><h2>Admin Login</h2><div class="close-btn" onclick="closeAdmin()">✖</div></div>
         <input type="password" id="adminPass" class="admin-input" placeholder="Enter Password">
         <button class="admin-btn" onclick="checkLogin()">Login</button>
-        <p id="loginError" style="color: var(--red); font-size: 12px; margin-top: 10px; display: none;">Wrong Password!</p>
       </div>
 
-      <!-- Dashboard View -->
+      <!-- Dashboard -->
       <div id="dashboardView">
-        <div class="admin-header">
-          <h2>Admin Dashboard</h2>
-          <div class="close-btn" onclick="closeAdmin()">✖</div>
+        <div class="admin-header"><h2>Admin Dashboard</h2><div class="close-btn" onclick="closeAdmin()">✖</div></div>
+        
+        <div class="stats-box">
+          <div class="stat"><span id="statTotal">0</span><div>Total</div></div>
+          <div class="stat"><span id="statOnline" style="color:var(--green)">0</span><div>Online</div></div>
+          <div class="stat"><span id="statOffline" style="color:var(--red)">0</span><div>Offline</div></div>
         </div>
 
         <div class="admin-section">
-          <h3 style="margin-bottom: 10px;">Add New Channel</h3>
-          <input type="text" id="chName" class="admin-input" placeholder="Channel Name (e.g., Star Plus)">
-          <input type="text" id="chCat" class="admin-input" placeholder="Category (e.g., Hindi, News)">
+          <h3 id="formTitle" style="margin-bottom: 10px;">Add / Edit Channel</h3>
+          <input type="hidden" id="editKey">
+          <input type="text" id="chName" class="admin-input" placeholder="Enter Channel Name">
+          <select id="chCat" class="admin-input">
+            <option value="" disabled selected>Select Category</option>
+            <option value="News">News</option><option value="Movies">Movies</option>
+            <option value="Entertainment">Entertainment</option><option value="Sports">Sports</option>
+            <option value="Kids">Kids</option><option value="Bangla">Bangla</option>
+          </select>
           <input type="text" id="chUrl" class="admin-input" placeholder="Stream URL (.m3u8)">
-          <button class="admin-btn" onclick="addNewChannel()">+ Add Channel</button>
+          <button class="admin-btn" id="saveBtn" onclick="saveChannel()">+ Add Channel</button>
         </div>
 
         <div class="admin-section">
-          <h3 style="margin-bottom: 10px;">Manage Added Channels</h3>
-          <div class="admin-ch-list" id="adminChList">
-            <!-- Admin channel items here -->
-          </div>
+          <h3 style="margin-bottom: 10px;">Contact & Announcement</h3>
+          <input type="email" id="adminContactEmail" class="admin-input" placeholder="Contact Email">
+          <input type="text" id="adminContactPhone" class="admin-input" placeholder="Contact Mobile Number">
+          <button class="admin-btn" style="background:#f59e0b; margin-bottom: 15px;" onclick="updateContact()">Update Contact Info</button>
+
+          <input type="text" id="adminNotice" class="admin-input" placeholder="Enter message for homepage marquee">
+          <button class="admin-btn" style="background:#8b5cf6;" onclick="updateNotice()">Update Notice</button>
         </div>
 
         <div class="admin-section">
-          <h3 style="margin-bottom: 10px;">Live Viewers (System UI)</h3>
-          <div class="viewer-item">
-            <div class="v-info">
-              <span>User ID: #8849</span>
-              <span class="v-ip">IP: 103.11.x.x • Watching: Star TV</span>
-            </div>
-            <button class="v-kick" onclick="this.parentElement.style.display='none'">Kick</button>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3>Manage Channels</h3>
+            <input type="text" id="adminSearch" class="search-box" style="width: 150px; padding: 5px 10px;" placeholder="Search..." onkeyup="renderAdminList()">
           </div>
-          <div class="viewer-item">
-            <div class="v-info">
-              <span>User ID: #8850</span>
-              <span class="v-ip">IP: 45.22.x.x • Watching: Star TV</span>
-            </div>
-            <button class="v-kick" onclick="this.parentElement.style.display='none'">Kick</button>
-          </div>
+          <div class="admin-ch-list" id="adminChList"></div>
+        </div>
+
+        <div class="admin-section">
+          <h3 style="margin-bottom: 10px;">Security</h3>
+          <input type="password" id="newAdminPass" class="admin-input" placeholder="New Admin Password">
+          <button class="admin-btn" style="background:var(--green);" onclick="changePassword()">Change Password</button>
         </div>
 
       </div>
@@ -163,133 +178,174 @@
   </div>
 
   <script>
-    const ADMIN_PASSWORD = "admin123";
-    let channels = JSON.parse(localStorage.getItem('star_tv_channels')) || [];
+    // ---------------------------------------------------------
+    // FIREBASE CONFIGURATION (यहाँ अपनी डिटेल्स डालें)
+    // ---------------------------------------------------------
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+      projectId: "YOUR_PROJECT_ID"
+    };
+    
+    // Initialize Firebase
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const db = firebase.database();
+    
+    let allData = {};
     let hls = null;
+    let ADMIN_PASSWORD = "admin123";
 
-    // Load Channels to Grid
-    function renderChannels() {
-      const grid = document.getElementById("channelGrid");
-      const adminList = document.getElementById("adminChList");
-      grid.innerHTML = "";
-      adminList.innerHTML = "";
+    // ---------------------------------------------------------
+    // DEFAULT WORKING CHANNELS (Auto-add to empty database)
+    // ---------------------------------------------------------
+    const DEFAULT_CHANNELS = {
+      "default_1": { name: "Aaj Tak", category: "News", url: "https://feeds.intoday.in/aajtak/api/aajtaktv/master.m3u8", isOffline: false },
+      "default_2": { name: "Red Bull TV", category: "Sports", url: "https://rbmn-live.akamaized.net/hls/live/590964/BoRB-AT/master.m3u8", isOffline: false },
+      "default_3": { name: "NASA TV", category: "Entertainment", url: "https://ntv1.akamaized.net/hls/live/2014075/NASA-NTV1-HLS/master.m3u8", isOffline: false },
+      "default_4": { name: "Big Buck Bunny", category: "Movies", url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8", isOffline: false }
+    };
 
-      if(channels.length === 0) {
-        grid.innerHTML = `<div style="color: var(--muted); grid-column: 1/-1;">No channels found. Open Admin Panel (☰) to add channels.</div>`;
-        return;
+    // Load Settings
+    db.ref('settings/admin_password').on('value', (s) => { if(s.val()) ADMIN_PASSWORD = s.val(); });
+    db.ref('settings/notice').on('value', (s) => {
+      const msg = s.val();
+      if(msg) { document.getElementById('marqueeText').innerText = msg; document.getElementById('noticeBar').style.display = 'block'; } 
+      else { document.getElementById('noticeBar').style.display = 'none'; }
+    });
+    db.ref('settings/contact').on('value', (s) => {
+      const data = s.val() || { email: "support@startv.com", phone: "+91 0000000000" };
+      document.getElementById('displayEmail').innerText = data.email; document.getElementById('displayPhone').innerText = data.phone;
+      document.getElementById('adminContactEmail').value = data.email; document.getElementById('adminContactPhone').value = data.phone;
+    });
+
+    // Load Channels & Inject Defaults if Empty
+    db.ref('channels').on('value', (snapshot) => {
+      if (snapshot.exists()) {
+        allData = snapshot.val();
+      } else {
+        // If DB is completely empty, push the default working channels
+        db.ref('channels').set(DEFAULT_CHANNELS);
+        allData = DEFAULT_CHANNELS;
       }
+      updateStats();
+      renderFrontend();
+      renderAdminList();
+    });
 
-      channels.forEach((ch, index) => {
-        // Front-End Grid
+    function updateStats() {
+      let total = 0, online = 0, offline = 0;
+      Object.values(allData).forEach(ch => { total++; if(ch.isOffline) offline++; else online++; });
+      document.getElementById('statTotal').innerText = total; document.getElementById('statOnline').innerText = online; document.getElementById('statOffline').innerText = offline;
+    }
+
+    function renderFrontend() {
+      const grid = document.getElementById("channelGrid");
+      const query = document.getElementById("homeSearch").value.toLowerCase();
+      grid.innerHTML = "";
+      
+      const filteredKeys = Object.keys(allData).filter(k => allData[k].name.toLowerCase().includes(query));
+      if (filteredKeys.length === 0) { grid.innerHTML = `<div style="color:var(--muted); grid-column: 1/-1;">No channels found.</div>`; return; }
+
+      filteredKeys.forEach(key => {
+        const ch = allData[key];
         const card = document.createElement('div');
         card.className = `card ${ch.isOffline ? 'offline' : ''}`;
         card.onclick = () => !ch.isOffline && playChannel(ch);
         
-        card.innerHTML = `
-          <div class="banner">
-            <span>${ch.name.substring(0,12)}</span>
-            ${ch.isOffline ? '<div class="offline-badge">OFFLINE</div>' : ''}
-          </div>
-          <div class="info">
-            <div class="name">${ch.name}</div>
-            <div class="cat-label">${ch.category}</div>
-          </div>
-        `;
+        // Random Color for Banner based on Category
+        let color = "#1e3a8a"; 
+        if(ch.category === "News") color = "#991b1b"; else if(ch.category === "Sports") color = "#065f46"; else if(ch.category === "Movies") color = "#581c87";
+        
+        card.innerHTML = `<div class="banner" style="background:${color}"><span>${ch.name.substring(0,12)}</span>${ch.isOffline ? '<div class="offline-badge">OFFLINE</div>' : ''}</div><div class="info"><div class="name">${ch.name}</div><div class="cat-label">${ch.category}</div></div>`;
         grid.appendChild(card);
+      });
+    }
 
-        // Admin List
+    function renderAdminList() {
+      const list = document.getElementById("adminChList");
+      const query = document.getElementById("adminSearch").value.toLowerCase();
+      list.innerHTML = "";
+
+      const filteredKeys = Object.keys(allData).filter(k => allData[k].name.toLowerCase().includes(query));
+      
+      filteredKeys.forEach(key => {
+        const ch = allData[key];
         const aItem = document.createElement('div');
         aItem.className = 'admin-ch-item';
         aItem.innerHTML = `
           <div style="font-size:13px; font-weight:bold;">${ch.name} <span style="font-weight:normal; color:#888;">(${ch.category})</span></div>
           <div class="ch-actions">
-            <button class="btn-off" onclick="toggleOffline(${index})">${ch.isOffline ? 'Make Online' : 'Set Offline'}</button>
-            <button class="btn-del" onclick="deleteChannel(${index})">Delete</button>
-          </div>
-        `;
-        adminList.appendChild(aItem);
+            <button class="btn-edit" onclick="editChannel('${key}')">Edit</button>
+            <button class="btn-off" onclick="toggleOffline('${key}', ${ch.isOffline})">${ch.isOffline ? 'Make Online' : 'Set Offline'}</button>
+            <button class="btn-del" onclick="deleteChannel('${key}')">Del</button>
+          </div>`;
+        list.appendChild(aItem);
       });
     }
 
-    // Play Channel
+    // Channel CRUD Controls
+    function saveChannel() {
+      const key = document.getElementById('editKey').value;
+      const data = {
+        name: document.getElementById('chName').value,
+        category: document.getElementById('chCat').value || "General",
+        url: document.getElementById('chUrl').value,
+        isOffline: false
+      };
+      if(!data.name || !data.url) return alert("Required fields missing!");
+
+      if(key) {
+        db.ref('channels/' + key).update(data);
+        document.getElementById('editKey').value = ""; document.getElementById('formTitle').innerText = "Add New Channel"; document.getElementById('saveBtn').innerText = "+ Add Channel";
+        alert("Channel Updated!");
+      } else {
+        db.ref('channels').push(data);
+        alert("Channel Added!");
+      }
+      document.getElementById('chName').value = ""; document.getElementById('chUrl').value = ""; document.getElementById('chCat').value = "";
+    }
+
+    function editChannel(key) {
+      const ch = allData[key];
+      document.getElementById('editKey').value = key; document.getElementById('chName').value = ch.name; document.getElementById('chCat').value = ch.category; document.getElementById('chUrl').value = ch.url;
+      document.getElementById('formTitle').innerText = "Edit Channel"; document.getElementById('saveBtn').innerText = "Update Channel";
+      window.scrollTo(0,0);
+    }
+    function deleteChannel(key) { if(confirm("Delete this channel permanently?")) db.ref('channels/' + key).remove(); }
+    function toggleOffline(key, status) { db.ref('channels/' + key).update({ isOffline: !status }); }
+    
+    // Settings Controls
+    function updateNotice() { db.ref('settings/notice').set(document.getElementById('adminNotice').value); alert("Notice Updated!"); }
+    function updateContact() {
+      const email = document.getElementById('adminContactEmail').value;
+      const phone = document.getElementById('adminContactPhone').value;
+      db.ref('settings/contact').set({ email, phone }); alert("Contact Info Updated!");
+    }
+    function changePassword() {
+      const np = document.getElementById('newAdminPass').value;
+      if(np && confirm("Change admin password?")) { db.ref('settings/admin_password').set(np).then(() => { alert("Password Changed!"); document.getElementById('newAdminPass').value = ""; }); }
+    }
+
+    // Video Player
     function playChannel(ch) {
       const video = document.getElementById('tvPlayer');
       document.getElementById('nowTitle').innerHTML = `<span style="color:var(--red)">●</span> ${ch.name}`;
+      if (hls) hls.destroy();
       
-      if (hls) { hls.destroy(); }
-      
-      if (Hls.isSupported()) {
-        hls = new Hls();
-        hls.loadSource(ch.url);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = ch.url;
-        video.play();
+      if (Hls.isSupported()) { 
+        hls = new Hls(); hls.loadSource(ch.url); hls.attachMedia(video); 
+        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play()); 
+      } 
+      else if (video.canPlayType('application/vnd.apple.mpegurl')) { 
+        video.src = ch.url; video.play(); 
       }
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    // Add Channel
-    function addNewChannel() {
-      const name = document.getElementById('chName').value;
-      const cat = document.getElementById('chCat').value;
-      const url = document.getElementById('chUrl').value;
-
-      if(!name || !url) return alert("Name and URL are required!");
-
-      channels.push({ name, category: cat || "General", url, isOffline: false });
-      localStorage.setItem('star_tv_channels', JSON.stringify(channels));
-      
-      document.getElementById('chName').value = "";
-      document.getElementById('chCat').value = "";
-      document.getElementById('chUrl').value = "";
-      
-      renderChannels();
-      alert("Channel Added Successfully!");
-    }
-
-    // Delete Channel
-    function deleteChannel(index) {
-      if(confirm("Are you sure you want to delete this channel?")) {
-        channels.splice(index, 1);
-        localStorage.setItem('star_tv_channels', JSON.stringify(channels));
-        renderChannels();
-      }
-    }
-
-    // Toggle Offline Status
-    function toggleOffline(index) {
-      channels[index].isOffline = !channels[index].isOffline;
-      localStorage.setItem('star_tv_channels', JSON.stringify(channels));
-      renderChannels();
-    }
-
-    // Admin Panel Controls
-    function openAdmin() {
-      document.getElementById('adminOverlay').style.display = 'flex';
-      document.getElementById('loginView').style.display = 'block';
-      document.getElementById('dashboardView').style.display = 'none';
-      document.getElementById('adminPass').value = '';
-    }
-
-    function closeAdmin() {
-      document.getElementById('adminOverlay').style.display = 'none';
-    }
-
-    function checkLogin() {
-      const pass = document.getElementById('adminPass').value;
-      if(pass === ADMIN_PASSWORD) {
-        document.getElementById('loginView').style.display = 'none';
-        document.getElementById('dashboardView').style.display = 'block';
-        document.getElementById('loginError').style.display = 'none';
-      } else {
-        document.getElementById('loginError').style.display = 'block';
-      }
-    }
-
-    // Initial Load
-    renderChannels();
-  </script>
-</body>
-</html>
+    // UI Modals
+    function openMenu() { document.getElementById('menuOverlay').style.display = 'flex'; }
+    function closeMenu() { document.getElementById('menuOverlay').style.display = 'none'; }
+    function openAdmin() { document.getElementById('adminOverlay').style.display = 'flex'; document.getElementById('loginView').style.display = 'block'; document.getElementById('dashboardView').style.display = 'none'; }
+    function closeAdmin() { document.getElementById('adminOverlay').style.display = 'none'; }
+    function checkLogin() { if(document.getElementById('adminPass').value === ADMIN_PASSWORD) { document.getElementById('loginView').style.display = 'none'; document.getElementById('dashboardView').style.displ
