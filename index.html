@@ -20,7 +20,7 @@
     .navbar { background: rgba(7, 9, 14, 0.85); backdrop-filter: blur(16px); position: sticky; top: 0; z-index: 100; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
     .nav-left { display: flex; align-items: center; gap: 15px; }
     .menu-icon { font-size: 24px; cursor: pointer; color: var(--text); }
-    .brand { display: flex; align-items: center; gap: 12px; font-size: 19px; font-weight: 800; }
+    .brand { display: flex; align-items: center; gap: 12px; font-size: 19px; font-weight: 800; cursor: pointer; user-select: none; }
     .brand span { color: var(--primary); }
     
     .search-box { padding: 8px 15px; border-radius: 20px; border: 1px solid var(--border); background: rgba(255,255,255,0.05); color: #fff; outline: none; font-size: 13px; width: 100%; max-width: 250px; }
@@ -40,13 +40,13 @@
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
     .card { background: var(--surface-card); border-radius: 14px; overflow: hidden; cursor: pointer; border: 1px solid var(--border); position: relative; transition: 0.2s; }
     .card:hover { border-color: var(--primary); transform: translateY(-3px); }
-    .banner { height: 95px; display: flex; align-items: center; justify-content: center; background: #1e3a8a; }
+    .banner { height: 95px; display: flex; align-items: center; justify-content: center; background: #1e3a8a; overflow: hidden; position: relative; }
     .banner span { font-size: 13px; font-weight: 800; padding: 0 10px; text-transform: uppercase; text-align: center;}
     .info { padding: 12px 14px; }
     .name { font-size: 13.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .cat-label { font-size: 11.5px; color: var(--muted); margin-top: 3px; }
-    .offline-badge { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.8); color: var(--red); font-size: 10px; padding: 3px 6px; border-radius: 4px; font-weight: bold; border: 1px solid var(--red); }
-    .card.offline { opacity: 0.5; pointer-events: none; }
+    .offline-badge { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.8); color: var(--red); font-size: 10px; padding: 3px 6px; border-radius: 4px; font-weight: bold; border: 1px solid var(--red); z-index: 2; }
+    .card.offline { opacity: 0.5; pointer-events: none; filter: grayscale(80%); } 
 
     .admin-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 10px; backdrop-filter: blur(5px); }
     .admin-panel { background: var(--surface); width: 100%; max-width: 650px; border-radius: 16px; padding: 24px; border: 1px solid var(--border); max-height: 90vh; overflow-y: auto; }
@@ -96,7 +96,7 @@
   <nav class="navbar">
     <div class="nav-left">
       <div class="menu-icon" onclick="openMenu()">&equiv;</div>
-      <div class="brand"><div>STAR <span>TV</span></div></div>
+      <div class="brand" onclick="emergencyLogoTap()"><div>STAR <span>TV</span></div></div>
     </div>
     <input type="text" id="homeSearch" class="search-box" placeholder="Search Channels..." onkeyup="renderFrontend()">
   </nav>
@@ -124,6 +124,15 @@
     </div>
 
     <div class="grid" id="channelGrid">Loading channels...</div>
+
+    <div id="offlineSection" style="display: none; margin-top: 40px;">
+      <h3 style="font-size: 18px; margin-bottom: 15px; color: var(--red); display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 12px; background: rgba(239,68,68,0.2); padding: 4px 8px; border-radius: 4px;">OFFLINE</span> 
+        Currently Unavailable
+      </h3>
+      <div class="grid" id="offlineGrid"></div>
+    </div>
+
   </div>
 
   <div class="admin-overlay" id="menuOverlay">
@@ -170,6 +179,8 @@
             <option value="Kids">Kids</option><option value="Bangla">Bangla</option>
           </select>
           <input type="text" id="chUrl" class="admin-input" placeholder="Stream URL (.m3u8)">
+          <!-- NEW: Logo URL Input -->
+          <input type="text" id="chLogo" class="admin-input" placeholder="Channel Logo Image URL (Optional)">
           <button class="admin-btn" id="saveBtn" onclick="saveChannel()">+ Add Channel</button>
         </div>
 
@@ -180,20 +191,35 @@
           </div>
           <div class="admin-ch-list" id="adminChList"></div>
           
-          <div class="btn-row">
+          <div class="btn-row" style="margin-top:10px;">
             <button class="admin-btn admin-btn-half" style="background:#0284c7;" onclick="exportData()">Export Backup</button>
-            <button class="admin-btn admin-btn-half" style="background:#be123c;" onclick="clearAllChannels()">Clear All</button>
+            <button class="admin-btn admin-btn-half" style="background:#d97706; position: relative;">
+               Import Backup
+               <input type="file" id="importFile" accept=".json" onchange="importData(event)" style="opacity: 0; position: absolute; top:0; left:0; width:100%; height:100%; cursor: pointer;">
+            </button>
           </div>
+          <!-- NEW: Bulk Clean Offline Channels -->
+          <button class="admin-btn" style="background:var(--surface-card); color:var(--red); border:1px solid var(--red); margin-top:10px;" onclick="cleanOfflineChannels()">Clear All Offline Channels</button>
         </div>
 
         <div class="admin-section">
-          <h3 style="margin-bottom: 10px;">Contact & Announcement</h3>
-          <input type="email" id="adminContactEmail" class="admin-input" placeholder="Contact Email">
-          <input type="text" id="adminContactPhone" class="admin-input" placeholder="Contact Mobile Number">
-          <button class="admin-btn" style="background:#f59e0b; margin-bottom: 15px;" onclick="updateContact()">Update Contact Info</button>
+          <h3 style="margin-bottom: 10px;">Site Appearance & Notice</h3>
+          
+          <!-- NEW: Theme Color Picker -->
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+            <label style="font-size: 14px;">Theme Color:</label>
+            <input type="color" id="themeColor" value="#3b82f6" style="height: 35px; width: 60px; border:none; background:transparent; cursor:pointer;" onchange="updateTheme()">
+          </div>
 
           <input type="text" id="adminNotice" class="admin-input" placeholder="Enter message for homepage marquee">
-          <button class="admin-btn" style="background:#8b5cf6;" onclick="updateNotice()">Update Notice</button>
+          <button class="admin-btn" style="background:#8b5cf6;" onclick="updateNotice()">Save Appearance & Notice</button>
+        </div>
+
+        <div class="admin-section">
+            <h3 style="margin-bottom: 10px;">Contact Info</h3>
+            <input type="email" id="adminContactEmail" class="admin-input" placeholder="Contact Email">
+            <input type="text" id="adminContactPhone" class="admin-input" placeholder="Contact Mobile Number">
+            <button class="admin-btn" style="background:#f59e0b;" onclick="updateContact()">Update Contact Info</button>
         </div>
 
         <div class="admin-section">
@@ -203,30 +229,41 @@
           <input type="password" id="newAdminPass" class="admin-input" placeholder="New Admin Password">
           <button class="admin-btn" style="background:var(--green);" onclick="changeCredentials()">Update Credentials</button>
         </div>
+
+        <div class="admin-section" style="border-color: var(--red);">
+          <h3 style="margin-bottom: 10px; color: var(--red);">System Recovery & 100% Backup</h3>
+          <p style="font-size:12px; color:var(--muted); margin-bottom: 10px;">The system automatically saves a 100% emergency backup of your channels whenever you make a change.</p>
+          <div class="btn-row">
+            <button class="admin-btn admin-btn-half" style="background:#059669;" onclick="restoreEmergencyBackup()">Restore Backup</button>
+            <button class="admin-btn admin-btn-half" style="background:#dc2626;" onclick="hardFactoryReset()">Factory Reset</button>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
 
   <script>
-    if (localStorage.getItem("clean_install_v8") !== "true") {
+    // Version Bump to initialize new features smoothly
+    if (localStorage.getItem("clean_install_v12") !== "true") {
         localStorage.clear();
-        localStorage.setItem("clean_install_v8", "true");
+        localStorage.setItem("clean_install_v12", "true");
     }
 
     let hls = null;
     let currentCategory = "All";
     
     const DEFAULT_CHANNELS = {
-      "ch_1": { name: "Aaj Tak", category: "News", url: "https://feeds.intoday.in/aajtak/api/aajtaktv/master.m3u8", isOffline: false },
-      "ch_2": { name: "Red Bull TV", category: "Sports", url: "https://rbmn-live.akamaized.net/hls/live/590964/BoRB-AT/master.m3u8", isOffline: false },
-      "ch_3": { name: "NASA TV", category: "Entertainment", url: "https://ntv1.akamaized.net/hls/live/2014075/NASA-NTV1-HLS/master.m3u8", isOffline: false },
-      "ch_4": { name: "Big Buck Bunny", category: "Movies", url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8", isOffline: false }
+      "ch_1": { name: "Aaj Tak", category: "News", url: "https://feeds.intoday.in/aajtak/api/aajtaktv/master.m3u8", isOffline: false, logo: "" },
+      "ch_2": { name: "Red Bull TV", category: "Sports", url: "https://rbmn-live.akamaized.net/hls/live/590964/BoRB-AT/master.m3u8", isOffline: false, logo: "" },
+      "ch_3": { name: "NASA TV", category: "Entertainment", url: "https://ntv1.akamaized.net/hls/live/2014075/NASA-NTV1-HLS/master.m3u8", isOffline: false, logo: "" }
     };
 
     let settings = {
         admin_username: "admin",
         admin_password: "admin123",
         notice: "Welcome to Star TV! Enjoy Live Streaming.",
+        theme_color: "#3b82f6",
         contact: { email: "support@startv.com", phone: "+91 0000000000" }
     };
     let allData = {};
@@ -240,6 +277,7 @@
                     settings.admin_username = parsedSettings.admin_username || "admin";
                     settings.admin_password = parsedSettings.admin_password || "admin123";
                     settings.notice = parsedSettings.notice || "";
+                    settings.theme_color = parsedSettings.theme_color || "#3b82f6";
                     if(parsedSettings.contact) {
                        settings.contact.email = parsedSettings.contact.email || "";
                        settings.contact.phone = parsedSettings.contact.phone || "";
@@ -267,8 +305,17 @@
         }
     }
 
-    function saveLocalData() { localStorage.setItem('startv_channels', JSON.stringify(allData)); }
-    function saveSettings() { localStorage.setItem('startv_settings', JSON.stringify(settings)); }
+    function saveLocalData() { 
+      localStorage.setItem('startv_channels', JSON.stringify(allData)); 
+      if(Object.keys(allData).length > 0) {
+        localStorage.setItem('startv_emergency_backup_channels', JSON.stringify(allData));
+      }
+    }
+    
+    function saveSettings() { 
+      localStorage.setItem('startv_settings', JSON.stringify(settings)); 
+      localStorage.setItem('startv_emergency_backup_settings', JSON.stringify(settings));
+    }
 
     function applySettings() {
         if(settings.notice) { 
@@ -282,6 +329,10 @@
         document.getElementById('adminContactEmail').value = settings.contact.email; 
         document.getElementById('adminContactPhone').value = settings.contact.phone;
         document.getElementById('adminNotice').value = settings.notice || "";
+        document.getElementById('themeColor').value = settings.theme_color || "#3b82f6";
+        
+        // Apply Theme Color
+        document.documentElement.style.setProperty('--primary', settings.theme_color);
     }
 
     function updateStats() {
@@ -290,202 +341,4 @@
         const ch = allData[k];
         if(ch) { total++; if(ch.isOffline) offline++; else online++; }
       });
-      document.getElementById('statTotal').innerText = total; 
-      document.getElementById('statOnline').innerText = online; 
-      document.getElementById('statOffline').innerText = offline;
-    }
-
-    function setCategory(cat, btnElement) {
-      currentCategory = cat;
-      document.querySelectorAll('.cat-btn').forEach(function(btn) { btn.classList.remove('active'); });
-      btnElement.classList.add('active');
-      renderFrontend();
-    }
-
-    function renderFrontend() {
-      const grid = document.getElementById("channelGrid");
-      const searchBox = document.getElementById("homeSearch");
-      const query = searchBox ? searchBox.value.toLowerCase() : "";
-      grid.innerHTML = "";
-      
-      const filteredKeys = Object.keys(allData || {}).filter(function(k) {
-        if(!allData[k]) return false;
-        const matchesQuery = (allData[k].name || "").toLowerCase().includes(query);
-        const matchesCategory = currentCategory === "All" || allData[k].category === currentCategory;
-        return matchesQuery && matchesCategory;
-      });
-
-      if (filteredKeys.length === 0) { 
-          grid.innerHTML = '<div style="color:var(--muted); grid-column: 1/-1;">No channels found.</div>'; 
-          return; 
-      }
-
-      filteredKeys.forEach(function(key) {
-        const ch = allData[key];
-        const card = document.createElement('div');
-        card.className = "card " + (ch.isOffline ? 'offline' : '');
-        card.onclick = function() { if(!ch.isOffline) playChannel(ch); };
-        
-        let color = "#1e3a8a"; 
-        if(ch.category === "News") color = "#991b1b"; 
-        else if(ch.category === "Sports") color = "#065f46"; 
-        else if(ch.category === "Movies") color = "#581c87";
-        
-        card.innerHTML = 
-          '<div class="banner" style="background:' + color + '">' +
-            '<span>' + (ch.name||"").substring(0,12) + '</span>' +
-            (ch.isOffline ? '<div class="offline-badge">OFFLINE</div>' : '') +
-          '</div>' +
-          '<div class="info">' +
-            '<div class="name">' + ch.name + '</div>' +
-            '<div class="cat-label">' + (ch.category || "General") + '</div>' +
-          '</div>';
-        grid.appendChild(card);
-      });
-    }
-
-    function renderAdminList() {
-      const list = document.getElementById("adminChList");
-      const searchBox = document.getElementById("adminSearch");
-      const query = searchBox ? searchBox.value.toLowerCase() : "";
-      list.innerHTML = "";
-
-      const filteredKeys = Object.keys(allData || {}).filter(function(k) { return (allData[k].name||"").toLowerCase().includes(query); });
-      
-      filteredKeys.forEach(function(key) {
-        const ch = allData[key];
-        const aItem = document.createElement('div');
-        aItem.className = 'admin-ch-item';
-        aItem.innerHTML = 
-          '<div style="font-size:13px; font-weight:bold;">' + ch.name + ' <span style="font-weight:normal; color:#888;">(' + (ch.category || "General") + ')</span></div>' +
-          '<div class="ch-actions">' +
-            '<button class="btn-edit" onclick="editChannel(\'' + key + '\')">Edit</button>' +
-            '<button class="btn-off" onclick="toggleOffline(\'' + key + '\')">' + (ch.isOffline ? 'On' : 'Off') + '</button>' +
-            '<button class="btn-del" onclick="deleteChannel(\'' + key + '\')">Del</button>' +
-          '</div>';
-        list.appendChild(aItem);
-      });
-    }
-
-    function saveChannel() {
-      const key = document.getElementById('editKey').value;
-      const nameVal = document.getElementById('chName').value;
-      const catVal = document.getElementById('chCat').value || "Entertainment";
-      const urlVal = document.getElementById('chUrl').value;
-      
-      if(!nameVal || !urlVal) return alert("Required fields missing!");
-
-      if(key) {
-        allData[key].name = nameVal;
-        allData[key].category = catVal;
-        allData[key].url = urlVal;
-        document.getElementById('editKey').value = ""; 
-        document.getElementById('formTitle').innerText = "Add New Channel"; 
-        document.getElementById('saveBtn').innerText = "+ Add Channel";
-        alert("Channel Updated!");
-      } else {
-        const newKey = "ch_" + Date.now();
-        allData[newKey] = { name: nameVal, category: catVal, url: urlVal, isOffline: false };
-        alert("Channel Added!");
-      }
-      saveLocalData(); updateStats(); renderFrontend(); renderAdminList();
-      document.getElementById('chName').value = ""; document.getElementById('chUrl').value = ""; document.getElementById('chCat').value = "";
-    }
-
-    function editChannel(key) {
-      const ch = allData[key];
-      document.getElementById('editKey').value = key; 
-      document.getElementById('chName').value = ch.name; 
-      document.getElementById('chCat').value = ch.category; 
-      document.getElementById('chUrl').value = ch.url;
-      document.getElementById('formTitle').innerText = "Edit Channel"; 
-      document.getElementById('saveBtn').innerText = "Update Channel";
-    }
-    
-    function deleteChannel(key) { if(confirm("Delete this channel?")) { delete allData[key]; saveLocalData(); updateStats(); renderFrontend(); renderAdminList(); } }
-    function toggleOffline(key) { allData[key].isOffline = !allData[key].isOffline; saveLocalData(); updateStats(); renderFrontend(); renderAdminList(); }
-    
-    function clearAllChannels() {
-      if(confirm("WARNING: Are you sure you want to delete ALL channels?")) {
-        allData = {}; saveLocalData(); updateStats(); renderFrontend(); renderAdminList(); alert("All channels deleted.");
-      }
-    }
-    
-    function exportData() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allData));
-      const downloadAnchorNode = document.createElement('a');
-      downloadAnchorNode.setAttribute("href", dataStr);
-      downloadAnchorNode.setAttribute("download", "startv_backup.json");
-      document.body.appendChild(downloadAnchorNode);
-      downloadAnchorNode.click();
-      downloadAnchorNode.remove();
-    }
-
-    function updateNotice() { settings.notice = document.getElementById('adminNotice').value; saveSettings(); applySettings(); alert("Notice Updated!"); }
-    function updateContact() {
-      settings.contact.email = document.getElementById('adminContactEmail').value;
-      settings.contact.phone = document.getElementById('adminContactPhone').value;
-      saveSettings(); applySettings(); alert("Contact Info Updated!");
-    }
-    
-    function changeCredentials() {
-      const nu = document.getElementById('newAdminUser').value.trim();
-      const np = document.getElementById('newAdminPass').value.trim();
-      if(!nu && !np) return alert("Please enter a new username or password.");
-      if(confirm("Are you sure you want to change your admin credentials?")) { 
-        if(nu) settings.admin_username = nu;
-        if(np) settings.admin_password = np;
-        saveSettings(); 
-        alert("Credentials Updated successfully!"); 
-        document.getElementById('newAdminUser').value = "";
-        document.getElementById('newAdminPass').value = "";
-      }
-    }
-
-    function playChannel(ch) {
-      const video = document.getElementById('tvPlayer');
-      document.getElementById('nowTitle').innerHTML = '<span style="color:var(--red)">&bull;</span> ' + ch.name;
-      if (hls) hls.destroy();
-      
-      if (typeof Hls !== 'undefined' && Hls.isSupported()) { 
-        hls = new Hls(); hls.loadSource(ch.url); hls.attachMedia(video); 
-        hls.on(Hls.Events.MANIFEST_PARSED, function() { video.play(); }); 
-      } 
-      else if (video.canPlayType('application/vnd.apple.mpegurl')) { 
-        video.src = ch.url; video.play(); 
-      }
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-
-    window.openMenu = function() { document.getElementById('menuOverlay').style.display = 'flex'; };
-    window.closeMenu = function() { document.getElementById('menuOverlay').style.display = 'none'; };
-    window.openAdmin = function() { 
-        document.getElementById('adminOverlay').style.display = 'flex'; 
-        document.getElementById('loginView').style.display = 'block'; 
-        document.getElementById('dashboardView').style.display = 'none'; 
-    };
-    window.closeAdmin = function() { document.getElementById('adminOverlay').style.display = 'none'; };
-    
-    window.checkLogin = function() { 
-      const user = document.getElementById('adminUser').value;
-      const pass = document.getElementById('adminPass').value;
-      
-      if(user === settings.admin_username && pass === settings.admin_password) { 
-        document.getElementById('loginView').style.display = 'none'; 
-        document.getElementById('dashboardView').style.display = 'block'; 
-        document.getElementById('adminUser').value = "";
-        document.getElementById('adminPass').value = "";
-      } else {
-        alert("Wrong Username or Password!"); 
-      }
-    };
-
-    // DIRECT EXECUTION (Bypasses window.onload delays)
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initApp);
-    } else {
-        initApp();
-    }
-  </script>
-</body>
-</html>
+      document.getElementById('statTot
