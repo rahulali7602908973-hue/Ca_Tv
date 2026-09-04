@@ -10,136 +10,80 @@
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <style>
     :root {
-      --bg: #07090e;
-      --surface: #0f172a;
-      --surface-card: #131d33;
-      --primary: #3b82f6;
-      --primary-glow: rgba(59, 130, 246, 0.4);
-      --text: #f8fafc;
-      --muted: #94a3b8;
-      --red: #ef4444;
-      --border: rgba(255, 255, 255, 0.08);
-      --border-hover: rgba(59, 130, 246, 0.5);
+      --bg: #07090e; --surface: #0f172a; --surface-card: #131d33;
+      --primary: #3b82f6; --text: #f8fafc; --muted: #94a3b8;
+      --red: #ef4444; --green: #10b981; --border: rgba(255, 255, 255, 0.08);
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
     body { background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 50px; }
 
     .navbar {
-      background: rgba(7, 9, 14, 0.85);
-      backdrop-filter: blur(16px);
-      position: sticky; top: 0; z-index: 100;
-      padding: 14px 24px;
+      background: rgba(7, 9, 14, 0.85); backdrop-filter: blur(16px);
+      position: sticky; top: 0; z-index: 100; padding: 14px 24px;
       display: flex; justify-content: space-between; align-items: center;
       border-bottom: 1px solid var(--border);
     }
     .nav-left { display: flex; align-items: center; gap: 15px; }
     .menu-icon { font-size: 24px; cursor: pointer; color: var(--text); }
     .brand { display: flex; align-items: center; gap: 12px; font-size: 19px; font-weight: 800; }
-    .brand span { 
-      background: linear-gradient(135deg, #60a5fa, #3b82f6);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
+    .brand span { color: var(--primary); }
     .live-badge {
-      background: linear-gradient(135deg, #ef4444, #dc2626);
-      color: #fff; font-size: 10px; font-weight: 800;
-      padding: 3px 8px; border-radius: 6px; margin-left: 6px;
-      box-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
+      background: var(--red); color: #fff; font-size: 10px; padding: 3px 8px; 
+      border-radius: 6px; margin-left: 6px;
     }
-    .search-wrap { position: relative; }
-    .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); opacity: 0.5; font-size: 13px; }
-    .search-box {
-      width: 100%; max-width: 280px; padding: 10px 16px 10px 38px;
-      border-radius: 30px; border: 1px solid var(--border);
-      background: rgba(255, 255, 255, 0.05); color: var(--text); font-size: 13px; outline: none;
-    }
-    .search-box:focus { border-color: var(--primary); }
 
     .container { max-width: 1180px; margin: 0 auto; padding: 20px 16px; }
-
-    .player-box {
-      background: #000; border-radius: 16px; overflow: hidden;
-      margin-bottom: 24px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
-      border: 1px solid var(--border);
-    }
+    
+    .player-box { background: #000; border-radius: 16px; overflow: hidden; margin-bottom: 24px; border: 1px solid var(--border); }
     .player-wrap { width: 100%; aspect-ratio: 16/9; background: #000; position: relative; }
     video { width: 100%; height: 100%; object-fit: contain; }
-
-    .now-playing {
-      background: var(--surface); padding: 16px 22px;
-      border-top: 1px solid var(--border);
-    }
-    .now-playing h2 { font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
-    .now-playing p { font-size: 13px; color: var(--muted); margin-top: 4px; }
-
-    .cats { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 22px; }
-    .cats::-webkit-scrollbar { display: none; }
-    .cat-btn {
-      background: var(--surface); border: 1px solid var(--border); color: var(--muted);
-      padding: 8px 18px; border-radius: 24px; font-size: 13.5px; font-weight: 600; white-space: nowrap;
-      cursor: pointer; transition: all 0.2s;
-    }
-    .cat-btn:hover { color: #fff; }
-    .cat-btn.active {
-      background: linear-gradient(135deg, #3b82f6, #2563eb);
-      color: #fff; border-color: transparent;
-      box-shadow: 0 4px 14px var(--primary-glow);
-    }
-
-    .section-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+    .now-playing { background: var(--surface); padding: 16px 22px; border-top: 1px solid var(--border); }
     
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
-    .card {
-      background: var(--surface-card); border-radius: 14px; overflow: hidden;
-      cursor: pointer; border: 1px solid var(--border); position: relative;
-      transition: all 0.2s ease;
-    }
-    .card:hover { transform: translateY(-4px); border-color: var(--border-hover); }
-    .banner { height: 95px; display: flex; align-items: center; justify-content: center; position: relative; }
-    .banner span { font-size: 13px; font-weight: 800; color: #fff; padding: 0 10px; text-shadow: 0 2px 4px rgba(0,0,0,0.4); }
-    
-    /* Offline Badge UI */
-    .offline-badge {
-      position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.8);
-      color: var(--red); font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; border: 1px solid var(--red);
-    }
-
-    .info { padding: 12px 14px; background: var(--surface-card); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; margin-top: 20px; }
+    .card { background: var(--surface-card); border-radius: 14px; overflow: hidden; cursor: pointer; border: 1px solid var(--border); position: relative; }
+    .card:hover { border-color: var(--primary); }
+    .banner { height: 95px; display: flex; align-items: center; justify-content: center; background: #1e3a8a; }
+    .banner span { font-size: 13px; font-weight: 800; padding: 0 10px; text-transform: uppercase; }
+    .info { padding: 12px 14px; }
     .name { font-size: 13.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .cat-label { font-size: 11.5px; color: var(--muted); margin-top: 3px; font-weight: 500; }
+    .cat-label { font-size: 11.5px; color: var(--muted); margin-top: 3px; }
+    .offline-badge { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.8); color: var(--red); font-size: 10px; padding: 3px 6px; border-radius: 4px; font-weight: bold; border: 1px solid var(--red); }
+    .card.offline { opacity: 0.5; pointer-events: none; }
 
-    /* Admin Panel Overlay */
-    .admin-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
-      z-index: 1000; display: none; align-items: center; justify-content: center;
-    }
-    .admin-panel {
-      background: var(--surface); width: 90%; max-width: 500px; border-radius: 16px;
-      padding: 24px; border: 1px solid var(--border); max-height: 90vh; overflow-y: auto;
-    }
-    .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .admin-header h2 { font-size: 18px; color: var(--primary); }
-    .close-btn { cursor: pointer; font-size: 20px; }
+    /* Admin Panel */
+    .admin-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: none; align-items: center; justify-content: center; }
+    .admin-panel { background: var(--surface); width: 95%; max-width: 600px; border-radius: 16px; padding: 24px; border: 1px solid var(--border); max-height: 90vh; overflow-y: auto; }
+    .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px;}
+    .close-btn { cursor: pointer; font-size: 20px; color: var(--red); font-weight: bold;}
+    
     .admin-section { background: var(--surface-card); padding: 15px; border-radius: 10px; margin-bottom: 15px; }
-    .admin-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--muted); }
-    .admin-input { width: 100%; padding: 10px; margin-bottom: 10px; background: #000; border: 1px solid var(--border); color: #fff; border-radius: 6px; }
-    .admin-btn { background: var(--primary); color: #fff; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; }
+    .admin-input { width: 100%; padding: 12px; margin-bottom: 10px; background: #000; border: 1px solid var(--border); color: #fff; border-radius: 6px; }
+    .admin-btn { background: var(--primary); color: #fff; padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; }
     .admin-btn.danger { background: var(--red); }
-    .viewer-list { font-size: 13px; margin-top: 10px; }
-    .viewer-item { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid var(--border); }
+    
+    /* Admin Channel List */
+    .admin-ch-list { max-height: 200px; overflow-y: auto; margin-top: 10px; }
+    .admin-ch-item { display: flex; justify-content: space-between; align-items: center; background: #000; padding: 10px; border-radius: 6px; margin-bottom: 8px; border: 1px solid var(--border); }
+    .ch-actions button { padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; color: white; margin-left: 5px; font-size: 11px; }
+    .btn-off { background: #d97706; }
+    .btn-del { background: var(--red); }
+
+    /* Viewers UI */
+    .viewer-item { display: flex; justify-content: space-between; align-items: center; background: #000; padding: 12px; border-radius: 6px; margin-bottom: 8px; border: 1px solid var(--border); }
+    .v-info { display: flex; flex-direction: column; }
+    .v-ip { font-size: 11px; color: var(--muted); }
+    .v-kick { background: var(--red); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+
+    #loginView, #dashboardView { display: none; }
   </style>
 </head>
 <body>
   <nav class="navbar">
     <div class="nav-left">
-      <div class="menu-icon" onclick="toggleAdmin()">☰</div>
+      <div class="menu-icon" onclick="openAdmin()">☰</div>
       <div class="brand">
         <div>STAR <span>TV</span><span class="live-badge">LIVE</span></div>
       </div>
-    </div>
-    <div class="search-wrap">
-      <span class="search-icon">🔍</span>
-      <input type="text" class="search-box" placeholder="Search channels...">
     </div>
   </nav>
 
@@ -149,89 +93,203 @@
         <video id="tvPlayer" controls></video>
       </div>
       <div class="now-playing">
-        <h2><span style="color:var(--red)">●</span> Select a Channel</h2>
-        <p>Ready to stream</p>
+        <h2 id="nowTitle"><span style="color:var(--red)">●</span> Select a Channel</h2>
       </div>
     </div>
 
-    <div class="cats">
-      <button class="cat-btn active">All</button>
-      <button class="cat-btn">Bangla</button>
-      <button class="cat-btn">News</button>
-      <button class="cat-btn">Movies</button>
-    </div>
-
-    <h3 class="section-title">Live Channels</h3>
+    <h3 style="font-size: 18px; margin-bottom: 15px;">Live Channels</h3>
     <div class="grid" id="channelGrid">
-      <!-- Dummy Channel with Offline Badge -->
-      <div class="card">
-        <div class="banner" style="background: linear-gradient(135deg, #1e3a8a, #0f172a)">
-          <span>STAR JALSHA</span>
-        </div>
-        <div class="info">
-          <div class="name">Star Jalsha</div>
-          <div class="cat-label">Bangla</div>
-        </div>
-      </div>
-      
-      <div class="card" style="opacity: 0.6;">
-        <div class="banner" style="background: linear-gradient(135deg, #991b1b, #450a0a)">
-          <span>OFFLINE CH</span>
-          <div class="offline-badge">OFFLINE</div>
-        </div>
-        <div class="info">
-          <div class="name">Test Channel</div>
-          <div class="cat-label">Entertainment</div>
-        </div>
-      </div>
+      <!-- Channels will load here dynamically -->
     </div>
   </div>
 
-  <!-- Admin Panel UI Mockup -->
+  <!-- Admin Panel Overlay -->
   <div class="admin-overlay" id="adminOverlay">
     <div class="admin-panel">
-      <div class="admin-header">
-        <h2>Admin Dashboard</h2>
-        <div class="close-btn" onclick="toggleAdmin()">✖</div>
+      
+      <!-- Login View -->
+      <div id="loginView">
+        <div class="admin-header">
+          <h2>Admin Login</h2>
+          <div class="close-btn" onclick="closeAdmin()">✖</div>
+        </div>
+        <input type="password" id="adminPass" class="admin-input" placeholder="Enter Password">
+        <button class="admin-btn" onclick="checkLogin()">Login</button>
+        <p id="loginError" style="color: var(--red); font-size: 12px; margin-top: 10px; display: none;">Wrong Password!</p>
       </div>
 
-      <div class="admin-section">
-        <h3>Website Name</h3>
-        <input type="text" class="admin-input" placeholder="Enter new name (e.g. Star TV)">
-        <button class="admin-btn">Update Name</button>
-      </div>
+      <!-- Dashboard View -->
+      <div id="dashboardView">
+        <div class="admin-header">
+          <h2>Admin Dashboard</h2>
+          <div class="close-btn" onclick="closeAdmin()">✖</div>
+        </div>
 
-      <div class="admin-section">
-        <h3>Add / Manage Channel</h3>
-        <input type="text" class="admin-input" placeholder="Channel Name">
-        <input type="text" class="admin-input" placeholder="Stream URL (.m3u8)">
-        <button class="admin-btn" style="margin-bottom: 10px;">Add Channel</button>
-        <button class="admin-btn danger">Remove Selected Channel</button>
-      </div>
+        <div class="admin-section">
+          <h3 style="margin-bottom: 10px;">Add New Channel</h3>
+          <input type="text" id="chName" class="admin-input" placeholder="Channel Name (e.g., Star Plus)">
+          <input type="text" id="chCat" class="admin-input" placeholder="Category (e.g., Hindi, News)">
+          <input type="text" id="chUrl" class="admin-input" placeholder="Stream URL (.m3u8)">
+          <button class="admin-btn" onclick="addNewChannel()">+ Add Channel</button>
+        </div>
 
-      <div class="admin-section">
-        <h3>Live Viewers (Mockup)</h3>
-        <p style="color: #fff; font-weight: bold; margin-bottom: 10px;">Active Users: 3</p>
-        <div class="viewer-list">
-          <div class="viewer-item">
-            <span>User #1042 (IP: 192.168.x.x)</span>
-            <button style="background: var(--red); border: none; color: white; padding: 2px 8px; cursor: pointer; border-radius: 3px;">Kick</button>
-          </div>
-          <div class="viewer-item">
-            <span>User #1043 (IP: 10.0.x.x)</span>
-            <button style="background: var(--red); border: none; color: white; padding: 2px 8px; cursor: pointer; border-radius: 3px;">Kick</button>
+        <div class="admin-section">
+          <h3 style="margin-bottom: 10px;">Manage Added Channels</h3>
+          <div class="admin-ch-list" id="adminChList">
+            <!-- Admin channel items here -->
           </div>
         </div>
+
+        <div class="admin-section">
+          <h3 style="margin-bottom: 10px;">Live Viewers (System UI)</h3>
+          <div class="viewer-item">
+            <div class="v-info">
+              <span>User ID: #8849</span>
+              <span class="v-ip">IP: 103.11.x.x • Watching: Star TV</span>
+            </div>
+            <button class="v-kick" onclick="this.parentElement.style.display='none'">Kick</button>
+          </div>
+          <div class="viewer-item">
+            <div class="v-info">
+              <span>User ID: #8850</span>
+              <span class="v-ip">IP: 45.22.x.x • Watching: Star TV</span>
+            </div>
+            <button class="v-kick" onclick="this.parentElement.style.display='none'">Kick</button>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
 
   <script>
-    // Toggle Admin Panel
-    function toggleAdmin() {
-      const panel = document.getElementById('adminOverlay');
-      panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
+    const ADMIN_PASSWORD = "admin123";
+    let channels = JSON.parse(localStorage.getItem('star_tv_channels')) || [];
+    let hls = null;
+
+    // Load Channels to Grid
+    function renderChannels() {
+      const grid = document.getElementById("channelGrid");
+      const adminList = document.getElementById("adminChList");
+      grid.innerHTML = "";
+      adminList.innerHTML = "";
+
+      if(channels.length === 0) {
+        grid.innerHTML = `<div style="color: var(--muted); grid-column: 1/-1;">No channels found. Open Admin Panel (☰) to add channels.</div>`;
+        return;
+      }
+
+      channels.forEach((ch, index) => {
+        // Front-End Grid
+        const card = document.createElement('div');
+        card.className = `card ${ch.isOffline ? 'offline' : ''}`;
+        card.onclick = () => !ch.isOffline && playChannel(ch);
+        
+        card.innerHTML = `
+          <div class="banner">
+            <span>${ch.name.substring(0,12)}</span>
+            ${ch.isOffline ? '<div class="offline-badge">OFFLINE</div>' : ''}
+          </div>
+          <div class="info">
+            <div class="name">${ch.name}</div>
+            <div class="cat-label">${ch.category}</div>
+          </div>
+        `;
+        grid.appendChild(card);
+
+        // Admin List
+        const aItem = document.createElement('div');
+        aItem.className = 'admin-ch-item';
+        aItem.innerHTML = `
+          <div style="font-size:13px; font-weight:bold;">${ch.name} <span style="font-weight:normal; color:#888;">(${ch.category})</span></div>
+          <div class="ch-actions">
+            <button class="btn-off" onclick="toggleOffline(${index})">${ch.isOffline ? 'Make Online' : 'Set Offline'}</button>
+            <button class="btn-del" onclick="deleteChannel(${index})">Delete</button>
+          </div>
+        `;
+        adminList.appendChild(aItem);
+      });
     }
+
+    // Play Channel
+    function playChannel(ch) {
+      const video = document.getElementById('tvPlayer');
+      document.getElementById('nowTitle').innerHTML = `<span style="color:var(--red)">●</span> ${ch.name}`;
+      
+      if (hls) { hls.destroy(); }
+      
+      if (Hls.isSupported()) {
+        hls = new Hls();
+        hls.loadSource(ch.url);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = ch.url;
+        video.play();
+      }
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    // Add Channel
+    function addNewChannel() {
+      const name = document.getElementById('chName').value;
+      const cat = document.getElementById('chCat').value;
+      const url = document.getElementById('chUrl').value;
+
+      if(!name || !url) return alert("Name and URL are required!");
+
+      channels.push({ name, category: cat || "General", url, isOffline: false });
+      localStorage.setItem('star_tv_channels', JSON.stringify(channels));
+      
+      document.getElementById('chName').value = "";
+      document.getElementById('chCat').value = "";
+      document.getElementById('chUrl').value = "";
+      
+      renderChannels();
+      alert("Channel Added Successfully!");
+    }
+
+    // Delete Channel
+    function deleteChannel(index) {
+      if(confirm("Are you sure you want to delete this channel?")) {
+        channels.splice(index, 1);
+        localStorage.setItem('star_tv_channels', JSON.stringify(channels));
+        renderChannels();
+      }
+    }
+
+    // Toggle Offline Status
+    function toggleOffline(index) {
+      channels[index].isOffline = !channels[index].isOffline;
+      localStorage.setItem('star_tv_channels', JSON.stringify(channels));
+      renderChannels();
+    }
+
+    // Admin Panel Controls
+    function openAdmin() {
+      document.getElementById('adminOverlay').style.display = 'flex';
+      document.getElementById('loginView').style.display = 'block';
+      document.getElementById('dashboardView').style.display = 'none';
+      document.getElementById('adminPass').value = '';
+    }
+
+    function closeAdmin() {
+      document.getElementById('adminOverlay').style.display = 'none';
+    }
+
+    function checkLogin() {
+      const pass = document.getElementById('adminPass').value;
+      if(pass === ADMIN_PASSWORD) {
+        document.getElementById('loginView').style.display = 'none';
+        document.getElementById('dashboardView').style.display = 'block';
+        document.getElementById('loginError').style.display = 'none';
+      } else {
+        document.getElementById('loginError').style.display = 'block';
+      }
+    }
+
+    // Initial Load
+    renderChannels();
   </script>
 </body>
 </html>
