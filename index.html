@@ -78,6 +78,21 @@
   </style>
 </head>
 <body>
+  
+  <!-- VISIBLE ERROR LOGGER FOR DEBUGGING -->
+  <div id="debugLog" style="background: #dc2626; color: white; padding: 15px; position: fixed; top: 0; left: 0; width: 100%; z-index: 999999; display: none; font-family: monospace; font-size: 14px;">
+    <strong>System Error:</strong> <span id="debugText"></span>
+  </div>
+
+  <script>
+    // Catches JavaScript syntax errors immediately
+    window.onerror = function(message, source, lineno, colno, error) {
+      const logBox = document.getElementById('debugLog');
+      logBox.style.display = 'block';
+      document.getElementById('debugText').innerText = message + " (Line: " + lineno + ")";
+      return false;
+    };
+  </script>
 
   <div class="notice-bar" id="noticeBar">
     <marquee id="marqueeText" scrollamount="5"></marquee>
@@ -85,7 +100,7 @@
 
   <nav class="navbar">
     <div class="nav-left">
-      <div class="menu-icon" onclick="openMenu()">☰</div>
+      <div class="menu-icon" onclick="openMenu()">&equiv;</div>
       <div class="brand"><div>STAR <span>TV</span></div></div>
     </div>
     <input type="text" id="homeSearch" class="search-box" placeholder="Search Channels..." onkeyup="renderFrontend()">
@@ -95,7 +110,7 @@
     <div class="player-box">
       <div class="player-wrap"><video id="tvPlayer" controls autoplay></video></div>
       <div class="now-playing">
-        <h2 id="nowTitle"><span style="color:var(--red)">●</span> Select a Channel</h2>
+        <h2 id="nowTitle"><span style="color:var(--red)">&bull;</span> Select a Channel</h2>
       </div>
     </div>
     
@@ -103,7 +118,6 @@
       <h3 style="font-size: 18px;">Live Channels</h3>
     </div>
 
-    <!-- Categories -->
     <div class="category-tabs" id="categoryTabs">
       <button class="cat-btn active" onclick="setCategory('All', this)">All</button>
       <button class="cat-btn" onclick="setCategory('News', this)">News</button>
@@ -117,37 +131,32 @@
     <div class="grid" id="channelGrid">Loading channels...</div>
   </div>
 
-  <!-- User Menu Modal -->
   <div class="admin-overlay" id="menuOverlay">
     <div class="admin-panel" style="max-width: 400px;">
       <div class="admin-header">
         <h2>Menu</h2>
-        <div class="close-btn" onclick="closeMenu()">✖</div>
+        <div class="close-btn" onclick="closeMenu()">&times;</div>
       </div>
       <div class="admin-section" style="text-align: center;">
         <h3 style="margin-bottom: 15px; color: var(--primary);">Contact Us</h3>
-        <p style="color: var(--muted); font-size: 14px; margin-bottom: 8px;">📧 <span id="displayEmail" style="color:#fff;"></span></p>
-        <p style="color: var(--muted); font-size: 14px; margin-bottom: 20px;">📞 <span id="displayPhone" style="color:#fff;"></span></p>
+        <p style="color: var(--muted); font-size: 14px; margin-bottom: 8px;">Email: <span id="displayEmail" style="color:#fff;"></span></p>
+        <p style="color: var(--muted); font-size: 14px; margin-bottom: 20px;">Phone: <span id="displayPhone" style="color:#fff;"></span></p>
       </div>
-      <button class="admin-btn" style="background: transparent; border: 1px solid var(--border); color: var(--muted);" onclick="closeMenu(); openAdmin();">Admin Login 🔒</button>
+      <button class="admin-btn" style="background: transparent; border: 1px solid var(--border); color: var(--muted);" onclick="closeMenu(); openAdmin();">Admin Login</button>
     </div>
   </div>
 
-  <!-- Admin Panel Modal -->
   <div class="admin-overlay" id="adminOverlay">
     <div class="admin-panel">
-      
-      <!-- Login -->
       <div id="loginView">
-        <div class="admin-header"><h2>Admin Login</h2><div class="close-btn" onclick="closeAdmin()">✖</div></div>
+        <div class="admin-header"><h2>Admin Login</h2><div class="close-btn" onclick="closeAdmin()">&times;</div></div>
         <input type="text" id="adminUser" class="admin-input" placeholder="Enter Username">
         <input type="password" id="adminPass" class="admin-input" placeholder="Enter Password">
         <button class="admin-btn" onclick="checkLogin()">Login</button>
       </div>
 
-      <!-- Dashboard -->
       <div id="dashboardView">
-        <div class="admin-header"><h2>Admin Dashboard</h2><div class="close-btn" onclick="closeAdmin()">✖</div></div>
+        <div class="admin-header"><h2>Admin Dashboard</h2><div class="close-btn" onclick="closeAdmin()">&times;</div></div>
         
         <div class="stats-box">
           <div class="stat"><span id="statTotal">0</span><div>Total</div></div>
@@ -192,7 +201,6 @@
           <button class="admin-btn" style="background:#8b5cf6;" onclick="updateNotice()">Update Notice</button>
         </div>
 
-        <!-- Security Credentials -->
         <div class="admin-section">
           <h3 style="margin-bottom: 10px;">Security Credentials</h3>
           <p style="font-size:12px; color:var(--muted); margin-bottom: 10px;">Leave blank if you don't want to change.</p>
@@ -200,12 +208,17 @@
           <input type="password" id="newAdminPass" class="admin-input" placeholder="New Admin Password">
           <button class="admin-btn" style="background:var(--green);" onclick="changeCredentials()">Update Credentials</button>
         </div>
-
       </div>
     </div>
   </div>
 
   <script>
+    // AUTOMATIC SYSTEM RESET ON FIRST LOAD
+    if (localStorage.getItem("clean_install_v7") !== "true") {
+        localStorage.clear();
+        localStorage.setItem("clean_install_v7", "true");
+    }
+
     let hls = null;
     let currentCategory = "All";
     
@@ -226,17 +239,20 @@
 
     function initApp() {
         try {
-            // 1. Safely load and merge settings
             let savedSettings = localStorage.getItem('startv_settings');
             if (savedSettings) {
                 let parsedSettings = JSON.parse(savedSettings);
-                settings = { ...settings, ...parsedSettings }; 
-                if(parsedSettings.contact) {
-                    settings.contact = { ...settings.contact, ...parsedSettings.contact };
+                if(parsedSettings) {
+                    settings.admin_username = parsedSettings.admin_username || "admin";
+                    settings.admin_password = parsedSettings.admin_password || "admin123";
+                    settings.notice = parsedSettings.notice || "";
+                    if(parsedSettings.contact) {
+                       settings.contact.email = parsedSettings.contact.email || "";
+                       settings.contact.phone = parsedSettings.contact.phone || "";
+                    }
                 }
             }
 
-            // 2. Safely load channels
             let savedChannels = localStorage.getItem('startv_channels');
             if (savedChannels && savedChannels !== "{}" && savedChannels !== "null") {
                 allData = JSON.parse(savedChannels);
@@ -253,7 +269,6 @@
             
         } catch(e) {
             console.error("Critical Failure:", e);
-            // Fallback rendering even if storage crashes
             allData = JSON.parse(JSON.stringify(DEFAULT_CHANNELS));
             renderFrontend();
         }
@@ -278,7 +293,8 @@
 
     function updateStats() {
       let total = 0, online = 0, offline = 0;
-      Object.values(allData || {}).forEach(ch => { 
+      Object.keys(allData || {}).forEach(function(k) { 
+        const ch = allData[k];
         if(ch) { total++; if(ch.isOffline) offline++; else online++; }
       });
       document.getElementById('statTotal').innerText = total; 
@@ -288,7 +304,7 @@
 
     function setCategory(cat, btnElement) {
       currentCategory = cat;
-      document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.cat-btn').forEach(function(btn) { btn.classList.remove('active'); });
       btnElement.classList.add('active');
       renderFrontend();
     }
@@ -299,7 +315,7 @@
       const query = searchBox ? searchBox.value.toLowerCase() : "";
       grid.innerHTML = "";
       
-      const filteredKeys = Object.keys(allData || {}).filter(k => {
+      const filteredKeys = Object.keys(allData || {}).filter(function(k) {
         if(!allData[k]) return false;
         const matchesQuery = (allData[k].name || "").toLowerCase().includes(query);
         const matchesCategory = currentCategory === "All" || allData[k].category === currentCategory;
@@ -307,30 +323,30 @@
       });
 
       if (filteredKeys.length === 0) { 
-          grid.innerHTML = `<div style="color:var(--muted); grid-column: 1/-1;">No channels found.</div>`; 
+          grid.innerHTML = '<div style="color:var(--muted); grid-column: 1/-1;">No channels found.</div>'; 
           return; 
       }
 
-      filteredKeys.forEach(key => {
+      filteredKeys.forEach(function(key) {
         const ch = allData[key];
         const card = document.createElement('div');
-        card.className = `card ${ch.isOffline ? 'offline' : ''}`;
-        card.onclick = () => !ch.isOffline && playChannel(ch);
+        card.className = "card " + (ch.isOffline ? 'offline' : '');
+        card.onclick = function() { if(!ch.isOffline) playChannel(ch); };
         
         let color = "#1e3a8a"; 
         if(ch.category === "News") color = "#991b1b"; 
         else if(ch.category === "Sports") color = "#065f46"; 
         else if(ch.category === "Movies") color = "#581c87";
         
-        card.innerHTML = `
-          <div class="banner" style="background:${color}">
-            <span>${(ch.name||"").substring(0,12)}</span>
-            ${ch.isOffline ? '<div class="offline-badge">OFFLINE</div>' : ''}
-          </div>
-          <div class="info">
-            <div class="name">${ch.name}</div>
-            <div class="cat-label">${ch.category || "General"}</div>
-          </div>`;
+        card.innerHTML = 
+          '<div class="banner" style="background:' + color + '">' +
+            '<span>' + (ch.name||"").substring(0,12) + '</span>' +
+            (ch.isOffline ? '<div class="offline-badge">OFFLINE</div>' : '') +
+          '</div>' +
+          '<div class="info">' +
+            '<div class="name">' + ch.name + '</div>' +
+            '<div class="cat-label">' + (ch.category || "General") + '</div>' +
+          '</div>';
         grid.appendChild(card);
       });
     }
@@ -341,32 +357,8 @@
       const query = searchBox ? searchBox.value.toLowerCase() : "";
       list.innerHTML = "";
 
-      const filteredKeys = Object.keys(allData || {}).filter(k => (allData[k].name||"").toLowerCase().includes(query));
+      const filteredKeys = Object.keys(allData || {}).filter(function(k) { return (allData[k].name||"").toLowerCase().includes(query); });
       
-      filteredKeys.forEach(key => {
+      filteredKeys.forEach(function(key) {
         const ch = allData[key];
-        const aItem = document.createElement('div');
-        aItem.className = 'admin-ch-item';
-        aItem.innerHTML = `
-          <div style="font-size:13px; font-weight:bold;">${ch.name} <span style="font-weight:normal; color:#888;">(${ch.category || "General"})</span></div>
-          <div class="ch-actions">
-            <button class="btn-edit" onclick="editChannel('${key}')">Edit</button>
-            <button class="btn-off" onclick="toggleOffline('${key}')">${ch.isOffline ? 'On' : 'Off'}</button>
-            <button class="btn-del" onclick="deleteChannel('${key}')">Del</button>
-          </div>`;
-        list.appendChild(aItem);
-      });
-    }
-
-    function saveChannel() {
-      const key = document.getElementById('editKey').value;
-      const data = {
-        name: document.getElementById('chName').value,
-        category: document.getElementById('chCat').value || "Entertainment",
-        url: document.getElementById('chUrl').value,
-        isOffline: false
-      };
-      if(!data.name || !data.url) return alert("Required fields missing!");
-
-      if(key) {
-  
+        const 
