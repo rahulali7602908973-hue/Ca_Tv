@@ -6,9 +6,6 @@
   <title>Star TV - Live TV</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <style>
     :root {
       --bg: #07090e; --surface: #0f172a; --surface-card: #131d33;
@@ -73,7 +70,6 @@
 </head>
 <body>
 
-  <!-- Notice Bar -->
   <div class="notice-bar" id="noticeBar">
     <marquee id="marqueeText" scrollamount="5"></marquee>
   </div>
@@ -83,7 +79,6 @@
       <div class="menu-icon" onclick="openMenu()">☰</div>
       <div class="brand"><div>STAR <span>TV</span></div></div>
     </div>
-    <!-- Live Search Front-end -->
     <input type="text" id="homeSearch" class="search-box" placeholder="Search Channels..." onkeyup="renderFrontend()">
   </nav>
 
@@ -107,8 +102,8 @@
       </div>
       <div class="admin-section" style="text-align: center;">
         <h3 style="margin-bottom: 15px; color: var(--primary);">Contact Us</h3>
-        <p style="color: var(--muted); font-size: 14px; margin-bottom: 8px;">📧 <span id="displayEmail" style="color:#fff;">support@startv.com</span></p>
-        <p style="color: var(--muted); font-size: 14px; margin-bottom: 20px;">📞 <span id="displayPhone" style="color:#fff;">+91 0000000000</span></p>
+        <p style="color: var(--muted); font-size: 14px; margin-bottom: 8px;">📧 <span id="displayEmail" style="color:#fff;"></span></p>
+        <p style="color: var(--muted); font-size: 14px; margin-bottom: 20px;">📞 <span id="displayPhone" style="color:#fff;"></span></p>
       </div>
       <button class="admin-btn" style="background: transparent; border: 1px solid var(--border); color: var(--muted);" onclick="closeMenu(); openAdmin();">Admin Login 🔒</button>
     </div>
@@ -178,67 +173,59 @@
   </div>
 
   <script>
-    // ---------------------------------------------------------
-    // FIREBASE CONFIGURATION (यहाँ अपनी डिटेल्स डालें)
-    // ---------------------------------------------------------
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-      projectId: "YOUR_PROJECT_ID"
-    };
-    
-    // Initialize Firebase
-    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-    const db = firebase.database();
-    
-    let allData = {};
+    // System Variables
     let hls = null;
-    let ADMIN_PASSWORD = "admin123";
-
-    // ---------------------------------------------------------
-    // DEFAULT WORKING CHANNELS (Auto-add to empty database)
-    // ---------------------------------------------------------
-    const DEFAULT_CHANNELS = {
-      "default_1": { name: "Aaj Tak", category: "News", url: "https://feeds.intoday.in/aajtak/api/aajtaktv/master.m3u8", isOffline: false },
-      "default_2": { name: "Red Bull TV", category: "Sports", url: "https://rbmn-live.akamaized.net/hls/live/590964/BoRB-AT/master.m3u8", isOffline: false },
-      "default_3": { name: "NASA TV", category: "Entertainment", url: "https://ntv1.akamaized.net/hls/live/2014075/NASA-NTV1-HLS/master.m3u8", isOffline: false },
-      "default_4": { name: "Big Buck Bunny", category: "Movies", url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8", isOffline: false }
+    let allData = JSON.parse(localStorage.getItem('startv_channels')) || null;
+    let settings = JSON.parse(localStorage.getItem('startv_settings')) || {
+        admin_password: "admin123",
+        notice: "Welcome to Star TV! Enjoy Live Streaming.",
+        contact: { email: "support@startv.com", phone: "+91 0000000000" }
     };
 
-    // Load Settings
-    db.ref('settings/admin_password').on('value', (s) => { if(s.val()) ADMIN_PASSWORD = s.val(); });
-    db.ref('settings/notice').on('value', (s) => {
-      const msg = s.val();
-      if(msg) { document.getElementById('marqueeText').innerText = msg; document.getElementById('noticeBar').style.display = 'block'; } 
-      else { document.getElementById('noticeBar').style.display = 'none'; }
-    });
-    db.ref('settings/contact').on('value', (s) => {
-      const data = s.val() || { email: "support@startv.com", phone: "+91 0000000000" };
-      document.getElementById('displayEmail').innerText = data.email; document.getElementById('displayPhone').innerText = data.phone;
-      document.getElementById('adminContactEmail').value = data.email; document.getElementById('adminContactPhone').value = data.phone;
-    });
+    // Default Working Channels (Added if database is empty)
+    const DEFAULT_CHANNELS = {
+      "ch_1": { name: "Aaj Tak", category: "News", url: "https://feeds.intoday.in/aajtak/api/aajtaktv/master.m3u8", isOffline: false },
+      "ch_2": { name: "Red Bull TV", category: "Sports", url: "https://rbmn-live.akamaized.net/hls/live/590964/BoRB-AT/master.m3u8", isOffline: false },
+      "ch_3": { name: "NASA TV", category: "Entertainment", url: "https://ntv1.akamaized.net/hls/live/2014075/NASA-NTV1-HLS/master.m3u8", isOffline: false },
+      "ch_4": { name: "Big Buck Bunny", category: "Movies", url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8", isOffline: false }
+    };
 
-    // Load Channels & Inject Defaults if Empty
-    db.ref('channels').on('value', (snapshot) => {
-      if (snapshot.exists()) {
-        allData = snapshot.val();
-      } else {
-        // If DB is completely empty, push the default working channels
-        db.ref('channels').set(DEFAULT_CHANNELS);
-        allData = DEFAULT_CHANNELS;
-      }
-      updateStats();
-      renderFrontend();
-      renderAdminList();
-    });
+    // Initialize Data
+    function initApp() {
+        if (!allData || Object.keys(allData).length === 0) {
+            allData = DEFAULT_CHANNELS;
+            saveLocalData();
+        }
+        applySettings();
+        updateStats();
+        renderFrontend();
+        renderAdminList();
+    }
 
+    // Save Data Helpers
+    function saveLocalData() { localStorage.setItem('startv_channels', JSON.stringify(allData)); }
+    function saveSettings() { localStorage.setItem('startv_settings', JSON.stringify(settings)); }
+
+    // Apply Settings to UI
+    function applySettings() {
+        if(settings.notice) { document.getElementById('marqueeText').innerText = settings.notice; document.getElementById('noticeBar').style.display = 'block'; } 
+        else { document.getElementById('noticeBar').style.display = 'none'; }
+        
+        document.getElementById('displayEmail').innerText = settings.contact.email; 
+        document.getElementById('displayPhone').innerText = settings.contact.phone;
+        document.getElementById('adminContactEmail').value = settings.contact.email; 
+        document.getElementById('adminContactPhone').value = settings.contact.phone;
+        document.getElementById('adminNotice').value = settings.notice || "";
+    }
+
+    // Stats
     function updateStats() {
       let total = 0, online = 0, offline = 0;
       Object.values(allData).forEach(ch => { total++; if(ch.isOffline) offline++; else online++; });
       document.getElementById('statTotal').innerText = total; document.getElementById('statOnline').innerText = online; document.getElementById('statOffline').innerText = offline;
     }
 
+    // Render Frontend
     function renderFrontend() {
       const grid = document.getElementById("channelGrid");
       const query = document.getElementById("homeSearch").value.toLowerCase();
@@ -253,7 +240,6 @@
         card.className = `card ${ch.isOffline ? 'offline' : ''}`;
         card.onclick = () => !ch.isOffline && playChannel(ch);
         
-        // Random Color for Banner based on Category
         let color = "#1e3a8a"; 
         if(ch.category === "News") color = "#991b1b"; else if(ch.category === "Sports") color = "#065f46"; else if(ch.category === "Movies") color = "#581c87";
         
@@ -262,6 +248,7 @@
       });
     }
 
+    // Render Admin List
     function renderAdminList() {
       const list = document.getElementById("adminChList");
       const query = document.getElementById("adminSearch").value.toLowerCase();
@@ -277,14 +264,14 @@
           <div style="font-size:13px; font-weight:bold;">${ch.name} <span style="font-weight:normal; color:#888;">(${ch.category})</span></div>
           <div class="ch-actions">
             <button class="btn-edit" onclick="editChannel('${key}')">Edit</button>
-            <button class="btn-off" onclick="toggleOffline('${key}', ${ch.isOffline})">${ch.isOffline ? 'Make Online' : 'Set Offline'}</button>
+            <button class="btn-off" onclick="toggleOffline('${key}')">${ch.isOffline ? 'Make Online' : 'Set Offline'}</button>
             <button class="btn-del" onclick="deleteChannel('${key}')">Del</button>
           </div>`;
         list.appendChild(aItem);
       });
     }
 
-    // Channel CRUD Controls
+    // CRUD Channels
     function saveChannel() {
       const key = document.getElementById('editKey').value;
       const data = {
@@ -296,13 +283,15 @@
       if(!data.name || !data.url) return alert("Required fields missing!");
 
       if(key) {
-        db.ref('channels/' + key).update(data);
+        allData[key] = { ...allData[key], ...data };
         document.getElementById('editKey').value = ""; document.getElementById('formTitle').innerText = "Add New Channel"; document.getElementById('saveBtn').innerText = "+ Add Channel";
         alert("Channel Updated!");
       } else {
-        db.ref('channels').push(data);
+        const newKey = "ch_" + Date.now();
+        allData[newKey] = data;
         alert("Channel Added!");
       }
+      saveLocalData(); updateStats(); renderFrontend(); renderAdminList();
       document.getElementById('chName').value = ""; document.getElementById('chUrl').value = ""; document.getElementById('chCat').value = "";
     }
 
@@ -312,19 +301,20 @@
       document.getElementById('formTitle').innerText = "Edit Channel"; document.getElementById('saveBtn').innerText = "Update Channel";
       window.scrollTo(0,0);
     }
-    function deleteChannel(key) { if(confirm("Delete this channel permanently?")) db.ref('channels/' + key).remove(); }
-    function toggleOffline(key, status) { db.ref('channels/' + key).update({ isOffline: !status }); }
     
-    // Settings Controls
-    function updateNotice() { db.ref('settings/notice').set(document.getElementById('adminNotice').value); alert("Notice Updated!"); }
+    function deleteChannel(key) { if(confirm("Delete this channel?")) { delete allData[key]; saveLocalData(); updateStats(); renderFrontend(); renderAdminList(); } }
+    function toggleOffline(key) { allData[key].isOffline = !allData[key].isOffline; saveLocalData(); updateStats(); renderFrontend(); renderAdminList(); }
+    
+    // Admin Settings Updates
+    function updateNotice() { settings.notice = document.getElementById('adminNotice').value; saveSettings(); applySettings(); alert("Notice Updated!"); }
     function updateContact() {
-      const email = document.getElementById('adminContactEmail').value;
-      const phone = document.getElementById('adminContactPhone').value;
-      db.ref('settings/contact').set({ email, phone }); alert("Contact Info Updated!");
+      settings.contact.email = document.getElementById('adminContactEmail').value;
+      settings.contact.phone = document.getElementById('adminContactPhone').value;
+      saveSettings(); applySettings(); alert("Contact Info Updated!");
     }
     function changePassword() {
       const np = document.getElementById('newAdminPass').value;
-      if(np && confirm("Change admin password?")) { db.ref('settings/admin_password').set(np).then(() => { alert("Password Changed!"); document.getElementById('newAdminPass').value = ""; }); }
+      if(np && confirm("Change admin password?")) { settings.admin_password = np; saveSettings(); alert("Password Changed!"); document.getElementById('newAdminPass').value = ""; }
     }
 
     // Video Player
@@ -343,9 +333,15 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    // UI Modals
+    // Modals
     function openMenu() { document.getElementById('menuOverlay').style.display = 'flex'; }
     function closeMenu() { document.getElementById('menuOverlay').style.display = 'none'; }
     function openAdmin() { document.getElementById('adminOverlay').style.display = 'flex'; document.getElementById('loginView').style.display = 'block'; document.getElementById('dashboardView').style.display = 'none'; }
     function closeAdmin() { document.getElementById('adminOverlay').style.display = 'none'; }
-    function checkLogin() { if(document.getElementById('adminPass').value === ADMIN_PASSWORD) { document.getElementById('loginView').style.display = 'none'; document.getElementById('dashboardView').style.displ
+    function checkLogin() { if(document.getElementById('adminPass').value === settings.admin_password) { document.getElementById('loginView').style.display = 'none'; document.getElementById('dashboardView').style.display = 'block'; } else alert("Wrong Password!"); }
+
+    // Start App
+    window.onload = initApp;
+  </script>
+</body>
+</html>
