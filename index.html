@@ -15,7 +15,6 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
     body { background-color: var(--bg); background-image: radial-gradient(circle at 50% -20%, #1e293b, var(--bg)); color: var(--text); min-height: 100vh; padding-bottom: 50px; background-attachment: fixed; background-size: cover; background-position: center; transition: 0.5s; }
 
-    /* CUSTOMER LOCK SCREEN */
     #customerLockScreen { position: fixed; inset: 0; background: rgba(7, 9, 14, 0.95); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
     .lock-box { background: var(--surface-card); width: 100%; max-width: 400px; padding: 35px 25px; border-radius: 20px; border: 1px solid var(--border); text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
     .lock-box h2 { font-weight: 800; margin-bottom: 10px; font-size: 24px; color: #fff; }
@@ -109,10 +108,10 @@
 <body>
 
   <!-- CUSTOMER SUBSCRIPTION LOCK SCREEN -->
-  <div id="customerLockScreen">
+  <div id="customerLockScreen" style="display:none;">
      <div class="lock-box">
         <h2>🔒 Premium Access</h2>
-        <p>Please enter your 30-Day Subscription PIN to access live channels.</p>
+        <p id="lockWelcomeText">Please enter your 30-Day Subscription PIN.</p>
         <div id="lockErrorMsg" class="lock-err">Invalid or Expired PIN</div>
         <input type="password" id="customerPinInput" class="pin-input" placeholder="••••••" maxlength="6">
         <button class="admin-btn" onclick="verifyCustomerPin()">Unlock Channels</button>
@@ -178,15 +177,15 @@
       <div class="grid" id="offlineGrid"></div>
     </div>
   </div>
-
-  <div class="admin-overlay" id="menuOverlay">
+    <div class="admin-overlay" id="menuOverlay">
     <div class="admin-panel" style="max-width: 400px; padding: 30px;">
       <div class="admin-header">
         <h2 style="font-weight: 800;">Menu</h2>
         <div class="close-btn" onclick="closeMenu()">&times;</div>
       </div>
       <div class="admin-section" style="text-align: center; border: none; background: transparent;">
-        <h3 style="margin-bottom: 15px; color: var(--primary); font-size: 18px;">Contact Support</h3>
+        <h3 style="margin-bottom: 15px; color: var(--primary); font-size: 18px;">Customer Profile</h3>
+        <p style="color: var(--gold); font-size: 16px; font-weight: 700; margin-bottom: 15px;" id="menuCustomerName">User</p>
         <p style="color: var(--muted); font-size: 14px; margin-bottom: 10px; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px;">Email: <span id="displayEmail" style="color:#fff; font-weight: 600;"></span></p>
         <p style="color: var(--muted); font-size: 14px; margin-bottom: 10px; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px;">Phone: <span id="displayPhone" style="color:#fff; font-weight: 600;"></span></p>
         
@@ -316,12 +315,11 @@
       </div>
     </div>
   </div>
-
-  <script>
+    <script>
     try {
-        if (localStorage.getItem("clean_install_v24") !== "true") {
+        if (localStorage.getItem("clean_install_v30") !== "true") {
             localStorage.clear();
-            localStorage.setItem("clean_install_v24", "true");
+            localStorage.setItem("clean_install_v30", "true");
         }
     } catch(e) {}
 
@@ -466,6 +464,9 @@
         if (savedPin && allUsers[savedPin]) {
             var user = allUsers[savedPin];
             var errBox = document.getElementById('lockErrorMsg');
+            var welcomeText = document.getElementById('lockWelcomeText');
+            if(welcomeText) welcomeText.innerText = "Welcome back, " + user.name + "!";
+            
             if (!user.active) {
                 if(errBox) { errBox.innerText = "Account blocked by Administrator."; errBox.style.display = "block"; }
                 localStorage.removeItem("startv_customer_pin");
@@ -476,6 +477,8 @@
                 lockScreen.style.display = "flex";
             } else {
                 lockScreen.style.display = "none"; 
+                var menuName = document.getElementById('menuCustomerName');
+                if(menuName) menuName.innerText = "User: " + user.name;
             }
         } else {
             lockScreen.style.display = "flex";
@@ -510,6 +513,8 @@
 
         localStorage.setItem("startv_customer_pin", inputPin);
         document.getElementById("customerLockScreen").style.display = "none";
+        var menuName = document.getElementById('menuCustomerName');
+        if(menuName) menuName.innerText = "User: " + user.name;
         if(errMsg) errMsg.style.display = "none";
     };
 
@@ -723,237 +728,4 @@
           '<div style="font-size:13.5px; font-weight:700;">' + (ch.isPremium ? '⭐ ' : '') + ch.name + ' <span style="font-weight:500; color:var(--muted); font-size: 11px;">(' + (ch.category || "General") + ')</span></div>' +
           '<div class="ch-actions">' +
             '<button class="btn-top" onclick="moveChannelTop(\'' + key + '\')">Top &uarr;</button>' +
-            '<button class="btn-edit" onclick="editChannel(\'' + key + '\')">Edit</button>' +
-            '<button class="btn-off" onclick="toggleOffline(\'' + key + '\')">' + (ch.isOffline ? 'On' : 'Off') + '</button>' +
-            '<button class="btn-del" onclick="deleteChannel(\'' + key + '\')">Del</button>' +
-          '</div>';
-        list.appendChild(aItem);
-      });
-    }
-
-    window.saveChannel = function() {
-      var key = document.getElementById('editKey').value;
-      var nameVal = document.getElementById('chName').value;
-      var catVal = document.getElementById('chCat').value || "Entertainment";
-      var urlVal = document.getElementById('chUrl').value;
-      var logoVal = document.getElementById('chLogo').value;
-      var premVal = document.getElementById('chPremium').checked;
-      
-      if(!nameVal || !urlVal) return alert("Name and Stream URL are required fields!");
-
-      if(key) {
-        allData[key].name = nameVal; allData[key].category = catVal; allData[key].url = urlVal;
-        allData[key].logo = logoVal; allData[key].isPremium = premVal;
-        document.getElementById('editKey').value = ""; 
-        var fTitle = document.getElementById('formTitle'); if(fTitle) fTitle.innerText = "Add / Edit Single Channel"; 
-        var sBtn = document.getElementById('saveBtn'); if(sBtn) sBtn.innerText = "+ Add Channel";
-        alert("Channel Updated Successfully!");
-      } else {
-        var newKey = "ch_" + Date.now() + Math.floor(Math.random()*1000);
-        allData[newKey] = { name: nameVal, category: catVal, url: urlVal, logo: logoVal, isOffline: false, isPremium: premVal };
-        alert("Channel Added Successfully!");
-      }
-      saveLocalData(); updateStats(); renderFrontend(); renderAdminList();
-      document.getElementById('chName').value = ""; document.getElementById('chUrl').value = ""; document.getElementById('chCat').value = ""; document.getElementById('chLogo').value = ""; document.getElementById('chPremium').checked = false;
-    };
-
-    window.editChannel = function(key) {
-      var ch = allData[key];
-      document.getElementById('editKey').value = key; document.getElementById('chName').value = ch.name; document.getElementById('chCat').value = ch.category; document.getElementById('chUrl').value = ch.url;
-      document.getElementById('chLogo').value = ch.logo || ""; document.getElementById('chPremium').checked = ch.isPremium || false;
-      var fTitle = document.getElementById('formTitle'); if(fTitle) fTitle.innerText = "Edit Channel: " + ch.name; 
-      var sBtn = document.getElementById('saveBtn'); if(sBtn) sBtn.innerText = "Update Channel";
-      var dashView = document.getElementById('dashboardView');
-      if(dashView) dashView.scrollTo({top: 0, behavior: 'smooth'});
-    };
-    
-    window.moveChannelTop = function(key) {
-        var newObj = {}; newObj[key] = allData[key];
-        for(var k in allData) { if(k !== key && allData.hasOwnProperty(k)) { newObj[k] = allData[k]; } }
-        allData = newObj; saveLocalData(); renderFrontend(); renderAdminList();
-    };
-
-    window.importM3UText = function() {
-        var m3uInput = document.getElementById('m3uInput');
-        var text = m3uInput ? m3uInput.value : "";
-        if(!text) return alert("Please paste the M3U playlist text first!");
-        
-        var lines = text.split('\n'); var count = 0;
-        var currentName = "", currentLogo = "", currentCat = "Entertainment";
-        
-        for(var i=0; i<lines.length; i++) {
-            var line = lines[i].trim();
-            if(line.indexOf('#EXTINF') === 0) {
-                var logoMatch = line.match(/tvg-logo="([^"]+)"/);
-                if(logoMatch && logoMatch[1]) currentLogo = logoMatch[1];
-                var catMatch = line.match(/group-title="([^"]+)"/);
-                if(catMatch && catMatch[1]) currentCat = catMatch[1]; else currentCat = "Entertainment";
-                var nameSplit = line.split(','); currentName = nameSplit[nameSplit.length-1].trim();
-            } else if(line.indexOf('http') === 0) {
-                if(currentName && line) {
-                    var newKey = "ch_" + Date.now() + Math.floor(Math.random()*10000);
-                    allData[newKey] = { name: currentName, category: currentCat, url: line, logo: currentLogo, isOffline: false, isPremium: false };
-                    if(settings.categories.indexOf(currentCat) === -1) { settings.categories.push(currentCat); }
-                    count++; currentName = ""; currentLogo = ""; currentCat = "Entertainment";
-                }
-            }
-        }
-        if(count > 0) {
-            saveLocalData(); saveSettings(); renderCategoriesUI(); updateStats(); renderFrontend(); renderAdminList();
-            if(m3uInput) m3uInput.value = ""; 
-            alert(count + " Channels Imported Successfully!");
-        } else { alert("Error: No valid streaming links found in the text."); }
-    };
-
-    window.deleteChannel = function(key) { if(confirm("Permanently delete this channel?")) { delete allData[key]; saveLocalData(); updateStats(); renderFrontend(); renderAdminList(); } };
-    window.toggleOffline = function(key) { allData[key].isOffline = !allData[key].isOffline; saveLocalData(); updateStats(); renderFrontend(); renderAdminList(); };
-    window.cleanOfflineChannels = function() {
-        if(confirm("Permanently delete ALL offline channels?")) {
-            var count = 0; Object.keys(allData).forEach(function(key) { if(allData[key].isOffline) { delete allData[key]; count++; } });
-            if(count > 0) { saveLocalData(); updateStats(); renderFrontend(); renderAdminList(); alert(count + " offline channels deleted."); } else { alert("No offline channels found."); }
-        }
-    };
-
-    window.exportData = function() {
-      var exportObj = { channels: allData, users: allUsers, settings: settings };
-      var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj));
-      var downloadAnchorNode = document.createElement('a'); downloadAnchorNode.setAttribute("href", dataStr); downloadAnchorNode.setAttribute("download", "startv_premium_full_backup.json");
-      document.body.appendChild(downloadAnchorNode); downloadAnchorNode.click(); downloadAnchorNode.remove();
-    };
-
-    window.importData = function(event) {
-      var file = event.target.files[0]; if(!file) return;
-      var reader = new FileReader();
-      reader.onload = function(e) {
-          try {
-              var importedObj = JSON.parse(e.target.result);
-              if(importedObj.channels) { allData = Object.assign({}, allData, importedObj.channels); } else { allData = Object.assign({}, allData, importedObj); }
-              if(importedObj.users) { allUsers = Object.assign({}, allUsers, importedObj.users); }
-              saveLocalData(); updateStats(); renderFrontend(); renderAdminList(); renderUserList();
-              alert("Database Imported Successfully!");
-          } catch(err) { alert("Error: Invalid JSON File."); }
-          event.target.value = ""; 
-      };
-      reader.readAsText(file);
-    };
-
-    window.updateTheme = function() { 
-        var thColor = document.getElementById('themeColor');
-        if(thColor) settings.theme_color = thColor.value; 
-    };
-    
-    window.updateAppearance = function() { 
-        var adNotice = document.getElementById('adminNotice');
-        var adLogo = document.getElementById('adminSiteLogo');
-        var adBg = document.getElementById('adminBgImage');
-        if(adNotice) settings.notice = adNotice.value; 
-        if(adLogo) settings.site_logo = adLogo.value;
-        if(adBg) settings.bg_image = adBg.value;
-        updateTheme(); saveSettings(); applySettings(); alert("Appearance Settings Saved!"); 
-    };
-    
-    window.updateContact = function() {
-      var acEmail = document.getElementById('adminContactEmail');
-      var acPhone = document.getElementById('adminContactPhone');
-      var acTele = document.getElementById('adminTelegram');
-      var acWa = document.getElementById('adminWhatsapp');
-      if(acEmail) settings.contact.email = acEmail.value;
-      if(acPhone) settings.contact.phone = acPhone.value;
-      if(acTele) settings.contact.telegram = acTele.value;
-      if(acWa) settings.contact.whatsapp = acWa.value;
-      saveSettings(); applySettings(); alert("Contact Info & Social Links Updated!");
-    };
-    
-    window.changeCredentials = function() {
-      var nuEl = document.getElementById('newAdminUser');
-      var npEl = document.getElementById('newAdminPass');
-      var nu = nuEl ? nuEl.value.trim() : "";
-      var np = npEl ? npEl.value.trim() : "";
-      if(!nu && !np) return alert("Please enter a new username or password.");
-      if(confirm("Change admin credentials?")) { 
-        if(nu) settings.admin_username = nu; if(np) settings.admin_password = np;
-        saveSettings(); alert("Credentials Updated successfully!"); 
-        if(nuEl) nuEl.value = ""; if(npEl) npEl.value = "";
-      }
-    };
-
-    function simulateViewers() {
-        var base = Math.floor(Math.random() * 500) + 1200;
-        var vCount = document.getElementById('viewerCount');
-        if(vCount) vCount.innerText = base;
-        if(viewerInterval) clearInterval(viewerInterval);
-        viewerInterval = setInterval(function(){
-            var change = Math.floor(Math.random() * 15) - 5; 
-            base = base + change; 
-            if(vCount) vCount.innerText = base;
-        }, 3000);
-    }
-
-    window.playChannel = function(ch) {
-      var video = document.getElementById('tvPlayer');
-      var nowTitle = document.getElementById('nowTitle');
-      var fakeViewers = document.getElementById('fakeViewers');
-      if(nowTitle) nowTitle.innerHTML = '<span class="live-dot">&bull;</span> ' + ch.name;
-      if(fakeViewers) fakeViewers.style.display = 'block';
-      simulateViewers();
-
-      if (hls) hls.destroy();
-      if (typeof Hls !== 'undefined' && Hls.isSupported()) { 
-        hls = new Hls(); hls.loadSource(ch.url); hls.attachMedia(video); hls.on(Hls.Events.MANIFEST_PARSED, function() { video.play(); }); 
-      } else if (video && video.canPlayType('application/vnd.apple.mpegurl')) { video.src = ch.url; video.play(); }
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    };
-
-    window.hardFactoryReset = function() {
-        if(confirm("CRITICAL WARNING: This will delete ALL channels and settings. Are you sure?")) { localStorage.clear(); window.location.reload(); }
-    };
-    window.restoreEmergencyBackup = function() {
-        if(confirm("RESTORE 100% Emergency Backup?")) {
-            var bCh = localStorage.getItem('startv_emergency_backup_channels'); var bSet = localStorage.getItem('startv_emergency_backup_settings'); var bUsr = localStorage.getItem('startv_emergency_backup_users');
-            if(bCh) { localStorage.setItem('startv_channels', bCh); } if(bSet) { localStorage.setItem('startv_settings', bSet); } if(bUsr) { localStorage.setItem('startv_users', bUsr); }
-            alert("Backup Restored!"); window.location.reload();
-        }
-    };
-
-    var tapCount = 0; var tapTimer;
-    window.emergencyLogoTap = function() {
-        tapCount++; clearTimeout(tapTimer);
-        if(tapCount >= 5) { if(confirm("EMERGENCY RESET TRIGGERED: Wipe storage and restart?")) { localStorage.clear(); window.location.reload(); } tapCount = 0; }
-        tapTimer = setTimeout(function(){ tapCount = 0; }, 1500); 
-    };
-
-    window.openMenu = function() { var m = document.getElementById('menuOverlay'); if(m) m.style.display = 'flex'; };
-    window.closeMenu = function() { var m = document.getElementById('menuOverlay'); if(m) m.style.display = 'none'; };
-    window.openAdmin = function() { 
-        var a = document.getElementById('adminOverlay');
-        var l = document.getElementById('loginView');
-        var d = document.getElementById('dashboardView');
-        if(a) a.style.display = 'flex'; 
-        if(l) l.style.display = 'block'; 
-        if(d) d.style.display = 'none'; 
-    };
-    window.closeAdmin = function() { 
-        var a = document.getElementById('adminOverlay');
-        if(a) a.style.display = 'none'; 
-        checkCustomerAuth(); 
-    };
-    
-    window.checkLogin = function() { 
-      var uEl = document.getElementById('adminUser');
-      var pEl = document.getElementById('adminPass');
-      var user = uEl ? uEl.value : ""; var pass = pEl ? pEl.value : "";
-      
-      if(user === settings.admin_username && pass === settings.admin_password) { 
-        sessionStorage.setItem("admin_logged_in", "true"); isAdminSession = true;
-        var l = document.getElementById('loginView');
-        var d = document.getElementById('dashboardView');
-        if(l) l.style.display = 'none'; 
-        if(d) d.style.display = 'block'; 
-        if(uEl) uEl.value = ""; if(pEl) pEl.value = "";
-      } else { alert("Authentication Failed!"); }
-    };
-
-    if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initApp); } else { initApp(); }
-  </script>
-</body>
-</html>
+            '<bu
