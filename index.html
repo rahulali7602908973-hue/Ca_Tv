@@ -120,21 +120,8 @@
         <p style="margin-top: 25px; margin-bottom: 0; font-size: 12px;">Need a subscription? <br><a id="getSubscriptionBtn" href="#" target="_blank" style="color: var(--primary); font-weight: 700; text-decoration: none;">Contact Support</a></p>
      </div>
      
-     <!-- Admin Access from Lock Screen -->
      <div style="position: absolute; bottom: 20px; right: 20px; opacity: 0.5; cursor: pointer; font-size: 20px; transition: 0.3s;" onclick="openAdmin()" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.5'">⚙️ Admin</div>
   </div>
-
-  <div id="debugLog" style="background: #dc2626; color: white; padding: 15px; position: fixed; top: 0; left: 0; width: 100%; z-index: 999999; display: none; font-family: monospace; font-size: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
-    <strong>System Error:</strong> <span id="debugText"></span>
-  </div>
-
-  <script>
-    window.onerror = function(message, source, lineno) {
-      document.getElementById('debugLog').style.display = 'block';
-      document.getElementById('debugText').innerText = message + " (Line: " + lineno + ")";
-      return false;
-    };
-  </script>
 
   <div class="notice-bar" id="noticeBar">
     <marquee id="marqueeText" scrollamount="5"></marquee>
@@ -154,7 +141,7 @@
       <div class="now-playing">
         <h2 id="nowTitle" style="font-size: 18px; font-weight: 700;"><span class="live-dot">&bull;</span> Select a Channel</h2>
         <div id="fakeViewers" style="display:none; font-size: 12px; color: var(--green); font-weight: 700; background: rgba(16, 185, 129, 0.1); padding: 5px 10px; border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.3);">
-           &#128065; <span id="viewerCount">0</span> Watching
+           👁 <span id="viewerCount">0</span> Watching
         </div>
       </div>
     </div>
@@ -250,4 +237,14 @@
         </div>
 
         <div class="admin-section">
-          <h3 style="margin-bottom: 15
+          <h3 style="margin-bottom: 15px;">Manage Categories</h3>
+          <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+             <input type="text" id="newCatName" class="admin-input" style="margin-bottom:0;" placeholder="New Category Name">
+             <button class="admin-btn" style="width: 120px; background: var(--green);" onclick="addCategory()">Add</button>
+          </div>
+          <div class="admin-ch-list" id="adminCatList" style="max-height: 180px;"></div>
+        </div>
+
+        <div class="admin-section">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            
