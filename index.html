@@ -1,709 +1,142 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Star TV - Live TV</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-  <style>
-    :root {
-      --bg: #07090e; --surface: #0f172a; --surface-card: #131d33;
-      --primary: #3b82f6; --text: #f8fafc; --muted: #94a3b8;
-      --red: #ef4444; --green: #10b981; --border: rgba(255, 255, 255, 0.08);
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
-    body { background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 50px; }
-
-    .notice-bar { background: var(--red); color: white; padding: 5px 15px; font-size: 13px; font-weight: 600; display: none; }
-    
-    .navbar { background: rgba(7, 9, 14, 0.85); backdrop-filter: blur(16px); position: sticky; top: 0; z-index: 100; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
-    .nav-left { display: flex; align-items: center; gap: 15px; }
-    .menu-icon { font-size: 24px; cursor: pointer; color: var(--text); }
-    .brand { display: flex; align-items: center; gap: 12px; font-size: 19px; font-weight: 800; cursor: pointer; user-select: none; }
-    .brand span { color: var(--primary); }
-    .brand img { height: 32px; max-width: 140px; object-fit: contain; }
-    
-    .search-box { padding: 8px 15px; border-radius: 20px; border: 1px solid var(--border); background: rgba(255,255,255,0.05); color: #fff; outline: none; font-size: 13px; width: 100%; max-width: 250px; }
-    .search-box:focus { border-color: var(--primary); }
-
-    .container { max-width: 1180px; margin: 0 auto; padding: 20px 16px; }
-    .player-box { background: #000; border-radius: 16px; overflow: hidden; margin-bottom: 24px; border: 1px solid var(--border); }
-    .player-wrap { width: 100%; aspect-ratio: 16/9; background: #000; position: relative; }
-    video { width: 100%; height: 100%; object-fit: contain; }
-    .now-playing { background: var(--surface); padding: 16px 22px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-    
-    .category-tabs { display: flex; gap: 10px; overflow-x: auto; margin-bottom: 15px; padding-bottom: 5px; scrollbar-width: none; }
-    .category-tabs::-webkit-scrollbar { display: none; }
-    .cat-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--muted); padding: 8px 16px; border-radius: 20px; cursor: pointer; white-space: nowrap; font-size: 13px; font-weight: 600; transition: 0.3s; }
-    .cat-btn.active, .cat-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
-
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
-    .card { background: var(--surface-card); border-radius: 14px; overflow: hidden; cursor: pointer; border: 1px solid var(--border); position: relative; transition: 0.2s; }
-    .card:hover { border-color: var(--primary); transform: translateY(-3px); }
-    .banner { height: 95px; display: flex; align-items: center; justify-content: center; background: #1e3a8a; overflow: hidden; position: relative; }
-    .banner img { width: 100%; height: 100%; object-fit: cover; }
-    .banner span { font-size: 13px; font-weight: 800; padding: 0 10px; text-transform: uppercase; text-align: center;}
-    .info { padding: 12px 14px; }
-    .name { font-size: 13.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .cat-label { font-size: 11.5px; color: var(--muted); margin-top: 3px; }
-    .offline-badge { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.8); color: var(--red); font-size: 10px; padding: 3px 6px; border-radius: 4px; font-weight: bold; border: 1px solid var(--red); z-index: 2; }
-    .card.offline { opacity: 0.5; pointer-events: none; filter: grayscale(80%); } 
-
-    .admin-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 10px; backdrop-filter: blur(5px); }
-    .admin-panel { background: var(--surface); width: 100%; max-width: 650px; border-radius: 16px; padding: 24px; border: 1px solid var(--border); max-height: 90vh; overflow-y: auto; }
-    .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px;}
-    .close-btn { cursor: pointer; font-size: 20px; color: var(--red); font-weight: bold;}
-    
-    .stats-box { display: flex; gap: 10px; margin-bottom: 15px; }
-    .stat { flex: 1; background: var(--surface-card); padding: 10px; border-radius: 8px; text-align: center; border: 1px solid var(--border); }
-    .stat span { font-size: 18px; font-weight: bold; color: var(--primary); display: block; }
-    .stat div { font-size: 11px; color: var(--muted); text-transform: uppercase; margin-top: 5px; }
-
-    .admin-section { background: var(--surface-card); padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid var(--border); }
-    .admin-input { width: 100%; padding: 12px; margin-bottom: 10px; background: #000; border: 1px solid var(--border); color: #fff; border-radius: 6px; font-size: 14px; }
-    .admin-btn { background: var(--primary); color: #fff; padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; font-size: 14px; transition: 0.2s; }
-    .admin-btn:hover { opacity: 0.9; }
-    .admin-btn-half { width: 48%; }
-    .btn-row { display: flex; justify-content: space-between; gap: 10px; margin-top: 10px; }
-    
-    .admin-ch-list { max-height: 250px; overflow-y: auto; margin-top: 10px; }
-    .admin-ch-item { display: flex; justify-content: space-between; align-items: center; background: #000; padding: 10px; border-radius: 6px; margin-bottom: 8px; border: 1px solid var(--border); }
-    .ch-actions button { padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; color: white; margin-left: 5px; font-size: 11px; }
-    .btn-edit { background: var(--primary); }
-    .btn-off { background: #d97706; }
-    .btn-del { background: var(--red); }
-
-    #loginView, #dashboardView { display: none; }
-  </style>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Star TV - Pro Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<style>
+:root{--bg:#07090e;--surface:rgba(15,23,42,0.75);--surface-card:rgba(19,29,51,0.85);--primary:#3b82f6;--text:#f8fafc;--muted:#94a3b8;--red:#ef4444;--green:#10b981;--gold:#f59e0b;--border:rgba(255,255,255,0.1)}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Plus Jakarta Sans',sans-serif}
+body{background:var(--bg) radial-gradient(circle at 50% -20%,#1e293b,var(--bg));color:var(--text);min-height:100vh;padding-bottom:50px;background-attachment:fixed;background-size:cover;background-position:center}
+#customerLockScreen{position:fixed;inset:0;background:rgba(7,9,14,0.95);backdrop-filter:blur(25px);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+.lock-box{background:var(--surface-card);width:100%;max-width:400px;padding:35px 25px;border-radius:20px;border:1px solid var(--border);text-align:center;box-shadow:0 20px 40px rgba(0,0,0,0.8)}
+.lock-box h2{font-weight:800;margin-bottom:10px;font-size:24px;color:#fff}
+.lock-box p{color:var(--muted);font-size:13px;margin-bottom:25px}
+.pin-input{width:100%;padding:15px;border-radius:10px;background:rgba(0,0,0,0.5);border:2px solid var(--border);color:var(--gold);font-size:24px;font-weight:800;text-align:center;letter-spacing:5px;margin-bottom:20px;outline:none}
+.pin-input:focus{border-color:var(--primary);box-shadow:0 0 15px rgba(59,130,246,0.3)}
+.lock-err{color:var(--red);font-size:13px;font-weight:700;margin-bottom:15px;display:none}
+.notice-bar{background:linear-gradient(90deg,var(--red),#b91c1c);color:#fff;padding:6px 15px;font-size:13px;font-weight:600;display:none}
+.navbar{background:rgba(7,9,14,0.7);backdrop-filter:blur(20px);position:sticky;top:0;z-index:100;padding:15px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border)}
+.nav-left{display:flex;align-items:center;gap:18px}
+.menu-icon{font-size:26px;cursor:pointer;color:var(--text)}
+.brand{display:flex;align-items:center;gap:12px;font-size:20px;font-weight:800;cursor:pointer}
+.brand span{color:var(--primary)}
+.search-box{padding:9px 18px;border-radius:25px;border:1px solid var(--border);background:rgba(255,255,255,0.03);color:#fff;outline:none;font-size:13px;width:100%;max-width:260px}
+.container{max-width:1200px;margin:0 auto;padding:25px 16px}
+.player-box{background:#000;border-radius:20px;overflow:hidden;margin-bottom:20px;border:1px solid rgba(255,255,255,0.15)}
+.player-wrap{width:100%;aspect-ratio:16/9;background:#000;position:relative}
+video{width:100%;height:100%;object-fit:contain}
+.now-playing{background:var(--surface);padding:18px 25px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+@keyframes pulse-red{0%,100%{opacity:1}50%{opacity:.4}}
+.live-dot{color:var(--red);display:inline-block;animation:pulse-red 1.5s infinite;margin-right:5px}
+.recent-bar,.category-tabs{display:flex;gap:10px;overflow-x:auto;margin-bottom:20px;padding-bottom:5px;scrollbar-width:none}
+.recent-bar::-webkit-scrollbar,.category-tabs::-webkit-scrollbar{display:none}
+.recent-chip,.cat-btn{background:rgba(255,255,255,0.03);border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer}
+.cat-btn{padding:9px 18px;font-size:13px;font-weight:700}
+.recent-chip:hover,.cat-btn.active,.cat-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:20px}
+.card{background:var(--surface-card);border-radius:16px;overflow:hidden;cursor:pointer;border:1px solid var(--border);position:relative}
+.card.premium{border-color:var(--gold)}
+.banner{height:105px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1e3a8a,#0f172a);overflow:hidden;position:relative}
+.banner span{font-size:14px;font-weight:800;padding:0 10px;text-transform:uppercase;text-align:center;z-index:1}
+.banner img{z-index:1;position:relative;width:100%;height:100%;object-fit:cover}
+.info{padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
+.name{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:80%}
+.fav-btn{background:none;border:none;cursor:pointer;font-size:16px;color:var(--muted)}
+.fav-btn.active{color:var(--gold)}
+.vip-badge,.offline-badge{position:absolute;top:8px;font-size:10px;padding:4px 8px;border-radius:6px;font-weight:800;z-index:2}
+.vip-badge{left:8px;background:linear-gradient(45deg,#f59e0b,#d97706);color:#fff}
+.offline-badge{right:8px;background:rgba(0,0,0,0.85);color:var(--red);border:1px solid var(--red)}
+.card.offline{opacity:0.6;pointer-events:none;filter:grayscale(90%)}
+.admin-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:100000;display:none;align-items:center;justify-content:center;padding:10px}
+.admin-panel{background:rgba(15,23,42,0.95);width:100%;max-width:700px;border-radius:20px;padding:25px;border:1px solid rgba(255,255,255,0.15);max-height:90vh;overflow-y:auto}
+.admin-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:25px;border-bottom:1px solid var(--border);padding-bottom:15px}
+.close-btn{cursor:pointer;font-size:24px;color:var(--red);font-weight:bold}
+.stats-box{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.stat{flex:1;min-width:100px;background:rgba(255,255,255,0.03);padding:15px;border-radius:12px;text-align:center;border:1px solid var(--border)}
+.stat span{font-size:22px;font-weight:800;color:var(--primary);display:block;margin-bottom:4px}
+.stat div{font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:600}
+.admin-section{background:rgba(0,0,0,0.2);padding:20px;border-radius:14px;margin-bottom:20px;border:1px solid var(--border)}
+.admin-input{width:100%;padding:14px;margin-bottom:12px;background:rgba(0,0,0,0.5);border:1px solid var(--border);color:#fff;border-radius:8px;font-size:14px;outline:none}
+.checkbox-wrap{display:flex;align-items:center;gap:10px;margin-bottom:15px;font-size:14px;color:var(--gold);font-weight:600}
+.admin-btn{background:var(--primary);color:#fff;padding:12px 18px;border:none;border-radius:8px;cursor:pointer;width:100%;font-weight:700;font-size:14.5px;text-transform:uppercase}
+.admin-btn-half{width:48%}
+.btn-row{display:flex;justify-content:space-between;gap:12px;margin-top:10px}
+.admin-ch-list{max-height:280px;overflow-y:auto;margin-top:15px}
+.admin-ch-item{display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,0.4);padding:12px;border-radius:8px;margin-bottom:10px;border:1px solid var(--border)}
+.ch-actions{display:flex;gap:5px}
+.ch-actions button{padding:6px 10px;border:none;border-radius:6px;cursor:pointer;color:#fff;font-size:11px;font-weight:600}
+.btn-top{background:#8b5cf6}.btn-edit{background:var(--primary)}.btn-off{background:#d97706}.btn-del{background:var(--red)}
+</style>
 </head>
 <body>
-  
-  <div id="debugLog" style="background: #dc2626; color: white; padding: 15px; position: fixed; top: 0; left: 0; width: 100%; z-index: 999999; display: none; font-family: monospace; font-size: 14px;">
-    <strong>System Error:</strong> <span id="debugText"></span>
-  </div>
-
-  <script>
-    window.onerror = function(message, source, lineno) {
-      document.getElementById('debugLog').style.display = 'block';
-      document.getElementById('debugText').innerText = message + " (Line: " + lineno + ")";
-      return false;
-    };
-  </script>
-
-  <div class="notice-bar" id="noticeBar">
-    <marquee id="marqueeText" scrollamount="5"></marquee>
-  </div>
-
-  <nav class="navbar">
-    <div class="nav-left">
-      <div class="menu-icon" onclick="openMenu()">&equiv;</div>
-      <div class="brand" id="siteBrand" onclick="emergencyLogoTap()">
-        <div>STAR <span>TV</span></div>
-      </div>
-    </div>
-    <input type="text" id="homeSearch" class="search-box" placeholder="Search Channels..." onkeyup="renderFrontend()">
-  </nav>
-
-  <div class="container">
-    <div class="player-box">
-      <div class="player-wrap"><video id="tvPlayer" controls autoplay></video></div>
-      <div class="now-playing">
-        <h2 id="nowTitle"><span style="color:var(--red)">•</span> Select a Channel</h2>
-      </div>
-    </div>
-    
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-      <h3 style="font-size: 18px;">Live Channels</h3>
-    </div>
-
-    <div class="category-tabs" id="categoryTabs">
-      <button class="cat-btn active" onclick="setCategory('All', this)">All</button>
-      <button class="cat-btn" onclick="setCategory('News', this)">News</button>
-      <button class="cat-btn" onclick="setCategory('Sports', this)">Sports</button>
-      <button class="cat-btn" onclick="setCategory('Movies', this)">Movies</button>
-      <button class="cat-btn" onclick="setCategory('Entertainment', this)">Entertainment</button>
-      <button class="cat-btn" onclick="setCategory('Kids', this)">Kids</button>
-      <button class="cat-btn" onclick="setCategory('Bangla', this)">Bangla</button>
-    </div>
-
-    <div class="grid" id="channelGrid">Loading channels...</div>
-
-    <div id="offlineSection" style="display: none; margin-top: 40px;">
-      <h3 style="font-size: 18px; margin-bottom: 15px; color: var(--red); display: flex; align-items: center; gap: 8px;">
-        <span style="font-size: 12px; background: rgba(239,68,68,0.2); padding: 4px 8px; border-radius: 4px;">OFFLINE</span> 
-        Currently Unavailable
-      </h3>
-      <div class="grid" id="offlineGrid"></div>
-    </div>
-  </div>
-
-  <!-- Menu Overlay -->
-  <div class="admin-overlay" id="menuOverlay">
-    <div class="admin-panel" style="max-width: 400px;">
-      <div class="admin-header">
-        <h2>Menu</h2>
-        <div class="close-btn" onclick="closeMenu()">&times;</div>
-      </div>
-      <div class="admin-section" style="text-align: center;">
-        <h3 style="margin-bottom: 15px; color: var(--primary);">Contact Us</h3>
-        <p style="color: var(--muted); font-size: 14px; margin-bottom: 8px;">Email: <span id="displayEmail" style="color:#fff;"></span></p>
-        <p style="color: var(--muted); font-size: 14px; margin-bottom: 20px;">Phone: <span id="displayPhone" style="color:#fff;"></span></p>
-      </div>
-      <button class="admin-btn" style="background: transparent; border: 1px solid var(--border); color: var(--muted);" onclick="closeMenu(); openAdmin();">Admin Login</button>
-    </div>
-  </div>
-
-  <!-- Admin Overlay -->
-  <div class="admin-overlay" id="adminOverlay">
-    <div class="admin-panel">
-      <div id="loginView">
-        <div class="admin-header"><h2>Admin Login</h2><div class="close-btn" onclick="closeAdmin()">&times;</div></div>
-        <input type="text" id="adminUser" class="admin-input" placeholder="Enter Username">
-        <input type="password" id="adminPass" class="admin-input" placeholder="Enter Password">
-        <button class="admin-btn" onclick="checkLogin()">Login</button>
-      </div>
-
-      <div id="dashboardView">
-        <div class="admin-header"><h2>Admin Dashboard</h2><div class="close-btn" onclick="closeAdmin()">&times;</div></div>
-        
-        <div class="stats-box">
-          <div class="stat"><span id="statTotal">0</span><div>Total</div></div>
-          <div class="stat"><span id="statOnline" style="color:var(--green)">0</span><div>Online</div></div>
-          <div class="stat"><span id="statOffline" style="color:var(--red)">0</span><div>Offline</div></div>
-        </div>
-
-        <div class="admin-section">
-          <h3 id="formTitle" style="margin-bottom: 10px;">Add / Edit Channel</h3>
-          <input type="hidden" id="editKey">
-          <input type="text" id="chName" class="admin-input" placeholder="Enter Channel Name">
-          <select id="chCat" class="admin-input">
-            <option value="" disabled selected>Select Category</option>
-            <option value="News">News</option>
-            <option value="Movies">Movies</option>
-            <option value="Entertainment">Entertainment</option>
-            <option value="Sports">Sports</option>
-            <option value="Kids">Kids</option>
-            <option value="Bangla">Bangla</option>
-          </select>
-          <input type="text" id="chUrl" class="admin-input" placeholder="Stream URL (.m3u8)">
-          <input type="text" id="chLogo" class="admin-input" placeholder="Channel Logo Image URL (Optional)">
-          <button class="admin-btn" id="saveBtn" onclick="saveChannel()">+ Add Channel</button>
-        </div>
-
-        <div class="admin-section">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <h3>Manage Channels</h3>
-            <input type="text" id="adminSearch" class="search-box" style="width: 150px; padding: 5px 10px;" placeholder="Search..." onkeyup="renderAdminList()">
-          </div>
-          <div class="admin-ch-list" id="adminChList"></div>
-          
-          <div class="btn-row" style="margin-top:10px;">
-            <button class="admin-btn admin-btn-half" style="background:#0284c7;" onclick="exportData()">Export Backup</button>
-            <button class="admin-btn admin-btn-half" style="background:#d97706; position: relative;">
-               Import Backup
-               <input type="file" id="importFile" accept=".json" onchange="importData(event)" style="opacity: 0; position: absolute; top:0; left:0; width:100%; height:100%; cursor: pointer;">
-            </button>
-          </div>
-          <button class="admin-btn" style="background:var(--surface-card); color:var(--red); border:1px solid var(--red); margin-top:10px;" onclick="cleanOfflineChannels()">Clear All Offline Channels</button>
-        </div>
-
-        <div class="admin-section">
-          <h3 style="margin-bottom: 10px;">Site Appearance & Notice</h3>
-          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-            <label style="font-size: 14px;">Theme Color:</label>
-            <input type="color" id="themeColor" value="#3b82f6" style="height: 35px; width: 60px; border:none; background:transparent; cursor:pointer;" onchange="updateTheme()">
-          </div>
-          <input type="text" id="adminSiteLogo" class="admin-input" placeholder="Main Site Logo URL (.jpg, .png) (Optional)">
-          <input type="text" id="adminNotice" class="admin-input" placeholder="Enter message for homepage marquee">
-          <button class="admin-btn" style="background:#8b5cf6;" onclick="updateAppearance()">Save Appearance</button>
-        </div>
-
-        <div class="admin-section">
-            <h3 style="margin-bottom: 10px;">Contact Info</h3>
-            <input type="email" id="adminContactEmail" class="admin-input" placeholder="Contact Email">
-            <input type="text" id="adminContactPhone" class="admin-input" placeholder="Contact Mobile Number">
-            <button class="admin-btn" style="background:#f59e0b;" onclick="updateContact()">Update Contact Info</button>
-        </div>
-
-        <div class="admin-section">
-          <h3 style="margin-bottom: 10px;">Security Credentials</h3>
-          <p style="font-size:12px; color:var(--muted); margin-bottom: 10px;">Leave blank if you don't want to change.</p>
-          <input type="text" id="newAdminUser" class="admin-input" placeholder="New Admin Username">
-          <input type="password" id="newAdminPass" class="admin-input" placeholder="New Admin Password">
-          <button class="admin-btn" style="background:var(--green);" onclick="changeCredentials()">Update Credentials</button>
-        </div>
-
-        <div class="admin-section" style="border-color: var(--red);">
-          <h3 style="margin-bottom: 10px; color: var(--red);">System Recovery & 100% Backup</h3>
-          <p style="font-size:12px; color:var(--muted); margin-bottom: 10px;">The system automatically saves a 100% emergency backup of your channels whenever you make a change.</p>
-          <div class="btn-row">
-            <button class="admin-btn admin-btn-half" style="background:#059669;" onclick="restoreEmergencyBackup()">Restore Backup</button>
-            <button class="admin-btn admin-btn-half" style="background:#dc2626;" onclick="hardFactoryReset()">Factory Reset</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // Version Bump
-    if (localStorage.getItem("clean_install_v13") !== "true") {
-        localStorage.clear();
-        localStorage.setItem("clean_install_v13", "true");
+<div id="customerLockScreen" style="display:none;"><div class="lock-box"><h2>🔒 Premium Access</h2><p id="lockWelcomeText">Enter PIN</p><div id="lockErrorMsg" class="lock-err">Invalid PIN</div><input type="password" id="customerPinInput" class="pin-input" placeholder="••••••" maxlength="6"><button class="admin-btn" onclick="verifyCustomerPin()">Unlock</button></div><div style="position:absolute;bottom:20px;right:20px;opacity:0.5;cursor:pointer;font-size:20px" onclick="openAdmin()">⚙️ Admin</div></div>
+<div class="notice-bar" id="noticeBar"><marquee id="marqueeText" scrollamount="5"></marquee></div>
+<nav class="navbar"><div class="nav-left"><div class="menu-icon" onclick="openMenu()">&equiv;</div><div class="brand" id="siteBrand" onclick="emergencyLogoTap()"><div>STAR <span>TV</span></div></div></div><input type="text" id="homeSearch" class="search-box" placeholder="Search..." onkeyup="renderFrontend()"></nav>
+<div class="container">
+<div class="player-box"><div class="player-wrap"><video id="tvPlayer" controls autoplay></video></div><div class="now-playing"><h2 id="nowTitle" style="font-size:18px;font-weight:700;"><span class="live-dot">&bull;</span> Select a Channel</h2><div style="display:flex;gap:10px"><button onclick="refreshCurrentStream()" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:#fff;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px">🔄 Reload</button><div id="fakeViewers" style="display:none;font-size:12px;color:var(--green);font-weight:700;background:rgba(16,185,129,0.1);padding:5px 10px;border-radius:20px;border:1px solid rgba(16,185,129,0.3)">👁 <span id="viewerCount">0</span></div></div></div></div>
+<div class="recent-bar" id="recentBar" style="display:none;"><span style="font-size:12px;color:var(--muted);align-self:center;font-weight:700">Recent:</span><div id="recentChips" style="display:flex;gap:8px"></div></div>
+<div class="category-tabs" id="categoryTabs"></div>
+<div class="grid" id="channelGrid">Loading channels...</div>
+<div id="offlineSection" style="display:none;margin-top:50px"><h3 style="color:var(--red);margin-bottom:18px">OFFLINE</h3><div class="grid" id="offlineGrid"></div></div>
+</div>
+<div class="admin-overlay" id="menuOverlay"><div class="admin-panel" style="max-width:400px"><div class="admin-header"><h2>Menu</h2><div class="close-btn" onclick="closeMenu()">&times;</div></div><div class="admin-section" style="text-align:center;background:transparent;border:none"><h3 style="color:var(--primary);margin-bottom:15px">Customer Profile</h3><p style="color:var(--gold);font-weight:700;margin-bottom:15px" id="menuCustomerName">User</p><p style="color:var(--muted);font-size:14px;margin-bottom:10px;background:rgba(255,255,255,0.03);padding:12px;border-radius:8px">Email: <span id="displayEmail" style="color:#fff"></span></p><p style="color:var(--muted);font-size:14px;margin-bottom:10px;background:rgba(255,255,255,0.03);padding:12px;border-radius:8px">Phone: <span id="displayPhone" style="color:#fff"></span></p><div style="display:flex;gap:10px;margin:15px 0 25px"><a id="btnTelegram" href="#" target="_blank" class="admin-btn" style="background:#0088cc;display:none">Telegram</a><a id="btnWhatsapp" href="#" target="_blank" class="admin-btn" style="background:#25D366;display:none">WhatsApp</a></div></div><button class="admin-btn" style="background:rgba(239,68,68,0.1);border:1px solid var(--red);color:var(--red);margin-bottom:10px" onclick="customerLogout()">Logout</button><button class="admin-btn" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text)" onclick="closeMenu();openAdmin()">Admin Dashboard</button></div></div>
+<div class="admin-overlay" id="adminOverlay"><div class="admin-panel"><div id="loginView"><div class="admin-header"><h2>Admin Auth</h2><div class="close-btn" onclick="closeAdmin()">&times;</div></div><input type="text" id="adminUser" class="admin-input" placeholder="Username"><input type="password" id="adminPass" class="admin-input" placeholder="Password"><button class="admin-btn" onclick="checkLogin()">Login</button></div><div id="dashboardView" style="display:none"><div class="admin-header"><h2>Dashboard</h2><div class="close-btn" onclick="closeAdmin()">&times;</div></div><div class="stats-box"><div class="stat"><span id="statTotal">0</span><div>Total Channels</div></div><div class="stat"><span id="statOnline" style="color:var(--green)">0</span><div>Live</div></div><div class="stat"><span id="statUsers" style="color:var(--gold)">0</span><div>Users</div></div></div><div class="admin-section" style="border-color:var(--gold)"><h3 style="color:var(--gold);margin-bottom:10px">Subscriptions</h3><div style="display:flex;gap:10px"><input type="text" id="newCustomerName" class="admin-input" style="margin-bottom:0" placeholder="Name"><button class="admin-btn" style="width:140px;background:var(--gold);color:#000" onclick="generateCustomerPIN()">Generate PIN</button></div><div class="admin-ch-list" id="adminUserList"></div></div><div class="admin-section"><h3 id="formTitle" style="margin-bottom:15px">Add/Edit Channel</h3><input type="hidden" id="editKey"><input type="text" id="chName" class="admin-input" placeholder="Name"><select id="chCat" class="admin-input"></select><input type="text" id="chUrl" class="admin-input" placeholder="Stream URL"><input type="text" id="chLogo" class="admin-input" placeholder="Logo URL"><label class="checkbox-wrap"><input type="checkbox" id="chPremium"> VIP Channel</label><button class="admin-btn" id="saveBtn" onclick="saveChannel()">Save Channel</button></div><div class="admin-section"><h3 style="margin-bottom:15px">M3U Import</h3><textarea id="m3uInput" class="admin-input" style="height:100px" placeholder="#EXTM3U..."></textarea><button class="admin-btn" style="background:#8b5cf6" onclick="importM3UText()">Import M3U</button></div><div class="admin-section"><h3 style="margin-bottom:15px">Categories</h3><div style="display:flex;gap:10px"><input type="text" id="newCatName" class="admin-input" style="margin-bottom:0" placeholder="New Category"><button class="admin-btn" style="width:120px;background:var(--green)" onclick="addCategory()">Add</button></div><div class="admin-ch-list" id="adminCatList"></div></div><div class="admin-section"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px"><h3>Database</h3><input type="text" id="adminSearch" class="search-box" style="width:160px" placeholder="Search..." onkeyup="renderAdminList()"></div><div class="admin-ch-list" id="adminChList"></div><div class="btn-row" style="margin-top:15px"><button class="admin-btn admin-btn-half" style="background:#0284c7" onclick="exportData()">Export</button><button class="admin-btn admin-btn-half" style="background:#d97706;position:relative">Import<input type="file" id="importFile" accept=".json" onchange="importData(event)" style="opacity:0;position:absolute;top:0;left:0;width:100%;height:100%;cursor:pointer"></button></div><button class="admin-btn" style="background:var(--red);margin-top:12px" onclick="clearAllChannels()">Delete All</button></div><div class="admin-section"><h3 style="margin-bottom:15px">Settings</h3><input type="color" id="themeColor" value="#3b82f6" style="height:35px;width:60px;border:none;background:transparent;cursor:pointer;margin-bottom:12px" onchange="updateTheme()"><input type="text" id="adminSiteLogo" class="admin-input" placeholder="Logo URL"><input type="text" id="adminBgImage" class="admin-input" placeholder="Background URL"><input type="text" id="adminNotice" class="admin-input" placeholder="Marquee"><button class="admin-btn" style="background:#8b5cf6" onclick="updateAppearance()">Save</button></div><div class="admin-section"><h3 style="margin-bottom:15px">Contact</h3><input type="email" id="adminContactEmail" class="admin-input" placeholder="Email"><input type="text" id="adminContactPhone" class="admin-input" placeholder="Phone"><input type="text" id="adminTelegram" class="admin-input" placeholder="Telegram"><input type="text" id="adminWhatsapp" class="admin-input" placeholder="WhatsApp"><button class="admin-btn" style="background:#f59e0b" onclick="updateContact()">Save</button></div><div class="admin-section"><h3 style="margin-bottom:15px">Credentials</h3><input type="text" id="newAdminUser" class="admin-input" placeholder="New Username"><input type="password" id="newAdminPass" class="admin-input" placeholder="New Password"><button class="admin-btn" style="background:var(--green)" onclick="changeCredentials()">Update</button></div><div class="admin-section" style="border-color:var(--red);background:rgba(239,68,68,0.05)"><h3 style="color:var(--red);margin-bottom:10px">Recovery</h3><div class="btn-row"><button class="admin-btn admin-btn-half" style="background:#059669" onclick="restoreEmergencyBackup()">Restore</button><button class="admin-btn admin-btn-half" style="background:#dc2626" onclick="hardFactoryReset()">Reset</button></div></div></div></div></div>
+<script>
+var favorites=[],recentlyPlayed=[],isAdminSession=false;
+try{
+    favorites=JSON.parse(localStorage.getItem('startv_fav')||"[]");
+    recentlyPlayed=JSON.parse(localStorage.getItem('startv_rec')||"[]");
+    isAdminSession=sessionStorage.getItem("admin_logged")==="true";
+}catch(e){console.error("Storage init error", e);}
+var hls=null,currentCategory="All",viewerInterval=null,currentPlayingUrl="";
+var DEFAULT_CHANNELS={"ch_1":{name:"Aaj Tak",category:"News",url:"https://feeds.intoday.in/aajtak/api/aajtaktv/master.m3u8",isOffline:false,logo:"",isPremium:true}};
+var settings={admin_username:"admin",admin_password:"admin123",notice:"Welcome to Star TV!",theme_color:"#3b82f6",site_logo:"",bg_image:"",categories:["News","Sports","Movies","Entertainment","Kids"],contact:{email:"support@startv.com",phone:"",telegram:"",whatsapp:""}};
+var allData={},allUsers={};
+function initApp(){
+    try{
+        var sSet=localStorage.getItem('startv_set');
+        if(sSet){var p=JSON.parse(sSet);if(p)settings=Object.assign({},settings,p);}
+        var sCh=localStorage.getItem('startv_ch');
+        allData=(sCh&&sCh!=="{}")?JSON.parse(sCh):JSON.parse(JSON.stringify(DEFAULT_CHANNELS));
+        var sUs=localStorage.getItem('startv_us');
+        allUsers=(sUs&&sUs!=="{}")?JSON.parse(sUs):{};
+    }catch(e){
+        allData=JSON.parse(JSON.stringify(DEFAULT_CHANNELS));
     }
-
-    let hls = null;
-    let currentCategory = "All";
-    
-    const DEFAULT_CHANNELS = {
-      "ch_1": { name: "Aaj Tak", category: "News", url: "https://feeds.intoday.in/aajtak/api/aajtaktv/master.m3u8", isOffline: false, logo: "" },
-      "ch_2": { name: "Red Bull TV", category: "Sports", url: "https://rbmn-live.akamaized.net/hls/live/590964/BoRB-AT/master.m3u8", isOffline: false, logo: "" },
-      "ch_3": { name: "NASA TV", category: "Entertainment", url: "https://ntv1.akamaized.net/hls/live/2014075/NASA-NTV1-HLS/master.m3u8", isOffline: false, logo: "" }
-    };
-
-    let settings = {
-        admin_username: "admin",
-        admin_password: "admin123",
-        notice: "Welcome to Star TV! Enjoy Live Streaming.",
-        theme_color: "#3b82f6",
-        site_logo: "",
-        contact: { email: "support@startv.com", phone: "+91 0000000000" }
-    };
-    let allData = {};
-
-    function initApp() {
-        try {
-            let savedSettings = localStorage.getItem('startv_settings');
-            if (savedSettings) {
-                let parsedSettings = JSON.parse(savedSettings);
-                if(parsedSettings) {
-                    settings.admin_username = parsedSettings.admin_username || "admin";
-                    settings.admin_password = parsedSettings.admin_password || "admin123";
-                    settings.notice = parsedSettings.notice || "";
-                    settings.theme_color = parsedSettings.theme_color || "#3b82f6";
-                    settings.site_logo = parsedSettings.site_logo || "";
-                    if(parsedSettings.contact) {
-                       settings.contact.email = parsedSettings.contact.email || "";
-                       settings.contact.phone = parsedSettings.contact.phone || "";
-                    }
-                }
-            }
-
-            let savedChannels = localStorage.getItem('startv_channels');
-            if (savedChannels && savedChannels !== "{}" && savedChannels !== "null") {
-                allData = JSON.parse(savedChannels);
-            } else {
-                allData = JSON.parse(JSON.stringify(DEFAULT_CHANNELS));
-            }
-
-            saveLocalData();
-            saveSettings();
-            applySettings();
-            updateStats();
-            renderFrontend();
-            renderAdminList();
-            
-        } catch(e) {
-            allData = JSON.parse(JSON.stringify(DEFAULT_CHANNELS));
-            renderFrontend();
-        }
-    }
-
-    function saveLocalData() { 
-      localStorage.setItem('startv_channels', JSON.stringify(allData)); 
-      if(Object.keys(allData).length > 0) {
-        localStorage.setItem('startv_emergency_backup_channels', JSON.stringify(allData));
-      }
-    }
-    
-    function saveSettings() { 
-      localStorage.setItem('startv_settings', JSON.stringify(settings)); 
-      localStorage.setItem('startv_emergency_backup_settings', JSON.stringify(settings));
-    }
-
-    function applySettings() {
-        // Notice
-        if(settings.notice) { 
-            document.getElementById('marqueeText').innerText = settings.notice; 
-            document.getElementById('noticeBar').style.display = 'block'; 
-        } else { 
-            document.getElementById('noticeBar').style.display = 'none'; 
-        }
-        
-        // Contact
-        document.getElementById('displayEmail').innerText = settings.contact.email; 
-        document.getElementById('displayPhone').innerText = settings.contact.phone;
-        document.getElementById('adminContactEmail').value = settings.contact.email; 
-        document.getElementById('adminContactPhone').value = settings.contact.phone;
-        document.getElementById('adminNotice').value = settings.notice || "";
-        document.getElementById('adminSiteLogo').value = settings.site_logo || "";
-        document.getElementById('themeColor').value = settings.theme_color || "#3b82f6";
-        
-        // Theme color
-        document.documentElement.style.setProperty('--primary', settings.theme_color || "#3b82f6");
-
-        // Site logo
-        const brandEl = document.getElementById('siteBrand');
-        if (settings.site_logo) {
-            brandEl.innerHTML = `<img src="${settings.site_logo}" alt="Star TV" onerror="this.parentElement.innerHTML='<div>STAR <span>TV</span></div>'">`;
-        } else {
-            brandEl.innerHTML = `<div>STAR <span>TV</span></div>`;
-        }
-    }
-
-    function updateTheme() {
-        settings.theme_color = document.getElementById('themeColor').value;
-        document.documentElement.style.setProperty('--primary', settings.theme_color);
-        saveSettings();
-    }
-
-    function updateAppearance() {
-        settings.notice = document.getElementById('adminNotice').value.trim();
-        settings.site_logo = document.getElementById('adminSiteLogo').value.trim();
-        settings.theme_color = document.getElementById('themeColor').value;
-        saveSettings();
-        applySettings();
-        alert("Appearance saved!");
-    }
-
-    function updateContact() {
-        settings.contact.email = document.getElementById('adminContactEmail').value.trim();
-        settings.contact.phone = document.getElementById('adminContactPhone').value.trim();
-        saveSettings();
-        applySettings();
-        alert("Contact info updated!");
-    }
-
-    function changeCredentials() {
-        const newUser = document.getElementById('newAdminUser').value.trim();
-        const newPass = document.getElementById('newAdminPass').value.trim();
-        if (newUser) settings.admin_username = newUser;
-        if (newPass) settings.admin_password = newPass;
-        saveSettings();
-        document.getElementById('newAdminUser').value = "";
-        document.getElementById('newAdminPass').value = "";
-        alert("Credentials updated!");
-    }
-
-    // ===== MENU & ADMIN =====
-    function openMenu() {
-        document.getElementById('menuOverlay').style.display = 'flex';
-    }
-    function closeMenu() {
-        document.getElementById('menuOverlay').style.display = 'none';
-    }
-    function openAdmin() {
-        document.getElementById('adminOverlay').style.display = 'flex';
-        document.getElementById('loginView').style.display = 'block';
-        document.getElementById('dashboardView').style.display = 'none';
-        document.getElementById('adminUser').value = "";
-        document.getElementById('adminPass').value = "";
-    }
-    function closeAdmin() {
-        document.getElementById('adminOverlay').style.display = 'none';
-    }
-    function checkLogin() {
-        const user = document.getElementById('adminUser').value.trim();
-        const pass = document.getElementById('adminPass').value;
-        if (user === settings.admin_username && pass === settings.admin_password) {
-            document.getElementById('loginView').style.display = 'none';
-            document.getElementById('dashboardView').style.display = 'block';
-            updateStats();
-            renderAdminList();
-        } else {
-            alert("Invalid username or password!");
-        }
-    }
-
-    // ===== CHANNELS =====
-    function setCategory(cat, btn) {
-        currentCategory = cat;
-        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        renderFrontend();
-    }
-
-    function renderFrontend() {
-        const search = document.getElementById('homeSearch').value.toLowerCase().trim();
-        const grid = document.getElementById('channelGrid');
-        const offlineGrid = document.getElementById('offlineGrid');
-        const offlineSection = document.getElementById('offlineSection');
-
-        grid.innerHTML = "";
-        offlineGrid.innerHTML = "";
-        let hasOffline = false;
-
-        Object.keys(allData).forEach(key => {
-            const ch = allData[key];
-            if (!ch) return;
-
-            const matchSearch = !search || ch.name.toLowerCase().includes(search);
-            const matchCat = currentCategory === "All" || ch.category === currentCategory;
-
-            if (!matchSearch || !matchCat) return;
-
-            const card = document.createElement('div');
-            card.className = 'card' + (ch.isOffline ? ' offline' : '');
-            card.onclick = () => !ch.isOffline && playChannel(key);
-
-            const bannerContent = ch.logo 
-                ? `<img src="\( {ch.logo}" alt=" \){ch.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"><span style="display:none">${ch.name}</span>`
-                : `<span>${ch.name}</span>`;
-
-            card.innerHTML = `
-                <div class="banner" style="background:${ch.isOffline ? '#374151' : '#1e3a8a'}">
-                    ${bannerContent}
-                    ${ch.isOffline ? '<div class="offline-badge">OFFLINE</div>' : ''}
-                </div>
-                <div class="info">
-                    <div class="name">${ch.name}</div>
-                    <div class="cat-label">${ch.category}</div>
-                </div>
-            `;
-
-            if (ch.isOffline) {
-                offlineGrid.appendChild(card);
-                hasOffline = true;
-            } else {
-                grid.appendChild(card);
-            }
-        });
-
-        if (grid.innerHTML === "") grid.innerHTML = '<p style="color:var(--muted); grid-column:1/-1; text-align:center;">No channels found</p>';
-        offlineSection.style.display = hasOffline ? 'block' : 'none';
-    }
-
-    function playChannel(key) {
-        const ch = allData[key];
-        if (!ch || ch.isOffline) return;
-
-        document.getElementById('nowTitle').innerHTML = `<span style="color:var(--green)">•</span> ${ch.name}`;
-        
-        const video = document.getElementById('tvPlayer');
-        
-        if (hls) {
-            hls.destroy();
-            hls = null;
-        }
-
-        if (Hls.isSupported()) {
-            hls = new Hls({ enableWorker: true });
-            hls.loadSource(ch.url);
-            hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(()=>{}));
-            hls.on(Hls.Events.ERROR, (event, data) => {
-                if (data.fatal) {
-                    console.error("HLS error", data);
-                    alert("Stream failed to load. Channel may be offline.");
-                }
-            });
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = ch.url;
-            video.addEventListener('loadedmetadata', () => video.play().catch(()=>{}));
-        } else {
-            alert("HLS not supported in this browser.");
-        }
-    }
-
-    function saveChannel() {
-        const name = document.getElementById('chName').value.trim();
-        const cat = document.getElementById('chCat').value;
-        const url = document.getElementById('chUrl').value.trim();
-        const logo = document.getElementById('chLogo').value.trim();
-        const editKey = document.getElementById('editKey').value;
-
-        if (!name || !cat || !url) {
-            alert("Please fill Name, Category and Stream URL");
-            return;
-        }
-
-        if (editKey) {
-            allData[editKey] = { ...allData[editKey], name, category: cat, url, logo };
-        } else {
-            const newKey = "ch_" + Date.now();
-            allData[newKey] = { name, category: cat, url, logo, isOffline: false };
-        }
-
-        saveLocalData();
-        updateStats();
-        renderFrontend();
-        renderAdminList();
-        clearChannelForm();
-        alert(editKey ? "Channel updated!" : "Channel added!");
-    }
-
-    function clearChannelForm() {
-        document.getElementById('editKey').value = "";
-        document.getElementById('chName').value = "";
-        document.getElementById('chCat').value = "";
-        document.getElementById('chUrl').value = "";
-        document.getElementById('chLogo').value = "";
-        document.getElementById('formTitle').innerText = "Add / Edit Channel";
-        document.getElementById('saveBtn').innerText = "+ Add Channel";
-    }
-
-    function editChannel(key) {
-        const ch = allData[key];
-        document.getElementById('editKey').value = key;
-        document.getElementById('chName').value = ch.name;
-        document.getElementById('chCat').value = ch.category;
-        document.getElementById('chUrl').value = ch.url;
-        document.getElementById('chLogo').value = ch.logo || "";
-        document.getElementById('formTitle').innerText = "Edit Channel";
-        document.getElementById('saveBtn').innerText = "Update Channel";
-    }
-
-    function toggleOffline(key) {
-        allData[key].isOffline = !allData[key].isOffline;
-        saveLocalData();
-        updateStats();
-        renderFrontend();
-        renderAdminList();
-    }
-
-    function deleteChannel(key) {
-        if (confirm("Delete this channel permanently?")) {
-            delete allData[key];
-            saveLocalData();
-            updateStats();
-            renderFrontend();
-            renderAdminList();
-        }
-    }
-
-    function renderAdminList() {
-        const search = document.getElementById('adminSearch').value.toLowerCase().trim();
-        const list = document.getElementById('adminChList');
-        list.innerHTML = "";
-
-        Object.keys(allData).forEach(key => {
-            const ch = allData[key];
-            if (search && !ch.name.toLowerCase().includes(search)) return;
-
-            const item = document.createElement('div');
-            item.className = 'admin-ch-item';
-            item.innerHTML = `
-                <div>
-                    <strong>${ch.name}</strong><br>
-                    <small style="color:var(--muted)">${ch.category} ${ch.isOffline ? '• OFFLINE' : ''}</small>
-                </div>
-                <div class="ch-actions">
-                    <button class="btn-edit" onclick="editChannel('${key}')">Edit</button>
-                    <button class="btn-off" onclick="toggleOffline('\( {key}')"> \){ch.isOffline ? 'Online' : 'Offline'}</button>
-                    <button class="btn-del" onclick="deleteChannel('${key}')">Del</button>
-                </div>
-            `;
-            list.appendChild(item);
-        });
-    }
-
-    function updateStats() {
-        const keys = Object.keys(allData);
-        const total = keys.length;
-        const offline = keys.filter(k => allData[k].isOffline).length;
-        const online = total - offline;
-        document.getElementById('statTotal').innerText = total;
-        document.getElementById('statOnline').innerText = online;
-        document.getElementById('statOffline').innerText = offline;
-    }
-
-    function cleanOfflineChannels() {
-        if (!confirm("Remove ALL offline channels?")) return;
-        Object.keys(allData).forEach(key => {
-            if (allData[key].isOffline) delete allData[key];
-        });
-        saveLocalData();
-        updateStats();
-        renderFrontend();
-        renderAdminList();
-        alert("Offline channels cleared.");
-    }
-
-    // ===== BACKUP / RESTORE =====
-    function exportData() {
-        const data = {
-            channels: allData,
-            settings: settings,
-            exportedAt: new Date().toISOString()
-        };
-        const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `startv-backup-${Date.now()}.json`;
-        a.click();
-    }
-
-    function importData(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(ev) {
-            try {
-                const data = JSON.parse(ev.target.result);
-                if (data.channels) {
-                    allData = data.channels;
-                    saveLocalData();
-                }
-                if (data.settings) {
-                    settings = { ...settings, ...data.settings };
-                    saveSettings();
-                    applySettings();
-                }
-                updateStats();
-                renderFrontend();
-                renderAdminList();
-                alert("Backup imported successfully!");
-            } catch(err) {
-                alert("Invalid backup file!");
-            }
-        };
-        reader.readAsText(file);
-        e.target.value = "";
-    }
-
-    function restoreEmergencyBackup() {
-        if (!confirm("Restore last emergency backup? Current data will be overwritten.")) return;
-        const ch = localStorage.getItem('startv_emergency_backup_channels');
-        const st = localStorage.getItem('startv_emergency_backup_settings');
-        if (ch) {
-            allData = JSON.parse(ch);
-            saveLocalData();
-        }
-        if (st) {
-            settings = JSON.parse(st);
-            saveSettings();
-            applySettings();
-        }
-        updateStats();
-        renderFrontend();
-        renderAdminList();
-        alert("Emergency backup restored!");
-    }
-
-    function hardFactoryReset() {
-        if (!confirm("FACTORY RESET: This will wipe ALL data and restore defaults. Continue?")) return;
-        if (!confirm("Are you absolutely sure?")) return;
-        localStorage.clear();
-        localStorage.setItem("clean_install_v13", "true");
-        location.reload();
-    }
-
-    // Secret tap on logo (5 taps) → open admin
-    let logoTaps = 0;
-    let logoTimer = null;
-    function emergencyLogoTap() {
-        logoTaps++;
-        clearTimeout(logoTimer);
-        logoTimer = setTimeout(() => logoTaps = 0, 1500);
-        if (logoTaps >= 5) {
-            logoTaps = 0;
-            openAdmin();
-        }
-    }
-
-    // Start
-    initApp();
-  </script>
-</body>
-</html>
+    saveLocalData();saveSettings();applySettings();renderCategoriesUI();updateStats();renderFrontend();renderAdminList();renderUserList();renderRecentBar();checkCustomerAuth();
+}
+function saveLocalData(){
+    try{
+        localStorage.setItem('startv_ch',JSON.stringify(allData));
+        localStorage.setItem('startv_us',JSON.stringify(allUsers));
+        localStorage.setItem('startv_fav',JSON.stringify(favorites));
+        localStorage.setItem('startv_rec',JSON.stringify(recentlyPlayed));
+    }catch(e){}
+}
+function saveSettings(){
+    try{localStorage.setItem('startv_set',JSON.stringify(settings));}catch(e){}
+}
+function applySettings(){
+    var nBar=document.getElementById('noticeBar'),mText=document.getElementById('marqueeText');
+    if(nBar&&mText){if(settings.notice){mText.innerText=settings.notice;nBar.style.display='block';}else nBar.style.display='none';}
+    var dE=document.getElementById('displayEmail'),dP=document.getElementById('displayPhone');
+    if(dE)dE.innerText=settings.contact.email;if(dP)dP.innerText=settings.contact.phone;
+    var bT=document.getElementById('btnTelegram'),bW=document.getElementById('btnWhatsapp');
+    if(bT){bT.href=settings.contact.telegram;bT.style.display=settings.contact.telegram?'inline-block':'none';}
+    if(bW){bW.href=settings.contact.whatsapp;bW.style.display=settings.contact.whatsapp?'inline-block':'none';}
+    document.documentElement.style.setProperty('--primary',settings.theme_color);
+    document.body.style.backgroundImage=settings.bg_image?"url('"+settings.bg_image+"')":"radial-gradient(circle at 50% -20%, #1e293b, var(--bg))";
+    var bD=document.getElementById('siteBrand');
+    if(bD){bD.innerHTML=settings.site_logo?'<img src="'+settings.site_logo+'" style="height:38px;object-fit:contain;">':'<div>STAR <span>TV</span></div>';}
+}
+function checkCustomerAuth(){
+    var lS=document.getElementById("customerLockScreen");
+    if(!lS)return;
+    if(isAdminSession){lS.style.display="none";return;}
+    var sP=null;
+    try{sP=localStorage.getItem("startv_pin");}catch(e){}
+    if(sP&&allUsers[sP]){
+        var u=allUsers[sP],eB=document.getElementById('lockErrorMsg'),wT=document.getElementById('lockWelcomeText');
+        if(wT)wT.innerText="Welcome back, "+u.name
