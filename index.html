@@ -339,3 +339,371 @@
         document.getElementById('adminNotice').value = settings.notice || "";
         document.getElementById('adminSiteLogo').value = settings.site_logo || "";
         document.getElementById('themeColor').value = settings.theme_color || "#3b82f6";
+        
+        // Theme color
+        document.documentElement.style.setProperty('--primary', settings.theme_color || "#3b82f6");
+
+        // Site logo
+        const brandEl = document.getElementById('siteBrand');
+        if (settings.site_logo) {
+            brandEl.innerHTML = `<img src="${settings.site_logo}" alt="Star TV" onerror="this.parentElement.innerHTML='<div>STAR <span>TV</span></div>'">`;
+        } else {
+            brandEl.innerHTML = `<div>STAR <span>TV</span></div>`;
+        }
+    }
+
+    function updateTheme() {
+        settings.theme_color = document.getElementById('themeColor').value;
+        document.documentElement.style.setProperty('--primary', settings.theme_color);
+        saveSettings();
+    }
+
+    function updateAppearance() {
+        settings.notice = document.getElementById('adminNotice').value.trim();
+        settings.site_logo = document.getElementById('adminSiteLogo').value.trim();
+        settings.theme_color = document.getElementById('themeColor').value;
+        saveSettings();
+        applySettings();
+        alert("Appearance saved!");
+    }
+
+    function updateContact() {
+        settings.contact.email = document.getElementById('adminContactEmail').value.trim();
+        settings.contact.phone = document.getElementById('adminContactPhone').value.trim();
+        saveSettings();
+        applySettings();
+        alert("Contact info updated!");
+    }
+
+    function changeCredentials() {
+        const newUser = document.getElementById('newAdminUser').value.trim();
+        const newPass = document.getElementById('newAdminPass').value.trim();
+        if (newUser) settings.admin_username = newUser;
+        if (newPass) settings.admin_password = newPass;
+        saveSettings();
+        document.getElementById('newAdminUser').value = "";
+        document.getElementById('newAdminPass').value = "";
+        alert("Credentials updated!");
+    }
+
+    // ===== MENU & ADMIN =====
+    function openMenu() {
+        document.getElementById('menuOverlay').style.display = 'flex';
+    }
+    function closeMenu() {
+        document.getElementById('menuOverlay').style.display = 'none';
+    }
+    function openAdmin() {
+        document.getElementById('adminOverlay').style.display = 'flex';
+        document.getElementById('loginView').style.display = 'block';
+        document.getElementById('dashboardView').style.display = 'none';
+        document.getElementById('adminUser').value = "";
+        document.getElementById('adminPass').value = "";
+    }
+    function closeAdmin() {
+        document.getElementById('adminOverlay').style.display = 'none';
+    }
+    function checkLogin() {
+        const user = document.getElementById('adminUser').value.trim();
+        const pass = document.getElementById('adminPass').value;
+        if (user === settings.admin_username && pass === settings.admin_password) {
+            document.getElementById('loginView').style.display = 'none';
+            document.getElementById('dashboardView').style.display = 'block';
+            updateStats();
+            renderAdminList();
+        } else {
+            alert("Invalid username or password!");
+        }
+    }
+
+    // ===== CHANNELS =====
+    function setCategory(cat, btn) {
+        currentCategory = cat;
+        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderFrontend();
+    }
+
+    function renderFrontend() {
+        const search = document.getElementById('homeSearch').value.toLowerCase().trim();
+        const grid = document.getElementById('channelGrid');
+        const offlineGrid = document.getElementById('offlineGrid');
+        const offlineSection = document.getElementById('offlineSection');
+
+        grid.innerHTML = "";
+        offlineGrid.innerHTML = "";
+        let hasOffline = false;
+
+        Object.keys(allData).forEach(key => {
+            const ch = allData[key];
+            if (!ch) return;
+
+            const matchSearch = !search || ch.name.toLowerCase().includes(search);
+            const matchCat = currentCategory === "All" || ch.category === currentCategory;
+
+            if (!matchSearch || !matchCat) return;
+
+            const card = document.createElement('div');
+            card.className = 'card' + (ch.isOffline ? ' offline' : '');
+            card.onclick = () => !ch.isOffline && playChannel(key);
+
+            const bannerContent = ch.logo 
+                ? `<img src="\( {ch.logo}" alt=" \){ch.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"><span style="display:none">${ch.name}</span>`
+                : `<span>${ch.name}</span>`;
+
+            card.innerHTML = `
+                <div class="banner" style="background:${ch.isOffline ? '#374151' : '#1e3a8a'}">
+                    ${bannerContent}
+                    ${ch.isOffline ? '<div class="offline-badge">OFFLINE</div>' : ''}
+                </div>
+                <div class="info">
+                    <div class="name">${ch.name}</div>
+                    <div class="cat-label">${ch.category}</div>
+                </div>
+            `;
+
+            if (ch.isOffline) {
+                offlineGrid.appendChild(card);
+                hasOffline = true;
+            } else {
+                grid.appendChild(card);
+            }
+        });
+
+        if (grid.innerHTML === "") grid.innerHTML = '<p style="color:var(--muted); grid-column:1/-1; text-align:center;">No channels found</p>';
+        offlineSection.style.display = hasOffline ? 'block' : 'none';
+    }
+
+    function playChannel(key) {
+        const ch = allData[key];
+        if (!ch || ch.isOffline) return;
+
+        document.getElementById('nowTitle').innerHTML = `<span style="color:var(--green)">•</span> ${ch.name}`;
+        
+        const video = document.getElementById('tvPlayer');
+        
+        if (hls) {
+            hls.destroy();
+            hls = null;
+        }
+
+        if (Hls.isSupported()) {
+            hls = new Hls({ enableWorker: true });
+            hls.loadSource(ch.url);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(()=>{}));
+            hls.on(Hls.Events.ERROR, (event, data) => {
+                if (data.fatal) {
+                    console.error("HLS error", data);
+                    alert("Stream failed to load. Channel may be offline.");
+                }
+            });
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = ch.url;
+            video.addEventListener('loadedmetadata', () => video.play().catch(()=>{}));
+        } else {
+            alert("HLS not supported in this browser.");
+        }
+    }
+
+    function saveChannel() {
+        const name = document.getElementById('chName').value.trim();
+        const cat = document.getElementById('chCat').value;
+        const url = document.getElementById('chUrl').value.trim();
+        const logo = document.getElementById('chLogo').value.trim();
+        const editKey = document.getElementById('editKey').value;
+
+        if (!name || !cat || !url) {
+            alert("Please fill Name, Category and Stream URL");
+            return;
+        }
+
+        if (editKey) {
+            allData[editKey] = { ...allData[editKey], name, category: cat, url, logo };
+        } else {
+            const newKey = "ch_" + Date.now();
+            allData[newKey] = { name, category: cat, url, logo, isOffline: false };
+        }
+
+        saveLocalData();
+        updateStats();
+        renderFrontend();
+        renderAdminList();
+        clearChannelForm();
+        alert(editKey ? "Channel updated!" : "Channel added!");
+    }
+
+    function clearChannelForm() {
+        document.getElementById('editKey').value = "";
+        document.getElementById('chName').value = "";
+        document.getElementById('chCat').value = "";
+        document.getElementById('chUrl').value = "";
+        document.getElementById('chLogo').value = "";
+        document.getElementById('formTitle').innerText = "Add / Edit Channel";
+        document.getElementById('saveBtn').innerText = "+ Add Channel";
+    }
+
+    function editChannel(key) {
+        const ch = allData[key];
+        document.getElementById('editKey').value = key;
+        document.getElementById('chName').value = ch.name;
+        document.getElementById('chCat').value = ch.category;
+        document.getElementById('chUrl').value = ch.url;
+        document.getElementById('chLogo').value = ch.logo || "";
+        document.getElementById('formTitle').innerText = "Edit Channel";
+        document.getElementById('saveBtn').innerText = "Update Channel";
+    }
+
+    function toggleOffline(key) {
+        allData[key].isOffline = !allData[key].isOffline;
+        saveLocalData();
+        updateStats();
+        renderFrontend();
+        renderAdminList();
+    }
+
+    function deleteChannel(key) {
+        if (confirm("Delete this channel permanently?")) {
+            delete allData[key];
+            saveLocalData();
+            updateStats();
+            renderFrontend();
+            renderAdminList();
+        }
+    }
+
+    function renderAdminList() {
+        const search = document.getElementById('adminSearch').value.toLowerCase().trim();
+        const list = document.getElementById('adminChList');
+        list.innerHTML = "";
+
+        Object.keys(allData).forEach(key => {
+            const ch = allData[key];
+            if (search && !ch.name.toLowerCase().includes(search)) return;
+
+            const item = document.createElement('div');
+            item.className = 'admin-ch-item';
+            item.innerHTML = `
+                <div>
+                    <strong>${ch.name}</strong><br>
+                    <small style="color:var(--muted)">${ch.category} ${ch.isOffline ? '• OFFLINE' : ''}</small>
+                </div>
+                <div class="ch-actions">
+                    <button class="btn-edit" onclick="editChannel('${key}')">Edit</button>
+                    <button class="btn-off" onclick="toggleOffline('\( {key}')"> \){ch.isOffline ? 'Online' : 'Offline'}</button>
+                    <button class="btn-del" onclick="deleteChannel('${key}')">Del</button>
+                </div>
+            `;
+            list.appendChild(item);
+        });
+    }
+
+    function updateStats() {
+        const keys = Object.keys(allData);
+        const total = keys.length;
+        const offline = keys.filter(k => allData[k].isOffline).length;
+        const online = total - offline;
+        document.getElementById('statTotal').innerText = total;
+        document.getElementById('statOnline').innerText = online;
+        document.getElementById('statOffline').innerText = offline;
+    }
+
+    function cleanOfflineChannels() {
+        if (!confirm("Remove ALL offline channels?")) return;
+        Object.keys(allData).forEach(key => {
+            if (allData[key].isOffline) delete allData[key];
+        });
+        saveLocalData();
+        updateStats();
+        renderFrontend();
+        renderAdminList();
+        alert("Offline channels cleared.");
+    }
+
+    // ===== BACKUP / RESTORE =====
+    function exportData() {
+        const data = {
+            channels: allData,
+            settings: settings,
+            exportedAt: new Date().toISOString()
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `startv-backup-${Date.now()}.json`;
+        a.click();
+    }
+
+    function importData(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            try {
+                const data = JSON.parse(ev.target.result);
+                if (data.channels) {
+                    allData = data.channels;
+                    saveLocalData();
+                }
+                if (data.settings) {
+                    settings = { ...settings, ...data.settings };
+                    saveSettings();
+                    applySettings();
+                }
+                updateStats();
+                renderFrontend();
+                renderAdminList();
+                alert("Backup imported successfully!");
+            } catch(err) {
+                alert("Invalid backup file!");
+            }
+        };
+        reader.readAsText(file);
+        e.target.value = "";
+    }
+
+    function restoreEmergencyBackup() {
+        if (!confirm("Restore last emergency backup? Current data will be overwritten.")) return;
+        const ch = localStorage.getItem('startv_emergency_backup_channels');
+        const st = localStorage.getItem('startv_emergency_backup_settings');
+        if (ch) {
+            allData = JSON.parse(ch);
+            saveLocalData();
+        }
+        if (st) {
+            settings = JSON.parse(st);
+            saveSettings();
+            applySettings();
+        }
+        updateStats();
+        renderFrontend();
+        renderAdminList();
+        alert("Emergency backup restored!");
+    }
+
+    function hardFactoryReset() {
+        if (!confirm("FACTORY RESET: This will wipe ALL data and restore defaults. Continue?")) return;
+        if (!confirm("Are you absolutely sure?")) return;
+        localStorage.clear();
+        localStorage.setItem("clean_install_v13", "true");
+        location.reload();
+    }
+
+    // Secret tap on logo (5 taps) → open admin
+    let logoTaps = 0;
+    let logoTimer = null;
+    function emergencyLogoTap() {
+        logoTaps++;
+        clearTimeout(logoTimer);
+        logoTimer = setTimeout(() => logoTaps = 0, 1500);
+        if (logoTaps >= 5) {
+            logoTaps = 0;
+            openAdmin();
+        }
+    }
+
+    // Start
+    initApp();
+  </script>
+</body>
+</html>
